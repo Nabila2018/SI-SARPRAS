@@ -11,7 +11,8 @@ class FotoLaporan extends Model
 
     protected $table = 'foto_laporan';
     protected $primaryKey = 'id_foto';
-
+    public $timestamps = false;
+    
     protected $fillable = [
         'id_laporan',
         'file_foto',

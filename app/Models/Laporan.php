@@ -11,6 +11,7 @@ class Laporan extends Model
 
     protected $table = 'laporan';
     protected $primaryKey = 'id_laporan';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_lokasi',

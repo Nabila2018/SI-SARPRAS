@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Laporan;
+use App\Models\FotoLaporan;
+use App\Models\Pasar;
+use App\Models\Fasilitas;
+use App\Models\Lokasi;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class LaporanController extends Controller
+{
+    // Tampilkan form buat laporan (UPTD)
+    public function create()
+{
+    $user = auth()->user();
+    
+    // UPTD hanya bisa lihat pasar miliknya
+    if ($user->role->nama_role === 'Petugas UPTD') {
+        $pasar = Pasar::where('id_pasar', $user->id_pasar)->get();
+        $pasarTerpilih = $user->id_pasar;
+    } else {
+        $pasar = Pasar::all();
+        $pasarTerpilih = null;
+    }
+    
+    $fasilitas = Fasilitas::all();
+    $kategoriLaporan = ['Sanitasi & Air', 'Instalasi Listrik', 'Prasarana Bangunan', 'Fasilitas Umum'];
+    
+    return view('laporan.create', compact('pasar', 'fasilitas', 'kategoriLaporan', 'pasarTerpilih'));
+}
+
+    // Simpan laporan baru
+    public function store(Request $request)
+    {
+        $request->validate([
+            'id_pasar' => 'required|exists:pasar,id_pasar',
+            'id_lokasi' => 'required|exists:lokasi,id_lokasi',
+            'id_fasilitas' => 'required|exists:fasilitas,id_fasilitas',
+            'kategori_laporan' => 'required|in:Sanitasi & Air,Instalasi Listrik,Prasarana Bangunan,Fasilitas Umum',
+            'item_kerusakan' => 'required|string|max:100',
+            'lokasi_spesifik' => 'nullable|string|max:255',
+            'deskripsi_kerusakan' => 'required|string',
+            'kondisi_diharapkan' => 'required|string',
+            'foto_laporan' => 'required|array|min:1',
+            'foto_laporan.*' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Simpan laporan
+            $laporan = Laporan::create([
+                'id_lokasi' => $request->id_lokasi,
+                'id_fasilitas' => $request->id_fasilitas,
+                'id_pelapor' => auth()->user()->id_user,
+                'id_spj' => null,
+                'kategori_laporan' => $request->kategori_laporan,
+                'item_kerusakan' => $request->item_kerusakan,
+                'lokasi_spesifik' => $request->lokasi_spesifik,
+                'deskripsi_kerusakan' => $request->deskripsi_kerusakan,
+                'kondisi_diharapkan' => $request->kondisi_diharapkan,
+                'tanggal_lapor' => now(),
+                'status_laporan' => 'Menunggu',
+            ]);
+
+            // Simpan foto 
+            if ($request->hasFile('foto_laporan')) {
+                foreach ($request->file('foto_laporan') as $foto) {
+                    $path = $foto->store('laporan', 'public');
+                    
+                    FotoLaporan::create([
+                        'id_laporan' => $laporan->id_laporan,
+                        'file_foto' => $path,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('laporan.index')
+                ->with('success', 'Laporan berhasil dikirim!');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    // Riwayat laporan (UPTD)
+    public function index()
+    {
+        $laporan = Laporan::where('id_pelapor', auth()->user()->id_user)
+             ->with([
+                 'lokasi.pasar',
+                 'fasilitas'
+         ])
+         ->orderBy('tanggal_lapor', 'desc')
+         ->paginate(5);
+
+        return view('laporan.index', compact('laporan'));
+    }
+
+    // Detail laporan
+    public function show($id)
+    {
+        $laporan = Laporan::with(['lokasi', 'fasilitas', 'fotoLaporan', 'pelapor'])->findOrFail($id);
+        return view('laporan.show', compact('laporan'));
+    }
+}
