@@ -127,6 +127,10 @@ class LaporanController extends Controller
             'pelapor'
         ])->findOrFail($id);
 
+        $laporan->load(['fotoLaporan' => function ($query) use ($laporan) {
+            $query->where('id_laporan', $laporan->getKey());
+        }]);
+
         // UPTD hanya boleh lihat laporan sendiri
         if (
             auth()->user()->role->nama_role === 'Petugas UPTD'

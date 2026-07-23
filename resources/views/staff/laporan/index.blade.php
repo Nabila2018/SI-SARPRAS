@@ -37,21 +37,115 @@
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
 
         <!-- Card Header -->
-        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center gap-2">
-            <svg class="w-5 h-5 text-[#114F72]"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#114F72]"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
 
-            <h2 class="text-lg font-semibold text-gray-800">
-                Laporan Masuk
-            </h2>
+                <h2 class="text-lg font-semibold text-gray-800">
+                    Laporan Masuk
+                </h2>
+            </div>
+
+            <form method="GET" action="{{ route('staff.laporan.index') }}" class="flex items-center gap-2">
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           value="{{ request('search') }}"
+                           placeholder="Cari"
+                           onkeydown="if(event.key === 'Enter'){ this.form.submit(); }"
+                           class="w-[220px] rounded-full border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20">
+                </div>
+
+                <div class="relative">
+                    <button type="button"
+                            id="filterToggle"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-[#114F72] transition-colors"
+                            aria-label="Filter">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V20a1 1 0 01-1.447.894l-2-1A1 1 0 0110 19v-5.586L3.293 6.707A1 1 0 013 6V4z"/>
+                        </svg>
+                    </button>
+
+                    <div id="filterPopover" class="absolute right-0 top-11 z-10 hidden w-52 rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                        <div class="space-y-3">
+                            <div>
+                                <label for="pasar" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                    Pasar
+                                </label>
+                                <select id="pasar"
+                                        name="pasar"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20"
+                                        onchange="this.form.submit()">
+                                    <option value="">Semua Pasar</option>
+                                    @foreach($pasarList as $pasar)
+                                        <option value="{{ $pasar->id_pasar }}" {{ request('pasar') == $pasar->id_pasar ? 'selected' : '' }}>
+                                            {{ $pasar->nama_pasar }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="status" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                    Status
+                                </label>
+                                <select id="status"
+                                        name="status"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20"
+                                        onchange="this.form.submit()">
+                                    <option value="">Semua Status</option>
+                                    @foreach($statusList as $statusOption)
+                                        <option value="{{ $statusOption }}" {{ request('status') == $statusOption ? 'selected' : '' }}>
+                                            {{ $statusOption }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const toggle = document.getElementById('filterToggle');
+                const popover = document.getElementById('filterPopover');
+
+                if (!toggle || !popover) return;
+
+                toggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    popover.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function () {
+                    popover.classList.add('hidden');
+                });
+
+                popover.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+            });
+        </script>
 
         @if($laporan->count() > 0)
 
@@ -65,17 +159,15 @@
                                 No
                             </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Pelapor
+                                Pasar
                             </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Fasilitas
                             </th>
+
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Lokasi
-                            </th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Tanggal
-                            </th>
+                                Tanggal   
+
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
@@ -94,13 +186,10 @@
                                     {{ $laporan->firstItem() + $index }}
                                 </td>
 
-                                <!-- Pelapor -->
+                                <!-- Pasar -->
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-medium text-gray-800">
-                                        {{ $l->pelapor->nama_lengkap ?? '-' }}
-                                    </p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ $l->pelapor->role->nama_role ?? '-' }}
+                                        {{ $l->lokasi->pasar->nama_pasar ?? '-' }}
                                     </p>
                                 </td>
 
@@ -113,16 +202,7 @@
                                         {{ $l->kategori_laporan }}
                                     </p>
                                 </td>
-
-                                <!-- Lokasi -->
-                                <td class="px-6 py-4">
-                                    <p class="text-sm text-gray-700">
-                                        {{ $l->lokasi->nama_lokasi ?? '-' }}
-                                    </p>
-                                    <p class="text-xs text-gray-400">
-                                        {{ $l->lokasi->pasar->nama_pasar ?? '-' }}
-                                    </p>
-                                </td>
+                        
 
                                 <!-- Tanggal -->
                                 <td class="px-6 py-4 text-sm text-gray-600">
