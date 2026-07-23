@@ -64,6 +64,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:Staff Sarana dan Prasarana'])->group(function () {
         Route::get('/staff/laporan', [StaffLaporanController::class, 'index'])
             ->name('staff.laporan.index');
+
+        Route::post('/staff/laporan/{id}/evaluasi', [StaffLaporanController::class, 'storeEvaluation'])
+            ->name('staff.laporan.evaluasi.store');
+
+        Route::post('/staff/laporan/{id}/forward', [StaffLaporanController::class, 'forwardToKabid'])
+            ->name('staff.laporan.forward');
     });
 
 

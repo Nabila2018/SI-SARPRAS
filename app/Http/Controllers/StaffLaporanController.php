@@ -25,6 +25,58 @@ class StaffLaporanController extends Controller
         return view('staff.laporan.index', compact('laporan', 'pasarList', 'statusList'));
     }
 
+    public function storeEvaluation(Request $request, $id)
+    {
+        $laporan = Laporan::findOrFail($id);
+
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        if ($laporan->status_laporan !== 'Menunggu') {
+            return back()->with('error', 'Evaluasi hanya dapat dilakukan saat laporan masih berstatus Menunggu.');
+        }
+
+        $data = $request->validate([
+            'kategori_kerusakan' => ['required', 'in:Ringan,Sedang,Berat'],
+            'catatan_pemeriksaan' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $laporan->update([
+            'kategori_kerusakan' => $data['kategori_kerusakan'],
+            'catatan_pemeriksaan' => $data['catatan_pemeriksaan'],
+        ]);
+
+        return redirect()
+            ->route('laporan.show', $laporan->id_laporan)
+            ->with('success', 'Evaluasi berhasil disimpan.');
+    }
+
+    public function forwardToKabid($id)
+    {
+        $laporan = Laporan::findOrFail($id);
+
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        if ($laporan->status_laporan !== 'Menunggu') {
+            return back()->with('error', 'Laporan ini tidak dapat diteruskan karena status sudah berubah.');
+        }
+
+        if (empty($laporan->kategori_kerusakan) && empty($laporan->catatan_pemeriksaan)) {
+            return back()->with('error', 'Evaluasi harus diisi sebelum melanjutkan ke Kabid.');
+        }
+
+        $laporan->update([
+            'status_laporan' => 'Diproses',
+        ]);
+
+        return redirect()
+            ->route('laporan.show', $laporan->id_laporan)
+            ->with('success', 'Laporan berhasil diteruskan ke Kabid.');
+    }
+
     protected function applyFilters($query, Request $request)
     {
         $search = trim((string) $request->input('search', ''));

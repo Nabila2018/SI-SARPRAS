@@ -300,6 +300,16 @@
         }
     }
 
+    function showLokasiSelector(enabled) {
+        if (enabled) {
+            lokasiWrapper.classList.remove('hidden');
+            lokasiReadonly.classList.add('hidden');
+        } else {
+            lokasiWrapper.classList.add('hidden');
+            lokasiReadonly.classList.remove('hidden');
+        }
+    }
+
     function closeLokasiOptions() {
         lokasiOptions.classList.add('hidden');
     }
@@ -308,35 +318,56 @@
     function loadLokasi(pasarId) {
         if (!pasarId) {
             lokasiData = [];
-            setLokasiInputEnabled(false);
+            lokasiHidden.value = '';
+            lokasiReadonly.textContent = '';
             lokasiReadonly.classList.add('hidden');
+            lokasiWrapper.classList.add('hidden');
+            setLokasiInputEnabled(false);
             return;
         }
 
         fetch(`/api/lokasi/${pasarId}`)
             .then(response => response.json())
             .then(data => {
-                if (data.length === 1) {
-                    const lokasi = data[0];
-                    const displayName = lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi;
+                const locations = Array.isArray(data) ? data : [];
+                const hasChildLocations = locations.some(function(lokasi) {
+                    return lokasi.id_induk !== null && lokasi.id_induk !== undefined && lokasi.id_induk !== '';
+                });
+                const rootLocations = locations.filter(function(lokasi) {
+                    return lokasi.id_induk === null || lokasi.id_induk === undefined || lokasi.id_induk === '';
+                });
 
+                if (!locations.length) {
                     lokasiData = [];
-                    lokasiHidden.value = lokasi.id_lokasi;
-                    lokasiReadonly.textContent = displayName;
-                    lokasiReadonly.classList.remove('hidden');
+                    lokasiHidden.value = '';
+                    lokasiReadonly.textContent = '';
+                    lokasiReadonly.classList.add('hidden');
+                    lokasiWrapper.classList.add('hidden');
                     setLokasiInputEnabled(false);
                     return;
                 }
 
-                lokasiData = data.map(function(lokasi) {
+                if (!hasChildLocations && rootLocations.length === 1) {
+                    const lokasi = rootLocations[0];
+                    const displayName = lokasi.nama_lengkap || lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi;
+
+                    lokasiData = [];
+                    lokasiHidden.value = lokasi.id_lokasi;
+                    lokasiReadonly.textContent = displayName;
+                    showLokasiSelector(false);
+                    setLokasiInputEnabled(false);
+                    return;
+                }
+
+                lokasiData = locations.map(function(lokasi) {
                     return {
                         id: lokasi.id_lokasi,
-                        name: lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi,
+                        name: lokasi.nama_lengkap || lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi,
                     };
                 });
 
                 lokasiHidden.value = '';
-                lokasiReadonly.classList.add('hidden');
+                showLokasiSelector(true);
                 setLokasiInputEnabled(true);
                 lokasiInput.value = '';
                 renderLokasiOptions('');
@@ -345,7 +376,9 @@
                 console.error('Error:', error);
                 lokasiData = [];
                 lokasiHidden.value = '';
+                lokasiReadonly.textContent = '';
                 lokasiReadonly.classList.add('hidden');
+                lokasiWrapper.classList.add('hidden');
                 setLokasiInputEnabled(false);
             });
     }
