@@ -1,0 +1,120 @@
+﻿kode_lokasi,id_pasar,kode_induk,nama_lokasi,tipe_lokasi,tahun_mulai_dibangun,tahun_selesai_dibangun,luas_tanah,luas_bangunan,keterangan,sheet_sumber,baris_sumber
+PR-TI,1,,Pasar Raya Timur I,Pasar,2011,,28342,55583,,Table 1,7
+PR-TI-BLOK-I,1,PR-TI,Blok I,Blok,,,,7857,,Table 1,8
+PR-TI-BLOK-I-L1,1,PR-TI-BLOK-I,Lantai 1,Lantai,,,,2780.79,,Table 1,9
+PR-TI-BLOK-I-L2,1,PR-TI-BLOK-I,Lantai 2,Lantai,,,,2538.07,,Table 1,10
+PR-TI-BLOK-I-L3,1,PR-TI-BLOK-I,Lantai 3,Lantai,,,,2538.07,Tidak Aktif,Table 1,11
+PR-TI-BLOK-I-L4,1,PR-TI-BLOK-I,Lantai 4,Lantai,,,,2538.07,Masjid,Table 1,12
+PR-TI-BLOK-II,1,PR-TI,Blok II,Blok,2012,2015,13275,22703,,Table 1,13
+PR-TI-BLOK-II-BASEMENT,1,PR-TI-BLOK-II,Basement,Lantai,,,,4540.69,Sebagian Besar Tidak Aktif,Table 1,14
+PR-TI-BLOK-II-L1,1,PR-TI-BLOK-II,Lantai 1,Lantai,,,,4540.69,,Table 1,15
+PR-TI-BLOK-II-L2,1,PR-TI-BLOK-II,Lantai 2,Lantai,,,,4540.69,Sebagian Besar Tidak Aktif,Table 1,16
+PR-TI-BLOK-II-L3,1,PR-TI-BLOK-II,Lantai 3,Lantai,,,,4540.69,UKM : 7 Sanggar Tari : 1,Table 1,17
+PR-TI-BLOK-II-L4,1,PR-TI-BLOK-II,Lantai 4,Lantai,,,,4540.69,"Inkubasi, Posko ME",Table 1,18
+PR-TI-BLOK-II-L5,1,PR-TI-BLOK-II,Lantai 5,Lantai,,,,,HellyPad,Table 1,19
+PR-TI-BLOK-III,1,PR-TI,Blok III,Blok,2016,2017,13275,17176,,Table 1,20
+PR-TI-BLOK-III-BASEMENT,1,PR-TI-BLOK-III,Basement,Lantai,,,,2862.59,- Ruang Panel - Ruang Kontrol,Table 1,21
+PR-TI-BLOK-III-L1,1,PR-TI-BLOK-III,Lantai 1,Lantai,,,,2862.59,,Table 1,22
+PR-TI-BLOK-III-L2,1,PR-TI-BLOK-III,Lantai 2,Lantai,,,,2862.59,Sebagian Besar Tidak Aktif,Table 1,23
+PR-TI-BLOK-III-L3,1,PR-TI-BLOK-III,Lantai 3,Lantai,,,,2862.59,- Kantor Lurah - Kantor Bapenda - Stand UKM-UKM - BPR,Table 1,24
+PR-TI-BLOK-III-L4,1,PR-TI-BLOK-III,Lantai 4,Lantai,,,,2862.59,Ex. MPP,Table 1,25
+PR-TI-BLOK-III-L5,1,PR-TI-BLOK-III,Lantai 5,Lantai,,,,2862.59,HellyPad,Table 1,26
+PR-TI-BLOK-IV,1,PR-TI,Blok IV,Blok,2014,2016,1792,6391.48,,Table 1,27
+PR-TI-BLOK-IV-L1,1,PR-TI-BLOK-IV,Lantai 1,Lantai,,,,1597.87,,Table 1,28
+PR-TI-BLOK-IV-L2,1,PR-TI-BLOK-IV,Lantai 2,Lantai,,,,1597.87,,Table 1,29
+PR-TI-BLOK-IV-L3,1,PR-TI-BLOK-IV,Lantai 3,Lantai,,,,1597.87,Tidak Aktif,Table 1,30
+PR-TI-BLOK-IV-L4,1,PR-TI-BLOK-IV,Lantai 4,Lantai,,,,1597.87,Kantor,Table 1,31
+PR-TI-BLOK-BAGONJONG,1,PR-TI,Blok Bagonjong,Blok,2018,,,1455.11,,Table 1,32
+PR-TI-BLOK-BAGONJONG-LANTAI-1,1,PR-TI-BLOK-BAGONJONG,Lantai 1,Lantai,,,,1438.61,Pos Damkar (10-02- 2021),Table 2,4
+PR-TI-BLOK-BAGONJONG-LANTAI-2,1,PR-TI-BLOK-BAGONJONG,Lantai 2,Lantai,,,,16.5,Ruang Pengelola,Table 2,5
+PR-TII,1,,Pasar Raya Timur II,Pasar,,,34720,47904,,Table 2,6
+PR-TII-FI,1,PR-TII,Fase I,Fase,1962,,,4773.93,,Table 2,7
+PR-TII-FI-LANTAI-1,1,PR-TII-FI,Lantai 1,Lantai,,,,2507.42,,Table 2,8
+PR-TII-FI-LANTAI-2,1,PR-TII-FI,Lantai 2,Lantai,,,,2266.51,,Table 2,9
+PR-TII-FII,1,PR-TII,Fase II,Fase,1964,,,4734.45,,Table 2,10
+PR-TII-FII-LANTAI-1,1,PR-TII-FII,Lantai 1,Lantai,,,,2187.31,,Table 2,11
+PR-TII-FII-LANTAI-2,1,PR-TII-FII,Lantai 2,Lantai,,,,2547.14,,Table 2,12
+PR-TII-FIII,1,PR-TII,Fase III,Fase,1971,,,5021.65,,Table 2,13
+PR-TII-FIII-LANTAI-1,1,PR-TII-FIII,Lantai 1,Lantai,,,,2593.38,,Table 2,14
+PR-TII-FIII-LANTAI-2,1,PR-TII-FIII,Lantai 2,Lantai,,,,2428.27,,Table 2,15
+PR-TII-FIV,1,PR-TII,Fase IV,Fase,1972,,,8748.31,,Table 2,16
+PR-TII-FIV-LANTAI-1,1,PR-TII-FIV,Lantai 1,Lantai,,,,4297.34,,Table 2,17
+PR-TII-FIV-LANTAI-2,1,PR-TII-FIV,Lantai 2,Lantai,,,,4450.97,,Table 2,18
+PR-TII-FV,1,PR-TII,Fase V,Fase,1974,,,3714.85,,Table 2,19
+PR-TII-FV-LANTAI-1,1,PR-TII-FV,Lantai 1,Lantai,,,,1882.47,,Table 2,20
+PR-TII-FV-LANTAI-2,1,PR-TII-FV,Lantai 2,Lantai,,,,1832.38,,Table 2,21
+PR-TII-FVI,1,PR-TII,Fase VI,Fase,1976,,,2855.25,,Table 2,22
+PR-TII-FVI-LANTAI-1,1,PR-TII-FVI,Lantai 1,Lantai,,,,1463.32,,Table 2,23
+PR-TII-FVI-LANTAI-2,1,PR-TII-FVI,Lantai 2,Lantai,,,,1391.93,,Table 2,24
+PR-TII-FVII,1,PR-TII,Fase VII,Fase,2024,,,18056,,Table 2,25
+PR-TII-FVII-SEMI-BASEMENT,1,PR-TII-FVII,Semi Basement,Lantai,,,,4672,,Table 2,26
+PR-TII-FVII-LANTAI-1,1,PR-TII-FVII,Lantai 1,Lantai,,,,4680,,Table 2,27
+PR-TII-FVII-LANTAI-2,1,PR-TII-FVII,Lantai 2,Lantai,,,,4472,,Table 2,28
+PR-TII-FVII-LANTAI-3,1,PR-TII-FVII,Lantai 3,Lantai,,,,4232,Parkiran Roda 4,Table 2,29
+PR-TII-FVII-T,1,PR-TII,Fase VII Tambahan,Fase,,,,,,Table 2,30
+PR-TII-FVII-T-LANTAI-1,1,PR-TII-FVII-T,Lantai 1,Lantai,,,,1049.77,,Table 2,31
+PR-TII-FVII-T-LANTAI-2,1,PR-TII-FVII-T,Lantai 2,Lantai,,,,,Kosong,Table 2,32
+PR-B,1,,Pasar Raya Barat,Pasar,,,23565,37888,,Table 2,33
+PR-B-T1,1,PR-B,Tahap I,Tahap,1973,1982,7794.68,13947.45,,Table 2,34
+PR-B-T1-BLOK-B,1,PR-B-T1,Blok B,Blok,1973,1982,,2599.45,,Table 2,35
+PR-B-T1-BLOK-B-LANTAI-1,1,PR-B-T1-BLOK-B,Lantai 1,Lantai,,,,1430.92,,Table 2,36
+PR-B-T1-BLOK-B-LANTAI-2,1,PR-B-T1-BLOK-B,Lantai 2,Lantai,,,,1168.53,Kosong,Table 2,37
+PR-B-T1-BLOK-C,1,PR-B-T1,Blok C,Blok,1973,1982,,5633.5,,Table 2,38
+PR-B-T1-BLOK-C-LANTAI-1,1,PR-B-T1-BLOK-C,Lantai 1,Lantai,,,,3051.26,,Table 2,39
+PR-B-T1-BLOK-C-LANTAI-2,1,PR-B-T1-BLOK-C,Lantai 2,Lantai,,,,2582.24,Kosong,Table 3,4
+PR-B-T1-BLOK-D1,1,PR-B-T1,Blok D1,Blok,1973,1982,,1142.5,,Table 3,5
+PR-B-T1-BLOK-D1-LANTAI-1,1,PR-B-T1-BLOK-D1,Lantai 1,Lantai,,,,662.5,,Table 3,6
+PR-B-T1-BLOK-D1-LANTAI-2,1,PR-B-T1-BLOK-D1,Lantai 2,Lantai,,,,480,,Table 3,7
+PR-B-T1-BLOK-D2,1,PR-B-T1,Blok D2,Blok,1973,1982,,2285,,Table 3,8
+PR-B-T1-BLOK-D2-LANTAI-1,1,PR-B-T1-BLOK-D2,Lantai 1,Lantai,,,,1325,,Table 3,9
+PR-B-T1-BLOK-D2-LANTAI-2,1,PR-B-T1-BLOK-D2,Lantai 2,Lantai,,,,960,,Table 3,10
+PR-B-T1-BLOK-E,1,PR-B-T1,Blok E,Blok,1973,1982,,2287,,Table 3,11
+PR-B-T1-BLOK-E-LANTAI-1,1,PR-B-T1-BLOK-E,Lantai 1,Lantai,,,,1325,,Table 3,12
+PR-B-T1-BLOK-E-LANTAI-2,1,PR-B-T1-BLOK-E,Lantai 2,Lantai,,,,962,,Table 3,13
+PR-B-T2,1,PR-B,Tahap II ,Tahap,1985,,2706,5523.34,,Table 3,14
+PR-B-T2-MERLIN-LANTAI-1,1,PR-B-T2,Merlin Lantai 1,Lantai,,,,2749.97,,Table 3,15
+PR-B-T2-MERLIN-LANTAI-2,1,PR-B-T2,Merlin Lantai 2,Lantai,,,,2773.37,,Table 3,16
+PR-B-T3,1,PR-B,Tahap III ,Tahap,,,3621,7860.76,,Table 3,17
+PR-B-T3-KOPPAS-LANTAI-1,1,PR-B-T3,Koppas Lantai 1,Lantai,,,,3930.38,,Table 3,18
+PR-B-T3-KOPPAS-LANTAI-2,1,PR-B-T3,Koppas Lantai 2,Lantai,,,,3930.38,,Table 3,19
+PR-B-T3-KOPPAS-LANTAI-3,1,PR-B-T3,Koppas Lantai 3,Lantai,,,,3930.38,,Table 3,20
+PR-B-BA,1,PR-B,Pertokoan Blok A,Area,1973,1982,5052,5590.29,,Table 3,21
+PR-B-BA-BLOK-A-LANTAI-1,1,PR-B-BA,Blok A Lantai 1,Lantai,,,,3815.45,,Table 3,22
+PR-B-BA-BLOK-A-LANTAI-2,1,PR-B-BA,Blok A Lantai 2,Lantai,,,,1774.84,,Table 3,23
+PR-B-LAP,1,PR-B,Pertokoan Lapangan,Area,,,535,607.82,,Table 3,24
+PR-B-RAJ,1,PR-B,Pertokoan Rajawali,Area,1975,,581,1314.56,,Table 3,25
+PR-B-RAJ-RAJAWALI-LANTAI-1,1,PR-B-RAJ,Rajawali Lantai 1,Lantai,,,,657.28,,Table 3,26
+PR-B-RAJ-RAJAWALI-LANTAI-2,1,PR-B-RAJ,Rajawali Lantai 2,Lantai,,,,657.28,,Table 3,27
+PR-B-ATOM,1,PR-B,Pertokoan Atom Shopping,Area,1975,,3275,3044,,Table 3,28
+PR-B-ATOM-LANTAI-1,1,PR-B-ATOM,Lantai 1,Lantai,,,,,,Table 3,29
+PR-B-ATOM-LANTAI-2,1,PR-B-ATOM,Lantai 2,Lantai,,,,,Kosong,Table 3,30
+PR-B-IPPI,1,PR-B,Pertokoan IPPI,Area,2022,,,,,Table 3,31
+PR-B-IPPI-LANTAI-1,1,PR-B-IPPI,Lantai 1,Lantai,,,,,,Table 3,32
+PR-B-PKL,1,PR-B,PKL,Area,,,,,,Table 3,33
+PR-B-PKL-JL-SANDANG-PANGAN-BAGIAN-BARAT,1,PR-B-PKL,Jl. Sandang Pangan Bagian Barat,Area,,,,,,Table 3,34
+PR-B-PKL-JL-SANDANG-PANGAN-BAGIAN-TIMUR,1,PR-B-PKL,Jl. Sandang Pangan Bagian Timur,Area,,,,,,Table 3,35
+PR-B-PKL-TWIN-LITE,1,PR-B-PKL,Twin Lite,Area,,,,,,Table 3,36
+PR-B-PKL-GANG-BERITA,1,PR-B-PKL,Gang Berita,Area,,,,,,Table 3,37
+PR-B-PKL-GANG-RAJAWALI,1,PR-B-PKL,Gang Rajawali,Area,,,,,,Table 3,38
+PR-B-PKL-LETTER-U,1,PR-B-PKL,Letter U,Area,,,,,,Table 3,39
+PR-B-TLA,1,PR-B,Terminal Lintas Andalas,Area,,,16002,,,Table 3,40
+P-TK,2,,Tanah Kongsi,Pasar,1976,2003,2000,2059,,Table 3,45
+P-UK,3,,Ulak Karang,Pasar,1977,2025,5777,2347,,Table 3,46
+P-AL,4,,Alai,Pasar,1973,2008,9294,6260.7,,Table 3,47
+P-SH,5,,Simpang Haru,Pasar,1973,2000,5000,2142,,Table 3,48
+P-NG,6,,Nanggalo,Pasar,1984,2017,4643,2521,,Table 3,50
+P-NG-LANTAI-1,6,P-NG,Lantai 1,Lantai,,,,,,Table 3,51
+P-NG-LANTAI-2,6,P-NG,Lantai 2,Lantai,,,,1303.67,,Table 3,52
+P-LB,7,,Lubuk Buaya,Pasar,1984,2020,23000,3168,,Table 3,53
+P-LB-L1,7,P-LB,Lantai 1,Lantai,,,,,,Table 3,54
+P-LB-T12,7,P-LB,Tahap I & II,Tahap,,,,,,Table 3,55
+P-LB-T12-LOS-IKAN,7,P-LB-T12,Los Ikan,Area,,,,,,Table 3,56
+P-LB-T12-LOS-DAGING,7,P-LB-T12,Los Daging,Area,,,,,,Table 3,57
+P-LB-T12-LOS-AYAM,7,P-LB-T12,Los Ayam,Area,,,,,,Table 3,58
+P-LB-T12-LOS-HASIL-BUMI,7,P-LB-T12,Los Hasil Bumi,Area,,,,,,Table 3,59
+P-LB-T12-BAGIAN-SELATAN,7,P-LB-T12,Bagian Selatan,Area,,,,,,Table 3,60
+P-LB-L2,7,P-LB,Lantai 2,Lantai,,,,,,Table 3,61
+P-BB,9,,Bandar Buat,Pasar,1982,2017,6944,6572.64,,Table 3,62
+P-BB-LANTAI-1,9,P-BB,Lantai 1,Lantai,,,,3286.32,WC Tidak Aktif,Table 3,63
+P-BB-LANTAI-2,9,P-BB,Lantai 2,Lantai,,,,3286.32,,Table 3,64
+P-BL,8,,Belimbing,Pasar,2018,2020,8764,4037.42,,Table 3,65

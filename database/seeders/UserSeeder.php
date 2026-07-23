@@ -32,6 +32,16 @@ class UserSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
+                'username' => 'uptd_alai',
+                'password' => Hash::make('password123'),
+                'nama_lengkap' => 'Petugas UPTD Pasar Alai',
+                'id_role' => 1,
+                'id_pasar' => 4,
+                'status_akun' => 'Aktif',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'username' => 'kabid',
                 'password' => Hash::make('password123'),
                 'nama_lengkap' => 'Kepala Bidang',

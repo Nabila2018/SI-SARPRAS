@@ -83,18 +83,19 @@
                 <!-- Lokasi -->
                 <div>
                     <label for="id_lokasi" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Lokasi Spesifik <span class="text-red-500">*</span>
+                        Lokasi <span class="text-red-500">*</span>
                     </label>
-                    <select name="id_lokasi" id="id_lokasi" required
-                        @if(auth()->user()->role->nama_role === 'Petugas UPTD')
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white"
-                        @else
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-gray-50"
-                            disabled
-                        @endif
-                        >
-                        <option value="">-- Pilih Lokasi --</option>
-                    </select>
+                    <input type="hidden" name="id_lokasi" value="">
+                    <div id="lokasi-wrapper" class="relative">
+                        <input type="text" id="lokasi-search" placeholder="Cari atau pilih lokasi..." autocomplete="off" disabled
+                            @if(auth()->user()->role->nama_role === 'Petugas UPTD')
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white"
+                            @else
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-gray-50"
+                            @endif>
+                        <div id="lokasi-options" class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg"></div>
+                    </div>
+                    <div id="lokasi-readonly" class="hidden w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-700 font-medium"></div>
                     @error('id_lokasi')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -160,15 +161,21 @@
                     @enderror
                 </div>
 
-                <!-- Lokasi Spesifik -->
+                <!-- Detail Lokasi Spesifik -->
                 <div>
                     <label for="lokasi_spesifik" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Detail Lokasi
+                         Detail Lokasi Spesifik
                     </label>
+
                     <input type="text" name="lokasi_spesifik" id="lokasi_spesifik"
-                        value="{{ old('lokasi_spesifik') }}"
-                        placeholder="Contoh: Dekat pintu masuk utama"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all">
+                         value="{{ old('lokasi_spesifik') }}"
+                         placeholder="Contoh: Di samping kios No. 12, dekat tangga"
+                         class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all">
+
+                    <p class="text-xs text-gray-400 mt-1">
+                         Tambahkan keterangan untuk mempermudah menemukan titik kerusakan.
+                    </p>
+
                     @error('lokasi_spesifik')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -247,33 +254,99 @@
 @section('scripts')
 <script>
     const pasarSelect = document.getElementById('id_pasar');
-    const lokasiSelect = document.getElementById('id_lokasi');
-    
+    const lokasiInput = document.getElementById('lokasi-search');
+    const lokasiOptions = document.getElementById('lokasi-options');
+    const lokasiWrapper = document.getElementById('lokasi-wrapper');
+    const lokasiHidden = document.querySelector('input[name="id_lokasi"]');
+    const lokasiReadonly = document.getElementById('lokasi-readonly');
+    let lokasiData = [];
+
+    function renderLokasiOptions(query = '') {
+        const searchQuery = query.toLowerCase();
+        const filtered = lokasiData.filter(function(item) {
+            return (item.name || '').toLowerCase().includes(searchQuery);
+        });
+
+        if (!filtered.length) {
+            lokasiOptions.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada lokasi yang sesuai</div>';
+            lokasiOptions.classList.remove('hidden');
+            return;
+        }
+
+        lokasiOptions.innerHTML = '';
+        filtered.forEach(function(item) {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors';
+            option.textContent = item.name;
+            option.addEventListener('click', function() {
+                lokasiInput.value = item.name;
+                lokasiHidden.value = item.id;
+                lokasiOptions.classList.add('hidden');
+            });
+            lokasiOptions.appendChild(option);
+        });
+
+        lokasiOptions.classList.remove('hidden');
+    }
+
+    function setLokasiInputEnabled(enabled) {
+        lokasiInput.disabled = !enabled;
+        if (!enabled) {
+            lokasiInput.value = '';
+            lokasiHidden.value = '';
+            lokasiOptions.innerHTML = '';
+            lokasiOptions.classList.add('hidden');
+        }
+    }
+
+    function closeLokasiOptions() {
+        lokasiOptions.classList.add('hidden');
+    }
+
     // Fungsi load lokasi
     function loadLokasi(pasarId) {
         if (!pasarId) {
-            lokasiSelect.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
-            lokasiSelect.disabled = true;
+            lokasiData = [];
+            setLokasiInputEnabled(false);
+            lokasiReadonly.classList.add('hidden');
             return;
         }
 
         fetch(`/api/lokasi/${pasarId}`)
             .then(response => response.json())
             .then(data => {
-                let options = '<option value="">-- Pilih Lokasi --</option>';
-                
-                // Format: "Parent > Child > Grandchild" untuk hierarki jelas
-                data.forEach(function(lokasi) {
-                    let displayName = lokasi.nama_lengkap || lokasi.nama_lokasi;
-                    options += `<option value="${lokasi.id_lokasi}">${displayName}</option>`;
+                if (data.length === 1) {
+                    const lokasi = data[0];
+                    const displayName = lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi;
+
+                    lokasiData = [];
+                    lokasiHidden.value = lokasi.id_lokasi;
+                    lokasiReadonly.textContent = displayName;
+                    lokasiReadonly.classList.remove('hidden');
+                    setLokasiInputEnabled(false);
+                    return;
+                }
+
+                lokasiData = data.map(function(lokasi) {
+                    return {
+                        id: lokasi.id_lokasi,
+                        name: lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi,
+                    };
                 });
-                
-                lokasiSelect.innerHTML = options;
-                lokasiSelect.disabled = false;
+
+                lokasiHidden.value = '';
+                lokasiReadonly.classList.add('hidden');
+                setLokasiInputEnabled(true);
+                lokasiInput.value = '';
+                renderLokasiOptions('');
             })
             .catch(error => {
                 console.error('Error:', error);
-                lokasiSelect.innerHTML = '<option value="">Gagal memuat lokasi</option>';
+                lokasiData = [];
+                lokasiHidden.value = '';
+                lokasiReadonly.classList.add('hidden');
+                setLokasiInputEnabled(false);
             });
     }
 
@@ -283,6 +356,24 @@
         loadLokasi(this.value);
     });
     @endif
+
+    lokasiInput.addEventListener('focus', function() {
+        if (lokasiData.length) {
+            renderLokasiOptions(this.value);
+        }
+    });
+
+    lokasiInput.addEventListener('input', function() {
+        if (lokasiData.length) {
+            renderLokasiOptions(this.value);
+        }
+    });
+
+    document.addEventListener('click', function(event) {
+        if (lokasiWrapper && !lokasiWrapper.contains(event.target)) {
+            closeLokasiOptions();
+        }
+    });
 
     // Auto-load lokasi saat halaman dimuat (untuk UPTD)
     document.addEventListener('DOMContentLoaded', function() {

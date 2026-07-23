@@ -44,7 +44,7 @@
             <p class="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3 px-2">Menu</p>
             
             {{-- DASHBOARD - Semua Role --}}
-            <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+            <a href="{{ route('home') }}" class="menu-item {{ request()->is('home') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
@@ -53,13 +53,13 @@
 
             {{-- MENU PETUGAS UPTD --}}
             @if(auth()->user()->role->nama_role === 'Petugas UPTD')
-                <a href="{{ route('laporan.create') }}" class="menu-item {{ request()->routeIs('laporan.create') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('laporan.create') }}" class="menu-item {{ request()->is('laporan/create') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     <span class="font-medium">Buat Laporan</span>
                 </a>
-                <a href="{{ route('laporan.index') }}" class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('laporan.index') }}" class="menu-item {{ request()->is('laporan') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
@@ -69,37 +69,31 @@
 
             {{-- MENU STAFF SARANA DAN PRASARANA --}}
             @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('staff.laporan.index') }}" class="menu-item {{ request()->is('staff/laporan*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <span class="font-medium">Daftar Laporan Masuk</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('staff/evaluasi*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="font-medium">Evaluasi</span>
-                </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
                     <span class="font-medium">RAB</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('staff/progress*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                     </svg>
                     <span class="font-medium">Progress Perbaikan</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('staff/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <span class="font-medium">SPJ & Realisasi</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('staff/akun*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
@@ -109,19 +103,19 @@
 
             {{-- MENU KEPALA BIDANG --}}
             @if(auth()->user()->role->nama_role === 'Kepala Bidang')
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('kabid/evaluasi*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <span class="font-medium">Daftar Evaluasi</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('kabid/rab*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="font-medium">Daftar RAB</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('kabid/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -131,13 +125,13 @@
 
             {{-- MENU KEPALA DINAS --}}
             @if(auth()->user()->role->nama_role === 'Kepala Dinas')
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('kadin/monitoring*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                     <span class="font-medium">Monitoring</span>
                 </a>
-                <a href="#" class="menu-item flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="#" class="menu-item {{ request()->is('kadin/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -145,6 +139,7 @@
                 </a>
             @endif
         </nav>
+       
 
         <!-- Profil User + Keluar (Kiri Bawah) -->
         <div class="p-4 border-t border-white/20">

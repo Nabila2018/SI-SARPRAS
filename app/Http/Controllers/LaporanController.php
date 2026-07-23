@@ -15,23 +15,31 @@ class LaporanController extends Controller
 {
     // Tampilkan form buat laporan (UPTD)
     public function create()
-{
-    $user = auth()->user();
-    
-    // UPTD hanya bisa lihat pasar miliknya
-    if ($user->role->nama_role === 'Petugas UPTD') {
-        $pasar = Pasar::where('id_pasar', $user->id_pasar)->get();
-        $pasarTerpilih = $user->id_pasar;
-    } else {
-        $pasar = Pasar::all();
-        $pasarTerpilih = null;
+    {
+        $user = auth()->user();
+
+        // UPTD hanya bisa lihat pasar miliknya
+        if ($user->role->nama_role === 'Petugas UPTD') {
+            $pasar = Pasar::where('id_pasar', $user->id_pasar)->get();
+            $pasarTerpilih = $user->id_pasar;
+        } else {
+            $pasar = Pasar::all();
+            $pasarTerpilih = null;
+        }
+
+        $fasilitas = Fasilitas::all();
+        $kategoriLaporan = [
+            'Sanitasi & Air',
+            'Instalasi Listrik',
+            'Prasarana Bangunan',
+            'Fasilitas Umum'
+        ];
+
+        return view(
+            'laporan.create',
+            compact('pasar', 'fasilitas', 'kategoriLaporan', 'pasarTerpilih')
+        );
     }
-    
-    $fasilitas = Fasilitas::all();
-    $kategoriLaporan = ['Sanitasi & Air', 'Instalasi Listrik', 'Prasarana Bangunan', 'Fasilitas Umum'];
-    
-    return view('laporan.create', compact('pasar', 'fasilitas', 'kategoriLaporan', 'pasarTerpilih'));
-}
 
     // Simpan laporan baru
     public function store(Request $request)
@@ -67,11 +75,11 @@ class LaporanController extends Controller
                 'status_laporan' => 'Menunggu',
             ]);
 
-            // Simpan foto 
+            // Simpan foto
             if ($request->hasFile('foto_laporan')) {
                 foreach ($request->file('foto_laporan') as $foto) {
                     $path = $foto->store('laporan', 'public');
-                    
+
                     FotoLaporan::create([
                         'id_laporan' => $laporan->id_laporan,
                         'file_foto' => $path,
@@ -81,25 +89,30 @@ class LaporanController extends Controller
 
             DB::commit();
 
-            return redirect()->route('laporan.index')
+            return redirect()
+                ->route('laporan.index')
                 ->with('success', 'Laporan berhasil dikirim!');
-
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+
+            return back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
     // Riwayat laporan (UPTD)
     public function index()
     {
-        $laporan = Laporan::where('id_pelapor', auth()->user()->id_user)
-             ->with([
-                 'lokasi.pasar',
-                 'fasilitas'
-         ])
-         ->orderBy('tanggal_lapor', 'desc')
-         ->paginate(5);
+        $laporan = Laporan::where(
+            'id_pelapor',
+            auth()->user()->id_user
+        )
+            ->with([
+                'lokasi.pasar',
+                'fasilitas'
+            ])
+            ->orderBy('tanggal_lapor', 'desc')
+            ->paginate(5);
 
         return view('laporan.index', compact('laporan'));
     }
@@ -107,7 +120,27 @@ class LaporanController extends Controller
     // Detail laporan
     public function show($id)
     {
-        $laporan = Laporan::with(['lokasi', 'fasilitas', 'fotoLaporan', 'pelapor'])->findOrFail($id);
+        $laporan = Laporan::with([
+            'lokasi.pasar',
+            'fasilitas',
+            'fotoLaporan',
+            'pelapor'
+        ])->findOrFail($id);
+
+        // UPTD hanya boleh lihat laporan sendiri
+        if (
+            auth()->user()->role->nama_role === 'Petugas UPTD'
+            && $laporan->id_pelapor !== auth()->user()->id_user
+        ) {
+            abort(403);
+        }
+
+        // Staff pakai view berbeda
+        if (auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana') {
+            return view('staff.laporan.show', compact('laporan'));
+        }
+
+        // Default: view UPTD
         return view('laporan.show', compact('laporan'));
     }
 }
