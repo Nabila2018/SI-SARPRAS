@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\StaffLaporanController;
-
+use App\Http\Controllers\VerifikasiLaporanController;
 // =======================
 // PUBLIC (Tanpa Login)
 // =======================
@@ -71,6 +71,29 @@ Route::middleware('auth')->group(function () {
         Route::post('/staff/laporan/{id}/forward', [StaffLaporanController::class, 'forwardToKabid'])
             ->name('staff.laporan.forward');
     });
+
+    // =======================
+    // VERIFIKASI LAPORAN - KABID
+    // =======================
+
+    // =======================
+    // VERIFIKASI LAPORAN - KABID
+    // =======================
+
+    Route::middleware(['role:Kepala Bidang'])->group(function () {
+
+        Route::get('/kabid/laporan', [VerifikasiLaporanController::class, 'index'])
+             ->name('kabid.laporan.index');
+
+        Route::get('/kabid/laporan/{id}', [VerifikasiLaporanController::class, 'show'])
+            ->name('kabid.laporan.show');
+
+        Route::post('/kabid/laporan/{id}/setujui', [VerifikasiLaporanController::class, 'setujui'])
+            ->name('kabid.laporan.setujui');
+        
+        Route::post('/kabid/laporan/{id}/kembalikan', [VerifikasiLaporanController::class, 'kembalikan'])
+            ->name('kabid.laporan.kembalikan');
+}); 
 
 
     // =======================

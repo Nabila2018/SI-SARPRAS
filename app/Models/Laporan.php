@@ -27,7 +27,6 @@ class Laporan extends Model
         'status_laporan',
         'kategori_kerusakan',
         'catatan_pemeriksaan',
-        'status_verifikasi_evaluasi',
         'catatan_revisi_evaluasi',
         'tanggal_verifikasi_evaluasi',
         'status_verifikasi_rab',
