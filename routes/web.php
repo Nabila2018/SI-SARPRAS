@@ -70,6 +70,20 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/staff/laporan/{id}/forward', [StaffLaporanController::class, 'forwardToKabid'])
             ->name('staff.laporan.forward');
+
+                // ===== RAB =====
+        Route::get('/staff/laporan/{id}/rab', [StaffLaporanController::class, 'showRab'])
+            ->name('staff.laporan.rab.show');
+
+        Route::post('/staff/laporan/{id}/rab', [StaffLaporanController::class, 'storeRab'])
+            ->name('staff.laporan.rab.store');
+
+        Route::post('/staff/laporan/{id}/rab/forward', [StaffLaporanController::class, 'forwardRab'])
+            ->name('staff.laporan.rab.forward');
+
+                // ===== DAFTAR RAB =====
+        Route::get('/staff/rab', [StaffLaporanController::class, 'indexRab'])
+            ->name('staff.rab.index');
     });
 
     // =======================

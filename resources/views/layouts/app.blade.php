@@ -75,12 +75,16 @@
                     </svg>
                     <span class="font-medium">Daftar Laporan Masuk</span>
                 </a>
-                <a href="#" class="menu-item {{ request()->is('staff/evaluasi*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+
+                 {{-- RAB --}}
+                <a href="{{ route('staff.rab.index') }}" 
+                   class="menu-item {{ request()->is('staff/rab*') || request()->is('staff/laporan/*/rab') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span class="font-medium">RAB</span>
                 </a>
+
                 <a href="#" class="menu-item {{ request()->is('staff/progress*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
@@ -197,12 +201,13 @@
             <div class="flex items-center justify-between px-8 py-4">
                 
                 <!-- Breadcrumb -->
+                                <!-- Breadcrumb -->
                 <div class="flex items-center gap-2 text-sm">
                     <span class="font-bold text-[#003366]">SI-SARPRAS</span>
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    <span class="text-gray-600">@yield('breadcrumb', 'Dashboard')</span>
+                    <span class="text-gray-600">{!! $__env->yieldContent('breadcrumb') ?: 'Dashboard' !!}</span>
                 </div>
 
                 <!-- Notifikasi -->

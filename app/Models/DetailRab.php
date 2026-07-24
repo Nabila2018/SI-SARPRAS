@@ -11,6 +11,8 @@ class DetailRab extends Model
 
     protected $table = 'detail_rab';
     protected $primaryKey = 'id_detail_rab';
+    public $timestamps = false;  
+
 
     protected $fillable = [
         'id_laporan',

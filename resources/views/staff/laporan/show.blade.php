@@ -1,7 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Detail Laporan - SI-SARPRAS')
-@section('breadcrumb', 'Detail Laporan')
+@section('breadcrumb')
+    <a href="{{ route('staff.laporan.index') }}" class="hover:text-[#114F72] transition">Daftar Laporan Masuk</a>
+    <svg class="w-4 h-4 mx-2 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-600">Detail Laporan</span>
+@endsection
 
 @section('content')
 <div class="max-w-4xl mx-auto pb-12">
@@ -142,9 +148,6 @@
         </div>
     @endif
 
-
-
-
     <!-- Evaluasi -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
 
@@ -210,11 +213,23 @@
             </button>
 
             <button type="button"
-                    onclick="openForwardModal()"
-                    class="px-6 py-3 rounded-xl font-semibold shadow-md transition {{ $canForward ? 'bg-gradient-to-r from-[#114F72] to-[#16A394] text-white hover:opacity-90' : 'bg-gradient-to-r from-gray-300 to-gray-400 text-white cursor-not-allowed opacity-70' }}"
-                    {{ $canForward ? '' : 'disabled' }}>
-                Teruskan ke Kabid
-            </button>
+            onclick="openForwardModal()"
+            class="px-6 py-3 rounded-xl font-semibold shadow-md transition {{ $canForward ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90' : 'bg-gradient-to-r from-gray-300 to-gray-400 text-white cursor-not-allowed opacity-70' }}"
+            {{ $canForward ? '' : 'disabled' }}>
+        Teruskan ke Kabid
+    </button>
+
+             {{-- TOMBOL BUAT RAB --}}
+            @php
+                $canCreateRab = $laporan->status_laporan === 'Disetujui' && is_null($laporan->status_verifikasi_rab);
+            @endphp
+
+            <a href="{{ route('staff.laporan.rab.show', $laporan->id_laporan) }}"
+            class="px-6 py-3 rounded-xl font-semibold shadow-md transition {{ $canCreateRab ? 'bg-gradient-to-r from-[#114F72] to-[#16A394] text-white hover:opacity-90' : 'bg-gradient-to-r from-gray-300 to-gray-400 text-white cursor-not-allowed opacity-70 pointer-events-none' }}">
+            Buat RAB
+            </a>
+        </div>
+
             <form id="forwardForm" action="{{ route('staff.laporan.forward', $laporan->id_laporan) }}" method="POST" class="hidden">
                 @csrf
             </form>
