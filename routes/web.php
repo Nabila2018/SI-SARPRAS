@@ -6,6 +6,8 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\StaffLaporanController;
 use App\Http\Controllers\VerifikasiLaporanController;
 use App\Http\Controllers\PengelolaanAkunController;
+use App\Http\Controllers\ProfileController;
+
 // =======================
 // PUBLIC (Tanpa Login)
 // =======================
@@ -28,7 +30,18 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
 
+    // =======================
+    // PROFIL
+    // =======================
 
+    Route::get('/profil', [ProfileController::class, 'show'])
+        ->name('profil.show');
+
+    Route::patch('/profil', [ProfileController::class, 'update'])
+        ->name('profil.update');
+
+    Route::patch('/profil/password', [ProfileController::class, 'updatePassword'])
+        ->name('profil.password.update');
     // =======================
     // HOME
     // =======================
@@ -104,9 +117,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // VERIFIKASI LAPORAN - KABID
     // =======================
 
-    // =======================
-    // VERIFIKASI LAPORAN - KABID
-    // =======================
 
     Route::middleware(['role:Kepala Bidang'])->group(function () {
 

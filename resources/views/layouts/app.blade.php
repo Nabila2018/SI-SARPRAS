@@ -24,7 +24,7 @@
 <body class="bg-gray-100 min-h-screen flex">
 
     <!-- SIDEBAR KIRI -->
-    <aside class="sidebar-gradient w-64 min-h-screen flex flex-col text-white fixed left-0 top-0 z-50">
+    <aside class="sidebar-gradient w-64 h-screen flex flex-col text-white fixed left-0 top-0 z-50">
         
         <!-- Logo -->
         <div class="p-6 flex items-center gap-3 border-b border-white/20">
@@ -170,16 +170,25 @@
        
 
         <!-- Profil User + Keluar (Kiri Bawah) -->
-        <div class="p-4 border-t border-white/20">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">
-                    {{ substr(auth()->user()->nama_lengkap ?? 'A', 0, 1) }}
+        <div class="p-4 border-t border-white/20 space-y-3">
+            <a href="{{ route('profil.show') }}"
+               title="Lihat Profil"
+               class="flex items-center gap-3 p-2.5 rounded-lg transition-all hover:bg-white/10 cursor-pointer">
+
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                    {{ strtoupper(substr(auth()->user()->nama_lengkap ?? 'A', 0, 1)) }}
                 </div>
+
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold truncate">{{ auth()->user()->nama_lengkap ?? 'Admin' }}</p>
-                    <p class="text-xs text-white/70 truncate">{{ auth()->user()->role->nama_role ?? 'Staff' }}</p>
+                    <p class="text-sm font-semibold truncate">
+                        {{ auth()->user()->nama_lengkap ?? 'Admin' }}
+                    </p>
+                    <p class="text-xs text-white/70 truncate">
+                        {{ auth()->user()->role->nama_role ?? 'Staff' }}
+                    </p>
                 </div>
-            </div>
+
+            </a>
             
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
