@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\StaffLaporanController;
 use App\Http\Controllers\VerifikasiLaporanController;
+use App\Http\Controllers\PengelolaanAkunController;
 // =======================
 // PUBLIC (Tanpa Login)
 // =======================
@@ -19,8 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // PROTECTED (Harus Login)
 // =======================
 
-Route::middleware('auth')->group(function () {
-
+Route::middleware(['auth', 'account.active'])->group(function () {
     // =======================
     // AUTH
     // =======================
@@ -84,6 +84,20 @@ Route::middleware('auth')->group(function () {
                 // ===== DAFTAR RAB =====
         Route::get('/staff/rab', [StaffLaporanController::class, 'indexRab'])
             ->name('staff.rab.index');
+
+         // PENGELOLAAN AKUN
+        Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])
+        ->name('staff.akun.index');
+            
+        Route::patch('/staff/akun/{id}/status', [PengelolaanAkunController::class, 'toggleStatus'])
+        ->name('staff.akun.toggle-status');
+
+        Route::patch('/staff/akun/{id}', [PengelolaanAkunController::class, 'update'])
+        ->name('staff.akun.update');
+
+        Route::post('/staff/akun', [PengelolaanAkunController::class, 'store'])
+        ->name('staff.akun.store');
+
     });
 
     // =======================

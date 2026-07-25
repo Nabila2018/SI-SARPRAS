@@ -23,14 +23,19 @@ class AuthController extends Controller
         'password' => 'required|string',
     ]);
 
-    $credentials = $request->only('username', 'password');
+    $credentials = [
+        'username' => $request->username,
+        'password' => $request->password,
+        'status_akun' => 'Aktif',
+    ];
 
     if (Auth::attempt($credentials)) {
+
         $request->session()->regenerate();
-        
+
         // Redirect berdasarkan role
         $role = auth()->user()->role->nama_role;
-        
+
         return match ($role) {
             'Petugas UPTD' => redirect()->route('home'),
             'Staff Sarana dan Prasarana' => redirect()->route('home'),
@@ -41,7 +46,7 @@ class AuthController extends Controller
     }
 
     return back()->withErrors([
-        'username' => 'Username atau password salah.',
+        'username' => 'Username atau password salah, atau akun sedang nonaktif.',
     ])->onlyInput('username');
 }
 
