@@ -21,7 +21,7 @@ class CheckAccountStatus
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'username' => 'Akun Anda telah dinonaktifkan. Silakan hubungi Staff Sarana dan Prasarana.'
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi Staff Sarana dan Prasarana.'
                 ]);
         }
 

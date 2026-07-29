@@ -11,6 +11,7 @@ class ProgresPerbaikan extends Model
 
     protected $table = 'progres_perbaikan';
     protected $primaryKey = 'id_progres';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_laporan',

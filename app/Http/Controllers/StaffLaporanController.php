@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Laporan;
 use App\Models\Pasar;
 use App\Models\DetailRab;
+use App\Models\ProgresPerbaikan;
+use App\Models\FotoProgres;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -258,5 +260,77 @@ class StaffLaporanController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * Simpan progres perbaikan laporan (0%, 50%, 100%).
+     */
+    public function storeProgres(Request $request, $id)
+    {
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $laporan = Laporan::with('progresPerbaikan')->findOrFail($id);
+
+        if ($laporan->status_verifikasi_rab !== 'Disetujui') {
+            return back()->with('error', 'Progres perbaikan hanya dapat ditambahkan setelah RAB disetujui oleh Kabid.');
+        }
+
+        $existingStages = $laporan->progresPerbaikan->pluck('persentase_penyelesaian')->toArray();
+
+        // Tentukan tahap selanjutnya
+        $nextStage = null;
+        if (!in_array('0', $existingStages)) {
+            $nextStage = '0';
+        } elseif (!in_array('50', $existingStages)) {
+            $nextStage = '50';
+        } elseif (!in_array('100', $existingStages)) {
+            $nextStage = '100';
+        } else {
+            return back()->with('error', 'Seluruh tahap progres perbaikan (100%) sudah lengkap.');
+        }
+
+        $validated = $request->validate([
+            'keterangan_perkembangan' => ['required', 'string', 'max:2000'],
+            'foto_progres' => ['required', 'array', 'min:1'],
+            'foto_progres.*' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:4096'],
+        ], [
+            'keterangan_perkembangan.required' => 'Keterangan perkembangan wajib diisi.',
+            'foto_progres.required' => 'Minimal 1 foto progres wajib diunggah.',
+            'foto_progres.min' => 'Minimal 1 foto progres wajib diunggah.',
+            'foto_progres.*.image' => 'File foto harus berupa gambar (jpg, jpeg, png).',
+            'foto_progres.*.max' => 'Ukuran file foto maksimal 4 MB.',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $progres = ProgresPerbaikan::create([
+                'id_laporan' => $laporan->id_laporan,
+                'persentase_penyelesaian' => $nextStage,
+                'keterangan_perkembangan' => $validated['keterangan_perkembangan'],
+                'tanggal_update' => now(),
+            ]);
+
+            if ($request->hasFile('foto_progres')) {
+                foreach ($request->file('foto_progres') as $file) {
+                    $path = $file->store('progres', 'public');
+                    FotoProgres::create([
+                        'id_progres' => $progres->id_progres,
+                        'file_foto' => $path,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('laporan.show', $laporan->id_laporan)
+                ->with('success', "Progres perbaikan Tahap {$nextStage}% berhasil disimpan.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

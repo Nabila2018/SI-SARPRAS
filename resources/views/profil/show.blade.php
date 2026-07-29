@@ -113,18 +113,6 @@
             </div>
 
 
-            {{-- USERNAME --}}
-            <div>
-                <p class="text-sm text-gray-500">
-                    Username
-                </p>
-
-                <p class="mt-1 font-medium text-gray-800">
-                    {{ $user->username }}
-                </p>
-            </div>
-
-
             {{-- EMAIL --}}
             <div>
                 <p class="text-sm text-gray-500">
@@ -277,7 +265,6 @@
                               focus:border-[#16A394] focus:ring-0">
             </div>
 
-
             {{-- EMAIL --}}
             <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">
@@ -292,6 +279,12 @@
                        class="w-full rounded-lg border border-gray-300
                               px-4 py-2.5 text-sm outline-none
                               focus:border-[#16A394] focus:ring-0">
+
+                @error('email')
+                    <p class="mt-1 text-sm text-red-500">
+                        {{ $message }}
+                    </p>
+                @enderror
             </div>
 
 
@@ -359,15 +352,29 @@
                     Password Saat Ini
                 </label>
 
-                <input type="password"
-                       id="current_password"
-                       name="current_password"
-                       required
-                       autocomplete="current-password"
-                       class="w-full rounded-lg border border-gray-300
-                              px-4 py-3 text-sm text-gray-800
-                              outline-none transition
-                              focus:border-[#16A394] focus:ring-0">
+                <div class="relative">
+                    <input type="password"
+                           id="current_password"
+                           name="current_password"
+                           required
+                           autocomplete="current-password"
+                           class="w-full rounded-lg border border-gray-300
+                                  pl-4 pr-10 py-3 text-sm text-gray-800
+                                  outline-none transition
+                                  focus:border-[#16A394] focus:ring-0">
+                    <button type="button" 
+                            onclick="toggleProfilPassword('current_password', this)"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                        <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                        </svg>
+                    </button>
+                </div>
 
                 @error('current_password')
                     <p class="mt-1 text-sm text-red-500">
@@ -378,33 +385,47 @@
 
 
             {{-- PASSWORD BARU --}}
-<div>
-    <label for="password"
-           class="mb-2 block text-sm font-medium text-gray-700">
-        Password Baru
-    </label>
+            <div>
+                <label for="password"
+                       class="mb-2 block text-sm font-medium text-gray-700">
+                    Password Baru
+                </label>
 
-    <input type="password"
-           id="password"
-           name="password"
-           required
-           minlength="8"
-           autocomplete="new-password"
-           class="w-full rounded-lg border border-gray-300
-                  px-4 py-3 text-sm text-gray-800
-                  outline-none transition
-                  focus:border-[#16A394] focus:ring-0">
+                <div class="relative">
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           minlength="8"
+                           autocomplete="new-password"
+                           class="w-full rounded-lg border border-gray-300
+                                  pl-4 pr-10 py-3 text-sm text-gray-800
+                                  outline-none transition
+                                  focus:border-[#16A394] focus:ring-0">
+                    <button type="button" 
+                            onclick="toggleProfilPassword('password', this)"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                        <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                        </svg>
+                    </button>
+                </div>
 
-    @error('password')
-        <p class="mt-1 text-sm text-red-500">
-            {{ $message }}
-        </p>
-    @enderror
+                @error('password')
+                    <p class="mt-1 text-sm text-red-500">
+                        {{ $message }}
+                    </p>
+                @enderror
 
-    <p class="mt-1 text-xs text-gray-400">
-        Minimal 8 karakter.
-    </p>
-</div>
+                <p class="mt-1 text-xs text-gray-400">
+                    Minimal 8 karakter.
+                </p>
+            </div>
 
 
             {{-- KONFIRMASI PASSWORD --}}
@@ -414,16 +435,31 @@
                     Konfirmasi Password Baru
                 </label>
 
-                <input type="password"
-                       id="password_confirmation"
-                       name="password_confirmation"
-                       required
-                       minlength="8"
-                       autocomplete="new-password"
-                       class="w-full rounded-lg border border-gray-300
-                              px-4 py-3 text-sm text-gray-800
-                              outline-none transition
-                              focus:border-[#16A394] focus:ring-0">
+                <div class="relative">
+                    <input type="password"
+                           id="password_confirmation"
+                           name="password_confirmation"
+                           required
+                           minlength="8"
+                           autocomplete="new-password"
+                           class="w-full rounded-lg border border-gray-300
+                                  pl-4 pr-10 py-3 text-sm text-gray-800
+                                  outline-none transition
+                                  focus:border-[#16A394] focus:ring-0">
+                    <button type="button" 
+                            onclick="toggleProfilPassword('password_confirmation', this)"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                        <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             </div>
 
 
@@ -455,6 +491,20 @@
 </div>
 
 <script>
+    function toggleProfilPassword(fieldId, btn) {
+        const input = document.getElementById(fieldId);
+        if (!input) return;
+        const isNowText = input.type === 'password';
+        input.type = isNowText ? 'text' : 'password';
+        
+        const eyeIcon = btn.querySelector('.icon-eye');
+        const eyeOffIcon = btn.querySelector('.icon-eye-off');
+        if (eyeIcon && eyeOffIcon) {
+            eyeIcon.classList.toggle('hidden', !isNowText);
+            eyeOffIcon.classList.toggle('hidden', isNowText);
+        }
+    }
+
     function openEditProfilModal() {
         const modal = document.getElementById('editProfilModal');
 

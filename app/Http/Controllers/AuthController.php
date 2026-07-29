@@ -17,24 +17,41 @@ class AuthController extends Controller
 
     // Proses login
     public function login(Request $request)
-{
-    $request->validate([
-        'username' => 'required|string',
-        'password' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
 
-    $credentials = [
-        'username' => $request->username,
-        'password' => $request->password,
-        'status_akun' => 'Aktif',
-    ];
+        // Step 1: Check credentials without status_akun constraint
+        $credentialsOnly = [
+            'email' => $request->email,
+            'password' => $request->password,
+        ];
 
-    if (Auth::attempt($credentials)) {
+        if (!Auth::attempt($credentialsOnly)) {
+            // Email does not exist OR password is wrong — do not reveal which
+            return back()->withErrors([
+                'email' => 'Email atau kata sandi salah.',
+            ])->onlyInput('email');
+        }
 
+        // Credentials are valid — now check account status
+        $user = Auth::user();
+        Auth::logout(); // Log them back out until we confirm active
+
+        if ($user->status_akun !== 'Aktif') {
+            return back()->withErrors([
+                'email' => 'Akun Anda sedang dinonaktifkan. Silakan hubungi pengelola sistem.',
+            ])->onlyInput('email');
+        }
+
+        // Step 2: Credentials valid + account active — log in properly
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
         // Redirect berdasarkan role
-        $role = auth()->user()->role->nama_role;
+        $role = $user->role->nama_role;
 
         return match ($role) {
             'Petugas UPTD' => redirect()->route('home'),
@@ -44,11 +61,6 @@ class AuthController extends Controller
             default => redirect()->route('home'),
         };
     }
-
-    return back()->withErrors([
-        'username' => 'Username atau password salah, atau akun sedang nonaktif.',
-    ])->onlyInput('username');
-}
 
     // Logout
     public function logout(Request $request)

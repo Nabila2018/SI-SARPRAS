@@ -176,6 +176,51 @@
             </div>
             @endif
 
+            <!-- Progres Perbaikan (Read-only UPTD) -->
+            @if($laporan->progresPerbaikan && $laporan->progresPerbaikan->count() > 0)
+            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Progres Perbaikan
+                    </h2>
+                    @php
+                        $latestStage = $laporan->progresPerbaikan->max('persentase_penyelesaian');
+                    @endphp
+                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-[#114F72] text-white">
+                        {{ $latestStage }}%
+                    </span>
+                </div>
+                <div class="p-6 space-y-4">
+                    @foreach($laporan->progresPerbaikan->sortBy('persentase_penyelesaian') as $progres)
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="inline-flex items-center rounded-lg bg-[#114F72] text-white px-2.5 py-0.5 text-xs font-bold">
+                                    Tahap {{ $progres->persentase_penyelesaian }}%
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    {{ \Carbon\Carbon::parse($progres->tanggal_update)->format('d F Y, H:i') }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-700 leading-relaxed mb-3">{{ $progres->keterangan_perkembangan }}</p>
+
+                            @if($progres->fotoProgres && $progres->fotoProgres->count() > 0)
+                                <div class="grid grid-cols-3 gap-2">
+                                    @foreach($progres->fotoProgres as $foto)
+                                        <div class="aspect-square rounded-lg overflow-hidden border border-gray-200">
+                                            <img src="{{ asset('storage/' . $foto->file_foto) }}" alt="Foto Progres" class="w-full h-full object-cover">
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
         </div>
 
         <!-- Kolom Kanan: Info Pelapor & Ringkasan -->
@@ -331,11 +376,11 @@
 
     document.addEventListener('keydown', function (e) {
         const modal = document.getElementById('fotoModal');
-        if (modal.classList.contains('hidden')) return;
-
-        if (e.key === 'Escape') closeFotoModal();
-        if (e.key === 'ArrowLeft') showPrevFoto();
-        if (e.key === 'ArrowRight') showNextFoto();
+        if (modal && !modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeFotoModal();
+            if (e.key === 'ArrowLeft') showPrevFoto();
+            if (e.key === 'ArrowRight') showNextFoto();
+        }
     });
 </script>
 @endif

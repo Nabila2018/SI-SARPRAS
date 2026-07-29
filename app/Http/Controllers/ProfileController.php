@@ -22,21 +22,27 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-    $user = auth()->user();
+        $user = auth()->user();
 
-    $validated = $request->validate([
-        'nama_lengkap' => 'required|string|max:100',
-        'email' => 'required|email|max:100|unique:user,email,' . $user->id_user . ',id_user',
-    ]);
+        $validated = $request->validate([
+            'nama_lengkap' => 'required|string|max:100',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:100',
+                \Illuminate\Validation\Rule::unique('user', 'email')->ignore($user->id_user, 'id_user'),
+            ],
+        ]);
 
-    $user->update([
-        'nama_lengkap' => $validated['nama_lengkap'],
-        'email' => $validated['email'],
-    ]);
+        $user->update([
+            'nama_lengkap' => $validated['nama_lengkap'],
+            'email' => $validated['email'],
+        ]);
 
-    return redirect()
-        ->route('profil.show')
-        ->with('success', 'Profil berhasil diperbarui.');
+        return redirect()
+            ->route('profil.show')
+            ->with('success', 'Profil berhasil diperbarui.');
     }
 
     public function updatePassword(Request $request)

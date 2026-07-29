@@ -18,13 +18,13 @@ class PengelolaanAkunController extends Controller
     {
         $query = User::with(['role', 'pasar']);
 
-        // Pencarian berdasarkan nama atau username
+        // Pencarian berdasarkan nama atau email
         if ($request->filled('search')) {
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -44,7 +44,7 @@ class PengelolaanAkunController extends Controller
     
     }
 
-        /**
+    /**
      * Mengaktifkan atau menonaktifkan akun pengguna.
      */
     public function toggleStatus($id)
@@ -70,16 +70,30 @@ class PengelolaanAkunController extends Controller
             'Status akun berhasil diperbarui.'
         );
     }
+
     /**
- * Memperbarui data akun pengguna.
- */
+     * Memperbarui data akun pengguna.
+     */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
+        $request->merge(['_form' => 'edit', '_edit_id' => $id]);
+
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:user,email,' . $user->id_user . ',id_user',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:100',
+                Rule::unique('user', 'email')->ignore($user->id_user, 'id_user'),
+            ],
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan oleh akun lain.',
         ]);
 
         $user->update([
@@ -95,10 +109,11 @@ class PengelolaanAkunController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['_form' => 'tambah']);
+
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:100',
-            'username' => 'required|string|max:50|unique:user,username',
-            'email' => 'required|email|max:100|unique:user,email',
+            'email' => 'required|string|email|max:100|unique:user,email',
             'id_role' => 'required|exists:role,id_role',
             'id_pasar' => [
                 'nullable',
@@ -108,6 +123,16 @@ class PengelolaanAkunController extends Controller
                 }),
             ],
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan oleh akun lain.',
+            'id_role.required' => 'Role wajib dipilih.',
+            'id_pasar.required_if' => 'Pasar wajib dipilih untuk Petugas UPTD.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak sesuai.',
         ]);
 
         // Pasar hanya boleh dimiliki Petugas UPTD
@@ -117,7 +142,6 @@ class PengelolaanAkunController extends Controller
 
         User::create([
             'nama_lengkap' => $validated['nama_lengkap'],
-            'username' => $validated['username'],
             'email' => $validated['email'],
             'id_role' => $validated['id_role'],
             'id_pasar' => $validated['id_pasar'] ?? null,
@@ -130,4 +154,4 @@ class PengelolaanAkunController extends Controller
             ->with('success', 'Akun berhasil ditambahkan.');
     }
 
-}
+}

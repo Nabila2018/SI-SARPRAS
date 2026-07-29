@@ -103,15 +103,22 @@ class LaporanController extends Controller
     // Riwayat laporan (UPTD)
     public function index()
     {
-        $laporan = Laporan::where(
-            'id_pelapor',
-            auth()->user()->id_user
-        )
-            ->with([
-                'lokasi.pasar',
-                'fasilitas'
-            ])
-            ->orderBy('tanggal_lapor', 'desc')
+        $user = auth()->user();
+
+        $query = Laporan::with([
+            'lokasi.pasar',
+            'fasilitas',
+            'pelapor'
+        ]);
+
+        // Scope laporan berdasarkan pasar (id_pasar) milik Petugas UPTD
+        if ($user->role->nama_role === 'Petugas UPTD') {
+            $query->whereHas('lokasi', function ($q) use ($user) {
+                $q->where('id_pasar', $user->id_pasar);
+            });
+        }
+
+        $laporan = $query->orderBy('tanggal_lapor', 'desc')
             ->paginate(5);
 
         return view('laporan.index', compact('laporan'));
@@ -124,19 +131,22 @@ class LaporanController extends Controller
             'lokasi.pasar',
             'fasilitas',
             'fotoLaporan',
-            'pelapor'
+            'pelapor',
+            'progresPerbaikan.fotoProgres'
         ])->findOrFail($id);
 
         $laporan->load(['fotoLaporan' => function ($query) use ($laporan) {
             $query->where('id_laporan', $laporan->getKey());
         }]);
 
-        // UPTD hanya boleh lihat laporan sendiri
-        if (
-            auth()->user()->role->nama_role === 'Petugas UPTD'
-            && $laporan->id_pelapor !== auth()->user()->id_user
-        ) {
-            abort(403);
+        // UPTD hanya boleh lihat laporan pada pasar yang sama (id_pasar)
+        if (auth()->user()->role->nama_role === 'Petugas UPTD') {
+            $userPasarId = auth()->user()->id_pasar;
+            $reportPasarId = $laporan->lokasi->id_pasar ?? null;
+
+            if ($reportPasarId !== $userPasarId) {
+                abort(403);
+            }
         }
 
         // Staff pakai view berbeda

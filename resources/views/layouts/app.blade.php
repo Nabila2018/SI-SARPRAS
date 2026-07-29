@@ -123,7 +123,7 @@
 
 
     {{-- Daftar RAB --}}
-    <a href="#"
+    <a href="{{ route('kabid.rab.index') }}"
        class="menu-item {{ request()->is('kabid/rab*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round"

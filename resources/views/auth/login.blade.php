@@ -100,8 +100,19 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Selamat Datang Kembali</h2>
                 <p class="text-gray-500 text-sm">Silakan masuk untuk melanjutkan</p>
             </div>
+            @if(session('status'))
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-green-800">Berhasil</p>
+                        <p class="text-sm text-green-700 mt-1">{{ session('status') }}</p>
+                    </div>
+                </div>
+            @endif
 
-            @if ($errors->any())
+            @if($errors->any())
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
                     <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -116,21 +127,21 @@
             <form action="{{ route('login') }}" method="POST" class="space-y-5">
                 @csrf
 
-                <!-- Username -->
+                <!-- Email -->
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                        Nama Pengguna
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
                         </div>
-                        <input type="text" name="username" id="username" 
+                        <input type="email" name="email" id="email" 
                             class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] transition-all"
-                            placeholder="Masukkan nama pengguna"
-                            value="{{ old('username') }}" required autofocus>
+                            placeholder="Masukkan email Anda"
+                            value="{{ old('email') }}" required autofocus>
                     </div>
                 </div>
 
@@ -146,22 +157,51 @@
                             </svg>
                         </div>
                         <input type="password" name="password" id="password" 
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] transition-all"
+                            class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] transition-all"
                             placeholder="Masukkan kata sandi" required>
+                        <button type="button" 
+                            onclick="togglePasswordVisibility('password', this)"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            title="Tampilkan / Sembunyikan Kata Sandi">
+                            <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Remember Me & Forgot Password -->
+                <script>
+                    function togglePasswordVisibility(fieldId, btn) {
+                        const input = document.getElementById(fieldId);
+                        if (!input) return;
+                        const isNowText = input.type === 'password';
+                        input.type = isNowText ? 'text' : 'password';
+                        
+                        const eyeIcon = btn.querySelector('.icon-eye');
+                        const eyeOffIcon = btn.querySelector('.icon-eye-off');
+                        if (eyeIcon && eyeOffIcon) {
+                            eyeIcon.classList.toggle('hidden', !isNowText);
+                            eyeOffIcon.classList.toggle('hidden', isNowText);
+                        }
+                    }
+                </script>
+
+                <!-- Remember Me & Lupa Password -->
                 <div class="flex items-center justify-between">
                     <label class="flex items-center cursor-pointer">
                         <input type="checkbox" name="remember" 
                             class="h-4 w-4 checkbox-navy rounded border-gray-300 text-[#003366] focus:ring-[#003366]">
                         <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
                     </label>
-                    <a href="#" class="text-sm font-medium text-[#007a3d] hover:text-[#006633] transition-colors">
+
+                    <a href="{{ route('password.request') }}" class="text-sm font-medium text-[#003366] hover:underline">
                         Lupa Kata Sandi?
                     </a>
-                </div>
+                </div>v>
 
                 <!-- Submit Button -->
                 <button type="submit" 

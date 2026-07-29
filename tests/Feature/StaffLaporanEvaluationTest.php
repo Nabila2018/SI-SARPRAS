@@ -39,7 +39,7 @@ class StaffLaporanEvaluationTest extends TestCase
         ]);
 
         $staff = User::create([
-            'username' => 'staff1',
+            'email' => 'staff1@sisarpras.test',
             'password' => Hash::make('password123'),
             'nama_lengkap' => 'Staff Uji',
             'id_role' => $role->id_role,

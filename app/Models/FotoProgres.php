@@ -11,6 +11,7 @@ class FotoProgres extends Model
 
     protected $table = 'foto_progres';
     protected $primaryKey = 'id_foto_progres';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_progres',

@@ -37,7 +37,7 @@ class StaffLaporanForwardTest extends TestCase
         $fasilitas = Fasilitas::create(['nama_fasilitas' => 'Kran Air']);
 
         $staff = User::create([
-            'username' => 'staffforward',
+            'email' => 'staffforward@sisarpras.test',
             'password' => Hash::make('password123'),
             'nama_lengkap' => 'Staff Uji',
             'id_role' => $role->id_role,

@@ -130,7 +130,7 @@
                 <thead class="bg-gray-50 text-gray-600">
                     <tr>
                         <th class="px-5 py-4 text-left">Nama</th>
-                        <th class="px-5 py-4 text-left">Username</th>
+                        <th class="px-5 py-4 text-left">Email</th>
                         <th class="px-5 py-4 text-left">Role</th>
                         <th class="px-5 py-4 text-left">Unit / Pasar</th>
                         <th class="px-5 py-4 text-left">Status</th>
@@ -149,9 +149,9 @@
                                 {{ $user->nama_lengkap }}
                             </td>
 
-                            {{-- USERNAME --}}
+                            {{-- EMAIL --}}
                             <td class="px-5 py-4 text-gray-600">
-                                {{ $user->username }}
+                                {{ $user->email }}
                             </td>
 
                             {{-- ROLE --}}
@@ -196,7 +196,6 @@
                                             {{ $user->id_user }},
                                             @js($user->nama_lengkap),
                                             @js($user->email),
-                                            @js($user->username),
                                             @js($user->role->nama_role ?? '-'),
                                             @js($user->pasar->nama_pasar ?? '-')
                                         )"
@@ -226,7 +225,7 @@
                     {{-- AKTIF / NONAKTIF --}}
                     @if($user->id_user === auth()->id())
 
-                        {{-- AKUN SENDIRI --}}
+                        {{-- AKUN SENDIRI: tombol status dinonaktifkan --}}
                         <button type="button"
                                 disabled
                                 title="Tidak dapat mengubah status akun sendiri"
@@ -246,7 +245,7 @@
 
                         </button>
 
-                   @else
+                    @else
 
                         <button type="button"
                                 onclick="openStatusModal(
@@ -273,9 +272,9 @@
                                     d="M12 2v10m6.364-7.364a9 9 0 11-12.728 0"/>
                             </svg>
 
-    </button>
+                        </button>
 
-@endif
+                    @endif
                                 </div>
 
                             </td>
@@ -325,6 +324,7 @@
                                                 method="POST">
 
                                                 @csrf
+                                                <input type="hidden" name="_form" value="tambah">
 
                                                 <div class="space-y-4">
 
@@ -336,24 +336,14 @@
 
                                                         <input type="text"
                                                             name="nama_lengkap"
+                                                            value="{{ old('_form') === 'tambah' ? old('nama_lengkap') : '' }}"
                                                             required
                                                             maxlength="100"
-                                                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5
+                                                            class="w-full rounded-lg border {{ old('_form') === 'tambah' && $errors->has('nama_lengkap') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
                                                                     focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
-                                                    </div>
-
-                                                    {{-- USERNAME --}}
-                                                    <div>
-                                                        <label class="mb-2 block text-sm font-medium text-gray-700">
-                                                            Username <span class="text-red-500">*</span>
-                                                        </label>
-
-                                                        <input type="text"
-                                                            name="username"
-                                                            required
-                                                            maxlength="50"
-                                                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5
-                                                                    focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                        @if(old('_form') === 'tambah' && $errors->has('nama_lengkap'))
+                                                            <p class="mt-1 text-xs text-red-500">{{ $errors->first('nama_lengkap') }}</p>
+                                                        @endif
                                                     </div>
 
                                                     {{-- EMAIL --}}
@@ -364,10 +354,14 @@
 
                                                         <input type="email"
                                                             name="email"
+                                                            value="{{ old('_form') === 'tambah' ? old('email') : '' }}"
                                                             required
                                                             maxlength="100"
-                                                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5
+                                                            class="w-full rounded-lg border {{ old('_form') === 'tambah' && $errors->has('email') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
                                                                     focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                        @if(old('_form') === 'tambah' && $errors->has('email'))
+                                                            <p class="mt-1 text-xs text-red-500">{{ $errors->first('email') }}</p>
+                                                        @endif
                                                     </div>
 
                                                     {{-- ROLE --}}
@@ -379,20 +373,23 @@
                                                         <select name="id_role"
                                                                 id="tambahRole"
                                                                 required
-                                                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5
+                                                                class="w-full rounded-lg border {{ old('_form') === 'tambah' && $errors->has('id_role') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
                                                                     focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
 
-                                                            <option value="" selected disabled>
+                                                            <option value="" {{ old('_form') === 'tambah' && old('id_role') ? '' : 'selected' }} disabled>
                                                                 Pilih Role
                                                             </option>
 
                                                             @foreach($roles as $role)
-                                                                <option value="{{ $role->id_role }}">
+                                                                <option value="{{ $role->id_role }}" {{ old('_form') === 'tambah' && old('id_role') == $role->id_role ? 'selected' : '' }}>
                                                                     {{ $role->nama_role }}
                                                                 </option>
                                                             @endforeach
 
                                                         </select>
+                                                        @if(old('_form') === 'tambah' && $errors->has('id_role'))
+                                                            <p class="mt-1 text-xs text-red-500">{{ $errors->first('id_role') }}</p>
+                                                        @endif
                                                     </div>
 
                                                     {{-- UNIT / PASAR --}}
@@ -404,7 +401,7 @@
                                                         <select name="id_pasar"
                                                                 id="tambahPasar"
                                                                 disabled
-                                                                class="w-full rounded-lg border border-gray-300
+                                                                class="w-full rounded-lg border {{ old('_form') === 'tambah' && $errors->has('id_pasar') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }}
                                                                     bg-gray-100 px-4 py-2.5 text-gray-500
                                                                     disabled:cursor-not-allowed">
 
@@ -412,10 +409,8 @@
                                                                 Pilih Unit / Pasar
                                                             </option>
 
-                                                            
-
                                                             @foreach($pasars as $pasar)
-                                                                <option value="{{ $pasar->id_pasar }}">
+                                                                <option value="{{ $pasar->id_pasar }}" {{ old('_form') === 'tambah' && old('id_pasar') == $pasar->id_pasar ? 'selected' : '' }}>
                                                                     {{ $pasar->nama_pasar }}
                                                                 </option>
                                                             @endforeach
@@ -426,6 +421,9 @@
                                                         class="mt-1.5 text-xs text-gray-400">
                                                             Unit/Pasar hanya digunakan untuk Petugas UPTD.
                                                         </p>
+                                                        @if(old('_form') === 'tambah' && $errors->has('id_pasar'))
+                                                            <p class="mt-1 text-xs text-red-500">{{ $errors->first('id_pasar') }}</p>
+                                                        @endif
                                                     </div>
 
                                                     {{-- PASSWORD --}}
@@ -434,12 +432,30 @@
                                                             Password Awal <span class="text-red-500">*</span>
                                                         </label>
 
-                                                        <input type="password"
-                                                            name="password"
-                                                            required
-                                                            minlength="8"
-                                                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5
-                                                                    focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                        <div class="relative">
+                                                            <input type="password"
+                                                                id="tambahPassword"
+                                                                name="password"
+                                                                required
+                                                                minlength="8"
+                                                                class="w-full rounded-lg border {{ old('_form') === 'tambah' && $errors->has('password') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} pl-4 pr-10 py-2.5
+                                                                        focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                            <button type="button" 
+                                                                    onclick="toggleAkunPassword('tambahPassword', this)"
+                                                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                                    title="Tampilkan / Sembunyikan Kata Sandi">
+                                                                <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                                </svg>
+                                                                <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                        @if(old('_form') === 'tambah' && $errors->has('password'))
+                                                            <p class="mt-1 text-xs text-red-500">{{ $errors->first('password') }}</p>
+                                                        @endif
                                                     </div>
 
                                                     {{-- KONFIRMASI PASSWORD --}}
@@ -448,12 +464,27 @@
                                                             Konfirmasi Password <span class="text-red-500">*</span>
                                                         </label>
 
-                                                        <input type="password"
-                                                            name="password_confirmation"
-                                                            required
-                                                            minlength="8"
-                                                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5
-                                                                    focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                        <div class="relative">
+                                                            <input type="password"
+                                                                id="tambahPasswordConfirmation"
+                                                                name="password_confirmation"
+                                                                required
+                                                                minlength="8"
+                                                                class="w-full rounded-lg border border-gray-300 pl-4 pr-10 py-2.5
+                                                                        focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                                                            <button type="button" 
+                                                                    onclick="toggleAkunPassword('tambahPasswordConfirmation', this)"
+                                                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                                    title="Tampilkan / Sembunyikan Kata Sandi">
+                                                                <svg class="h-5 w-5 icon-eye hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                                </svg>
+                                                                <svg class="h-5 w-5 icon-eye-off" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m-6.182-3.155a3 3 0 004.243-4.243M3 3l18 18"/>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     </div>
 
                                                 </div>
@@ -505,6 +536,8 @@
 
             @csrf
             @method('PATCH')
+            <input type="hidden" name="_form" value="edit">
+            <input type="hidden" name="_edit_id" id="editFormUserId" value="{{ old('_edit_id') }}">
 
             <div class="space-y-4">
 
@@ -512,45 +545,40 @@
                 <div>
                     <label for="editNama"
                            class="mb-2 block text-sm font-medium text-gray-700">
-                        Nama Lengkap
+                        Nama Lengkap <span class="text-red-500">*</span>
                     </label>
 
                     <input type="text"
                            id="editNama"
                            name="nama_lengkap"
+                           value="{{ old('_form') === 'edit' ? old('nama_lengkap') : '' }}"
                            required
                            maxlength="100"
-                           class="w-full rounded-lg border border-gray-300 px-4 py-2.5
+                           class="w-full rounded-lg border {{ old('_form') === 'edit' && $errors->has('nama_lengkap') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
                                   focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
+                    @if(old('_form') === 'edit' && $errors->has('nama_lengkap'))
+                        <p class="mt-1 text-xs text-red-500">{{ $errors->first('nama_lengkap') }}</p>
+                    @endif
                 </div>
 
                 {{-- EMAIL --}}
                 <div>
                     <label for="editEmail"
                            class="mb-2 block text-sm font-medium text-gray-700">
-                        Email
+                        Email <span class="text-red-500">*</span>
                     </label>
 
                     <input type="email"
                            id="editEmail"
                            name="email"
+                           value="{{ old('_form') === 'edit' ? old('email') : '' }}"
                            required
                            maxlength="100"
-                           class="w-full rounded-lg border border-gray-300 px-4 py-2.5
+                           class="w-full rounded-lg border {{ old('_form') === 'edit' && $errors->has('email') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
                                   focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
-                </div>
-
-                {{-- USERNAME --}}
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">
-                        Username
-                    </label>
-
-                    <input type="text"
-                           id="editUsername"
-                           readonly
-                           class="w-full cursor-not-allowed rounded-lg border border-gray-200
-                                  bg-gray-100 px-4 py-2.5 text-gray-500">
+                    @if(old('_form') === 'edit' && $errors->has('email'))
+                        <p class="mt-1 text-xs text-red-500">{{ $errors->first('email') }}</p>
+                    @endif
                 </div>
 
                 {{-- ROLE --}}
@@ -652,19 +680,21 @@
     </div>
 </div>
 
+    </div>
+</div>
+
 <script>
 
     // =====================================================
     // EDIT AKUN
     // =====================================================
 
-    function openEditModal(id, nama, email, username, role, pasar) {
+    function openEditModal(id, nama, email, role, pasar) {
         const modal = document.getElementById('editAkunModal');
         const form = document.getElementById('editAkunForm');
 
         document.getElementById('editNama').value = nama;
-        document.getElementById('editEmail').value = email ?? '';
-        document.getElementById('editUsername').value = username;
+        document.getElementById('editEmail').value = email;
         document.getElementById('editRole').value = role;
         document.getElementById('editPasar').value = pasar;
 
@@ -821,6 +851,33 @@
 
         document.body.style.overflow = '';
     }
+
+
+    // Auto-buka modal tambah/edit jika ada error validasi
+    @if($errors->any())
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(old('_form') === 'tambah')
+                openTambahAkunModal();
+            @elseif(old('_form') === 'edit' && old('_edit_id'))
+                const editId = @js(old('_edit_id'));
+                const editNama = @js(old('nama_lengkap'));
+                const editEmail = @js(old('email'));
+                const form = document.getElementById('editAkunForm');
+                
+                document.getElementById('editNama').value = editNama;
+                document.getElementById('editEmail').value = editEmail;
+                if (document.getElementById('editFormUserId')) {
+                    document.getElementById('editFormUserId').value = editId;
+                }
+                form.action = `/staff/akun/${editId}`;
+
+                const modal = document.getElementById('editAkunModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            @endif
+        });
+    @endif
 
 </script>
 

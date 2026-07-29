@@ -237,6 +237,115 @@
 
     </div>
 
+    <!-- Progres Perbaikan Card Section -->
+    @php
+        $existingProgress = $laporan->progresPerbaikan->sortBy('persentase_penyelesaian');
+        $existingStages = $existingProgress->pluck('persentase_penyelesaian')->toArray();
+        $isRabApproved = $laporan->status_verifikasi_rab === 'Disetujui';
+
+        $nextStage = null;
+        if (!in_array('0', $existingStages)) {
+            $nextStage = '0';
+        } elseif (!in_array('50', $existingStages)) {
+            $nextStage = '50';
+        } elseif (!in_array('100', $existingStages)) {
+            $nextStage = '100';
+        }
+        $isComplete = in_array('100', $existingStages);
+    @endphp
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 flex-wrap gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800">Progres Perbaikan</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Riwayat perkembangan pengerjaan fisik sarana pasar</p>
+            </div>
+
+            @if($isComplete)
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 text-xs font-bold text-emerald-700">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Perbaikan Selesai (100%)
+                </span>
+            @elseif($isRabApproved && !is_null($nextStage))
+                <button type="button"
+                        onclick="openProgresModal()"
+                        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Progres (Tahap {{ $nextStage }}%)
+                </button>
+            @endif
+        </div>
+
+        @if(!$isRabApproved)
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p>Progres perbaikan hanya dapat diinput setelah Rencana Anggaran Biaya (RAB) disetujui oleh Kepala Bidang.</p>
+            </div>
+        @elseif($existingProgress->count() === 0)
+            <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+                <p class="text-sm text-gray-500">Belum ada progres perbaikan yang diinput.</p>
+                @if(!is_null($nextStage))
+                    <button type="button" onclick="openProgresModal()" class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#114F72] hover:underline">
+                        + Input Progres Pertama (0%)
+                    </button>
+                @endif
+            </div>
+        @else
+            <!-- Timeline Progres -->
+            <div class="space-y-6">
+                @foreach($existingProgress as $progres)
+                    <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-5">
+                        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="inline-flex items-center justify-center rounded-lg bg-[#114F72] text-white px-3 py-1 text-sm font-bold shadow-sm">
+                                    {{ $progres->persentase_penyelesaian }}%
+                                </span>
+                                <span class="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    @if($progres->persentase_penyelesaian == '0')
+                                        Tahap Persiapan / Mulai (0%)
+                                    @elseif($progres->persentase_penyelesaian == '50')
+                                        Tahap Pengerjaan (50%)
+                                    @else
+                                        Tahap Selesai / Finishing (100%)
+                                    @endif
+                                </span>
+                            </div>
+                            <span class="text-xs text-gray-500 font-medium">
+                                {{ \Carbon\Carbon::parse($progres->tanggal_update)->format('d F Y, H:i') }}
+                            </span>
+                        </div>
+
+                        <p class="text-sm text-gray-700 leading-relaxed mb-4">
+                            {{ $progres->keterangan_perkembangan }}
+                        </p>
+
+                        <!-- Galeri Foto Progres -->
+                        @if($progres->fotoProgres && $progres->fotoProgres->count() > 0)
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Foto Dokumentasi Progres:</p>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    @foreach($progres->fotoProgres as $foto)
+                                        <button type="button"
+                                                onclick="openProgresFotoModal('{{ asset('storage/' . $foto->file_foto) }}')"
+                                                class="group aspect-square rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition">
+                                            <img src="{{ asset('storage/' . $foto->file_foto) }}" alt="Foto Progres" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
 </div>
 
 <div id="toastMessage" class="fixed bottom-5 right-5 z-[60] hidden items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-lg"></div>
@@ -309,7 +418,129 @@
     </div>
 </div>
 
+@if($isRabApproved && !is_null($nextStage))
+<!-- Modal Tambah Progres -->
+<div id="progresModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
+     onclick="if(event.target === this) closeProgresModal()">
+
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Tambah Progres Perbaikan</h3>
+                <p class="text-xs text-gray-500">Input catatan dan foto perkembangan pengerjaan</p>
+            </div>
+            <button type="button" onclick="closeProgresModal()" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form action="{{ route('staff.laporan.progres.store', $laporan->id_laporan) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <!-- Stage Badge -->
+            <div class="mb-4 rounded-xl bg-gradient-to-r from-[#114F72]/10 to-[#16A394]/10 border border-[#114F72]/20 p-4 flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Tahap Progres Otomatis</span>
+                <span class="inline-flex items-center gap-1 text-base font-bold text-[#114F72]">
+                    {{ $nextStage }}%
+                    @if($nextStage == '0')
+                        (Persiapan / Mulai)
+                    @elseif($nextStage == '50')
+                        (Pengerjaan)
+                    @else
+                        (Selesai)
+                    @endif
+                </span>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="keterangan_perkembangan" class="block text-sm font-medium text-gray-700 mb-1">
+                        Catatan Perkembangan <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="keterangan_perkembangan"
+                              name="keterangan_perkembangan"
+                              rows="4"
+                              required
+                              maxlength="2000"
+                              class="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20"
+                              placeholder="Tuliskan detail pekerjaan perbaikan yang telah dilaksanakan..."></textarea>
+                </div>
+
+                <div>
+                    <label for="foto_progres" class="block text-sm font-medium text-gray-700 mb-1">
+                        Foto Dokumentasi Progres <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file"
+                           id="foto_progres"
+                           name="foto_progres[]"
+                           multiple
+                           accept="image/*"
+                           required
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#114F72]/10 file:text-[#114F72] hover:file:bg-[#114F72]/20">
+                    <p class="text-xs text-gray-500 mt-1">Bisa memilih lebih dari 1 foto (Maks 4 MB per foto).</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="closeProgresModal()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
+                <button type="submit" class="rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Simpan Progres</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+<!-- Modal Preview Foto Progres -->
+<div id="progresFotoModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4"
+     onclick="if(event.target === this) closeProgresFotoModal()">
+    <button type="button"
+            onclick="closeProgresFotoModal()"
+            class="absolute top-4 right-4 text-white/80 hover:text-white transition">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+    <img id="progresFotoModalImg"
+         src=""
+         alt="Foto Progres Detail"
+         class="max-h-[85vh] max-w-full rounded-lg shadow-2xl">
+</div>
+
 <script>
+    function openProgresModal() {
+        const modal = document.getElementById('progresModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProgresModal() {
+        const modal = document.getElementById('progresModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    function openProgresFotoModal(src) {
+        document.getElementById('progresFotoModalImg').src = src;
+        const modal = document.getElementById('progresFotoModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeProgresFotoModal() {
+        const modal = document.getElementById('progresFotoModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
     function openEvaluasiModal() {
         document.getElementById('evaluasiModal').classList.remove('hidden');
         document.getElementById('evaluasiModal').classList.add('flex');

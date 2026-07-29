@@ -7,6 +7,8 @@ use App\Http\Controllers\StaffLaporanController;
 use App\Http\Controllers\VerifikasiLaporanController;
 use App\Http\Controllers\PengelolaanAkunController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\KabidRabController;
 
 // =======================
 // PUBLIC (Tanpa Login)
@@ -17,7 +19,22 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])
 
 Route::post('/login', [AuthController::class, 'login']);
 
+// =======================
+// LUPA PASSWORD
+// =======================
 
+Route::get('/lupa-password', [ForgotPasswordController::class, 'showForgotForm'])
+    ->name('password.request');
+
+Route::post('/lupa-password', [ForgotPasswordController::class, 'sendResetLink'])
+    ->name('password.email');
+
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+    ->name('password.update');
+    
 // =======================
 // PROTECTED (Harus Login)
 // =======================
@@ -98,6 +115,10 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::get('/staff/rab', [StaffLaporanController::class, 'indexRab'])
             ->name('staff.rab.index');
 
+        // ===== PROGRES PERBAIKAN =====
+        Route::post('/staff/laporan/{id}/progres', [StaffLaporanController::class, 'storeProgres'])
+            ->name('staff.laporan.progres.store');
+
          // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])
         ->name('staff.akun.index');
@@ -131,7 +152,20 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         
         Route::post('/kabid/laporan/{id}/kembalikan', [VerifikasiLaporanController::class, 'kembalikan'])
             ->name('kabid.laporan.kembalikan');
-}); 
+
+        // ===== VERIFIKASI RAB - KABID =====
+        Route::get('/kabid/rab', [KabidRabController::class, 'index'])
+            ->name('kabid.rab.index');
+
+        Route::get('/kabid/rab/{id}', [KabidRabController::class, 'show'])
+            ->name('kabid.rab.show');
+
+        Route::post('/kabid/rab/{id}/setujui', [KabidRabController::class, 'setujui'])
+            ->name('kabid.rab.setujui');
+
+        Route::post('/kabid/rab/{id}/kembalikan', [KabidRabController::class, 'kembalikan'])
+            ->name('kabid.rab.kembalikan');
+    }); 
 
 
     // =======================
