@@ -313,6 +313,11 @@ class StaffLaporanController extends Controller
                 'tanggal_update' => now(),
             ]);
 
+            // Jika progres perbaikan sudah mencapai 100%, ubah status_laporan menjadi 'Selesai'
+            if ((string)$nextStage === '100') {
+                $laporan->update(['status_laporan' => 'Selesai']);
+            }
+
             if ($request->hasFile('foto_progres')) {
                 foreach ($request->file('foto_progres') as $file) {
                     $path = $file->store('progres', 'public');
