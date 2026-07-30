@@ -20,21 +20,21 @@
     @if(auth()->user()->role->nama_role === 'Petugas UPTD')
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-[#114F72]">
-                <p class="text-sm text-gray-500">Total Laporan Saya</p>
+                <p class="text-sm text-gray-500">Total Laporan Pasar</p>
                 <p class="text-3xl font-bold text-[#114F72] mt-1">
-                    {{ \App\Models\Laporan::where('id_pelapor', auth()->user()->id_user)->count() }}
+                    {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->count() }}
                 </p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-amber-500">
                 <p class="text-sm text-gray-500">Menunggu</p>
                 <p class="text-3xl font-bold text-amber-600 mt-1">
-                    {{ \App\Models\Laporan::where('id_pelapor', auth()->user()->id_user)->where('status_laporan', 'Menunggu')->count() }}
+                    {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Menunggu')->count() }}
                 </p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500">
                 <p class="text-sm text-gray-500">Selesai</p>
                 <p class="text-3xl font-bold text-emerald-600 mt-1">
-                    {{ \App\Models\Laporan::where('id_pelapor', auth()->user()->id_user)->where('status_laporan', 'Selesai')->count() }}
+                    {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Selesai')->count() }}
                 </p>
             </div>
         </div>

@@ -9,6 +9,8 @@ use App\Http\Controllers\PengelolaanAkunController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\KabidRabController;
+use App\Http\Controllers\SpjController;
+use App\Http\Controllers\LaporanRealisasiTahunanController;
 
 // =======================
 // PUBLIC (Tanpa Login)
@@ -119,7 +121,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::post('/staff/laporan/{id}/progres', [StaffLaporanController::class, 'storeProgres'])
             ->name('staff.laporan.progres.store');
 
-         // PENGELOLAAN AKUN
+        // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])
         ->name('staff.akun.index');
             
@@ -131,6 +133,13 @@ Route::middleware(['auth', 'account.active'])->group(function () {
 
         Route::post('/staff/akun', [PengelolaanAkunController::class, 'store'])
         ->name('staff.akun.store');
+
+        // ===== DOKUMEN PERTANGGUNGJAWABAN (SPJ & REALISASI TAHUNAN) =====
+        Route::resource('/staff/spj', SpjController::class)
+            ->names('staff.spj');
+
+        Route::resource('/staff/realisasi-tahunan', LaporanRealisasiTahunanController::class)
+            ->names('staff.realisasi-tahunan');
 
     });
 

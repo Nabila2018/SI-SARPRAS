@@ -13,8 +13,15 @@ class LaporanRealisasiTahunan extends Model
     protected $primaryKey = 'id_realisasi';
 
     protected $fillable = [
-        'tahun',
+        'tahun_anggaran',
+        'keterangan',
         'file_realisasi',
+        'uploaded_by',
         'tanggal_upload',
     ];
+
+    public function uploader()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
 }

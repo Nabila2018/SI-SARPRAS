@@ -1,34 +1,24 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("
-            ALTER TABLE laporan
-            MODIFY status_laporan ENUM(
-                'Menunggu',
-                'Diproses',
-                'Dikembalikan',
-                'Ditolak',
-                'Selesai'
-            ) NOT NULL
-        ");
+        Schema::create('progres_perbaikan', function (Blueprint $table) {
+            $table->id('id_progres');
+            $table->foreignId('id_laporan')->constrained('laporan', 'id_laporan');
+            $table->integer('persentase_penyelesaian');
+            $table->text('keterangan_perkembangan');
+            $table->dateTime('tanggal_update');
+        });
     }
 
     public function down(): void
     {
-        DB::statement("
-            ALTER TABLE laporan
-            MODIFY status_laporan ENUM(
-                'Menunggu',
-                'Diproses',
-                'Selesai',
-                'Dikembalikan'
-            ) NOT NULL
-        ");
+        Schema::dropIfExists('progres_perbaikan');
     }
 };

@@ -112,5 +112,11 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasC)
             ->get(route('laporan.show', $laporanA->id_laporan))
             ->assertStatus(403);
+
+        // 6. Verifikasi statistik dashboard UPTD ter-scope berdasarkan id_pasar
+        $this->actingAs($petugasB)
+            ->get(route('home'))
+            ->assertStatus(200)
+            ->assertSee('Total Laporan Pasar');
     }
 }

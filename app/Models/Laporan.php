@@ -52,7 +52,7 @@ class Laporan extends Model
 
     public function spj()
     {
-        return $this->belongsTo(Spj::class, 'id_spj');
+        return $this->belongsTo(Spj::class, 'id_spj', 'id_spj');
     }
 
     public function fotoLaporan()

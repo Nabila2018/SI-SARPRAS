@@ -10,9 +10,12 @@ return new class extends Migration
     {
         Schema::create('laporan_realisasi_tahunan', function (Blueprint $table) {
             $table->id('id_realisasi');
-            $table->integer('tahun')->unique();
+            $table->year('tahun_anggaran')->unique();
+            $table->text('keterangan')->nullable();
             $table->string('file_realisasi', 255);
-            $table->datetime('tanggal_upload');
+            $table->foreignId('uploaded_by')->constrained('user', 'id_user');
+            $table->dateTime('tanggal_upload');
+            $table->timestamps();
         });
     }
 

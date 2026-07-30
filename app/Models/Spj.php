@@ -13,13 +13,22 @@ class Spj extends Model
     protected $primaryKey = 'id_spj';
 
     protected $fillable = [
-        'nomor_spj',
+        'nama_pekerjaan',
+        'periode_mulai',
+        'periode_selesai',
+        'keterangan',
         'file_spj',
-        'tanggal_dibuat',
+        'uploaded_by',
+        'tanggal_upload',
     ];
+
+    public function uploader()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by', 'id_user');
+    }
 
     public function laporan()
     {
-        return $this->hasMany(Laporan::class, 'id_spj');
+        return $this->hasMany(Laporan::class, 'id_spj', 'id_spj');
     }
 }

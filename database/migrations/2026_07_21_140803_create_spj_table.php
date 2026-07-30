@@ -10,9 +10,13 @@ return new class extends Migration
     {
         Schema::create('spj', function (Blueprint $table) {
             $table->id('id_spj');
-            $table->string('nomor_spj', 50);
+            $table->string('nama_pekerjaan', 255);
+            $table->date('periode_mulai');
+            $table->date('periode_selesai');
+            $table->text('keterangan')->nullable();
             $table->string('file_spj', 255);
-            $table->datetime('tanggal_dibuat');
+            $table->foreignId('uploaded_by')->constrained('user', 'id_user');
+            $table->dateTime('tanggal_upload');
             $table->timestamps();
         });
     }

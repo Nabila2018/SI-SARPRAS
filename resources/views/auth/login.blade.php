@@ -201,7 +201,7 @@
                     <a href="{{ route('password.request') }}" class="text-sm font-medium text-[#003366] hover:underline">
                         Lupa Kata Sandi?
                     </a>
-                </div>v>
+                </div>
 
                 <!-- Submit Button -->
                 <button type="submit" 
