@@ -66,8 +66,10 @@ class LaporanRealisasiTahunanController extends Controller
         DB::beginTransaction();
 
         try {
-            // Simpan file ke storage/app/public/realisasi-tahunan
-            $filePath = $request->file('file_realisasi')->store('realisasi-tahunan', 'public');
+            // Simpan file ke storage/app/public/realisasi-tahunan dengan nama asli file
+            $file = $request->file('file_realisasi');
+            $fileName = $file->getClientOriginalName();
+            $filePath = $file->storeAs('realisasi-tahunan', $fileName, 'public');
 
             LaporanRealisasiTahunan::create([
                 'tahun_anggaran' => $request->tahun_anggaran,
@@ -146,7 +148,9 @@ class LaporanRealisasiTahunanController extends Controller
             $newFilePath = null;
 
             if ($request->hasFile('file_realisasi')) {
-                $newFilePath = $request->file('file_realisasi')->store('realisasi-tahunan', 'public');
+                $file = $request->file('file_realisasi');
+                $fileName = $file->getClientOriginalName();
+                $newFilePath = $file->storeAs('realisasi-tahunan', $fileName, 'public');
                 $realisasiTahunan->file_realisasi = $newFilePath;
             }
 

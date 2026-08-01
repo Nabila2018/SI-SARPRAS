@@ -25,9 +25,9 @@
         {{-- Header Branding --}}
         <div class="gradient-bg px-8 py-10 text-center text-white relative">
             <div class="flex justify-center items-center gap-3 mb-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Logo_Kota_Padang.png" 
-                     alt="Logo Kota Padang" 
-                     class="h-14 w-auto drop-shadow-md">
+                <img src="{{ asset('images/Logo Dinas Perdagangan Kota Padang.png') }}" 
+                     alt="Logo Dinas Perdagangan" 
+                     class="h-16 w-auto drop-shadow-md">
             </div>
             <h1 class="text-2xl font-bold tracking-tight">SI-SARPRAS</h1>
             <p class="text-blue-200 text-xs mt-1 uppercase tracking-wider font-medium">Dinas Perdagangan Kota Padang</p>

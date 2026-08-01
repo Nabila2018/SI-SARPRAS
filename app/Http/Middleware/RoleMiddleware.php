@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         // Cek sudah login
         if (!auth()->check()) {
@@ -16,9 +16,9 @@ class RoleMiddleware
         }
 
         // Cek role sesuai
-        $userRole = auth()->user()->role->nama_role;
+        $userRole = auth()->user()->role->nama_role ?? null;
         
-        if ($userRole !== $role) {
+        if (!in_array($userRole, $roles)) {
             abort(403, 'Akses ditolak. Role tidak sesuai.');
         }
 

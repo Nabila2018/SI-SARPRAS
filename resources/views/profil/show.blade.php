@@ -211,14 +211,8 @@
                        px-4 py-2.5 text-sm font-semibold text-[#16A394]
                        transition hover:bg-[#16A394]/5">
             Ganti Password
-        </button>
-
     </div>
 </div>
-</div>
-
-
-
 
 {{-- MODAL EDIT PROFIL --}}
 <div id="editProfilModal"

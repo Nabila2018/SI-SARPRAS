@@ -6,60 +6,62 @@
 @section('content')
 <div class="max-w-6xl mx-auto pb-12">
 
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Daftar RAB</h1>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Daftar RAB</h1>
 
-            <!-- Search & Filter -->
-    <form method="GET" action="{{ route('staff.rab.index') }}" class="flex items-center gap-2 mb-6">
-        <div class="relative">
-            <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text"
-                   id="search"
-                   name="search"
-                   value="{{ request('search') }}"
-                   placeholder="Cari"
-                   onkeydown="if(event.key === 'Enter'){ this.form.submit(); }"
-                   class="w-[220px] rounded-full border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20">
-        </div>
-
-        <div class="relative">
-            <button type="button"
-                    id="filterToggle"
-                    onclick="toggleFilter()"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-[#114F72] transition-colors"
-                    aria-label="Filter">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Search & Filter (Kanan) -->
+        <form method="GET" action="{{ route('staff.rab.index') }}" class="m-0 p-0 flex items-center gap-2">
+            <div class="relative h-10 flex items-center">
+                <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V20a1 1 0 01-1.447.894l-2-1A1 1 0 0110 19v-5.586L3.293 6.707A1 1 0 013 6V4z"/>
+                          d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-            </button>
+                <input type="text"
+                       id="search"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari"
+                       onkeydown="if(event.key === 'Enter'){ this.form.submit(); }"
+                       class="h-10 w-[220px] rounded-full border border-gray-300 pl-9 pr-3 text-xs text-gray-700 leading-none focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20">
+            </div>
 
-            <div id="filterPopover" class="absolute right-0 top-11 z-10 hidden w-52 rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-                <div class="space-y-3">
-                    <div>
-                        <label for="status" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
-                            Status RAB
-                        </label>
-                        <select id="status"
-                                name="status"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20"
-                                onchange="this.form.submit()">
-                            <option value="">Semua Status</option>
-                            @foreach($statusList as $status)
-                                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                            <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
-                        </select>
+            <div class="relative">
+                <button type="button"
+                        id="filterToggle"
+                        onclick="toggleFilter()"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-[#114F72] transition-colors"
+                        aria-label="Filter">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V20a1 1 0 01-1.447.894l-2-1A1 1 0 0110 19v-5.586L3.293 6.707A1 1 0 013 6V4z"/>
+                    </svg>
+                </button>
+
+                <div id="filterPopover" class="absolute right-0 top-12 z-10 hidden w-52 rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+                    <div class="space-y-3">
+                        <div>
+                            <label for="status" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Status RAB
+                            </label>
+                            <select id="status"
+                                    name="status"
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20"
+                                    onchange="this.form.submit()">
+                                <option value="">Semua Status</option>
+                                @foreach($statusList as $status)
+                                    <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+                                        {{ $status }}
+                                    </option>
+                                @endforeach
+                                <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
     <!-- Tabel RAB -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">

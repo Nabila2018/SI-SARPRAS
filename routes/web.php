@@ -134,13 +134,23 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::post('/staff/akun', [PengelolaanAkunController::class, 'store'])
         ->name('staff.akun.store');
 
-        // ===== DOKUMEN PERTANGGUNGJAWABAN (SPJ & REALISASI TAHUNAN) =====
-        Route::resource('/staff/spj', SpjController::class)
-            ->names('staff.spj');
-
+        // ===== REALISASI TAHUNAN =====
         Route::resource('/staff/realisasi-tahunan', LaporanRealisasiTahunanController::class)
             ->names('staff.realisasi-tahunan');
 
+        // ===== SPJ WRITE ACTIONS (STAFF ONLY) =====
+        Route::get('/staff/spj/create', [SpjController::class, 'create'])->name('staff.spj.create');
+        Route::post('/staff/spj', [SpjController::class, 'store'])->name('staff.spj.store');
+        Route::get('/staff/spj/{spj}/edit', [SpjController::class, 'edit'])->name('staff.spj.edit');
+        Route::put('/staff/spj/{spj}', [SpjController::class, 'update'])->name('staff.spj.update');
+        Route::delete('/staff/spj/{spj}', [SpjController::class, 'destroy'])->name('staff.spj.destroy');
+
+    });
+
+    // ===== SPJ READ-ONLY (STAFF, KABID, KADIN) =====
+    Route::middleware(['role:Staff Sarana dan Prasarana,Kepala Bidang,Kepala Dinas'])->group(function () {
+        Route::get('/staff/spj', [SpjController::class, 'index'])->name('staff.spj.index');
+        Route::get('/staff/spj/{spj}', [SpjController::class, 'show'])->name('staff.spj.show');
     });
 
     // =======================

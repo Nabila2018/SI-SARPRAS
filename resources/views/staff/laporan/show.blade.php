@@ -346,8 +346,6 @@
         @endif
     </div>
 
-</div>
-
 <div id="toastMessage" class="fixed bottom-5 right-5 z-[60] hidden items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-lg"></div>
 
 <!-- Modal Evaluasi -->

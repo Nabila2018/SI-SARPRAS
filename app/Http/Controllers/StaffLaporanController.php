@@ -95,9 +95,9 @@ class StaffLaporanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        // Cek apakah laporan sudah disetujui
-        if ($laporan->status_laporan !== 'Disetujui') {
-            return back()->with('error', 'RAB hanya dapat dibuat jika laporan sudah disetujui.');
+        // Cek jika RAB belum dibuat dan status laporan belum disetujui
+        if (!$laporan->detailRab()->exists() && in_array($laporan->status_laporan, ['Menunggu', 'Ditolak', 'Dikembalikan'])) {
+            return back()->with('error', 'RAB hanya dapat diakses jika laporan sudah disetujui.');
         }
 
         return view('staff.laporan.rab', compact('laporan'));

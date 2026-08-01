@@ -27,16 +27,10 @@
     <aside class="sidebar-gradient w-64 h-screen flex flex-col text-white fixed left-0 top-0 z-50">
         
         <!-- Logo -->
-        <div class="p-6 flex items-center gap-3 border-b border-white/20">
-            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-lg font-bold leading-tight">SI-SARPRAS</h1>
-                <p class="text-xs text-white/70">Dinas Perdagangan Padang</p>
-            </div>
+        <div class="p-6 flex justify-center border-b border-white/20">
+            <img src="{{ asset('images/Logo Dinas Perdagangan Kota Padang.png') }}"
+                 alt="Logo Dinas Perdagangan"
+                 class="h-16 w-auto object-contain drop-shadow-md">
         </div>
 
                 <!-- Menu -->
@@ -91,7 +85,7 @@
                     </svg>
                     <span class="font-medium">Progress Perbaikan</span>
                 </a>
-                <a href="#" class="menu-item {{ request()->is('staff/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('staff.spj.index') }}" class="menu-item {{ request()->is('staff/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -137,13 +131,13 @@
 
 
     {{-- SPJ & Realisasi --}}
-    <a href="#"
-       class="menu-item {{ request()->is('kabid/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+    <a href="{{ route('staff.spj.index') }}"
+       class="menu-item {{ request()->is('staff/spj*') || request()->is('kabid/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
 
         <span class="font-medium">SPJ & Realisasi</span>
@@ -159,7 +153,7 @@
                     </svg>
                     <span class="font-medium">Monitoring</span>
                 </a>
-                <a href="#" class="menu-item {{ request()->is('kadin/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('staff.spj.index') }}" class="menu-item {{ request()->is('staff/spj*') || request()->is('kadin/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -203,14 +197,13 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-1 ml-64">
+    <div class="flex-1 ml-64 flex flex-col min-h-screen">
         
         <!-- TOP NAVBAR -->
         <header class="bg-white shadow-sm sticky top-0 z-40">
             <div class="flex items-center justify-between px-8 py-4">
                 
                 <!-- Breadcrumb -->
-                                <!-- Breadcrumb -->
                 <div class="flex items-center gap-2 text-sm">
                     <span class="font-bold text-[#003366]">SI-SARPRAS</span>
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,12 +225,12 @@
         </header>
 
         <!-- CONTENT AREA -->
-        <main class="p-8">
+        <main class="p-8 flex-1">
             @yield('content')
         </main>
 
         <!-- FOOTER -->
-        <footer class="bg-white border-t mt-auto">
+        <footer class="bg-white border-t shrink-0">
             <div class="px-8 py-4 text-center text-sm text-gray-500">
                 © 2026 Dinas Perdagangan Kota Padang
             </div>

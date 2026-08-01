@@ -6,13 +6,34 @@
 @section('content')
 <div class="space-y-6">
 
-    {{-- WELCOME CARD - Semua Role --}}
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">
-            Selamat Datang, {{ auth()->user()->nama_lengkap }}
+    @php
+        $hour = (int) now()->format('H');
+        if ($hour >= 5 && $hour < 11) {
+            $greeting = 'Selamat Pagi';
+        } elseif ($hour >= 11 && $hour < 15) {
+            $greeting = 'Selamat Siang';
+        } elseif ($hour >= 15 && $hour < 18) {
+            $greeting = 'Selamat Sore';
+        } else {
+            $greeting = 'Selamat Malam';
+        }
+
+        $roleText = auth()->user()->role->nama_role ?? '';
+        if (auth()->user()->role->nama_role === 'Petugas UPTD' && auth()->user()->pasar) {
+            $roleText .= ' • ' . auth()->user()->pasar->nama_pasar;
+        }
+    @endphp
+
+    {{-- WELCOME SECTION (Clean, Uncarded) --}}
+    <div class="mb-8 space-y-1">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+            {{ $greeting }}, {{ auth()->user()->nama_lengkap }} 👋
         </h1>
-        <p class="text-gray-500">
-            Anda masuk sebagai <span class="font-semibold text-[#114F72]">{{ auth()->user()->role->nama_role }}</span>
+        <p class="text-base font-semibold text-[#114F72]">
+            {{ $roleText }}
+        </p>
+        <p class="text-sm font-medium text-gray-500">
+            {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
         </p>
     </div>
 

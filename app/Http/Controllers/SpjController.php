@@ -12,6 +12,16 @@ use Illuminate\Support\Facades\Storage;
 class SpjController extends Controller
 {
     /**
+     * Check if authenticated user is Staff Sarana dan Prasarana.
+     */
+    protected function authorizeStaff()
+    {
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak. Hanya Staff Sarana dan Prasarana yang berhak melakukan tindakan ini.');
+        }
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -38,6 +48,8 @@ class SpjController extends Controller
      */
     public function create()
     {
+        $this->authorizeStaff();
+
         // Ambil laporan yang statusnya 'Selesai' dan belum memiliki SPJ
         $laporanList = Laporan::where('status_laporan', 'Selesai')
             ->whereNull('id_spj')
@@ -53,6 +65,8 @@ class SpjController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeStaff();
+
         $request->validate([
             'nama_pekerjaan' => 'required|string|max:255',
             'periode_mulai' => 'required|date',
@@ -89,8 +103,10 @@ class SpjController extends Controller
         DB::beginTransaction();
 
         try {
-            // Simpan file SPJ ke storage/app/public/spj
-            $filePath = $request->file('file_spj')->store('spj', 'public');
+            // Simpan file SPJ ke storage/app/public/spj dengan nama asli file
+            $file = $request->file('file_spj');
+            $fileName = $file->getClientOriginalName();
+            $filePath = $file->storeAs('spj', $fileName, 'public');
 
             // Simpan data SPJ baru
             $spj = Spj::create([
@@ -145,6 +161,8 @@ class SpjController extends Controller
      */
     public function edit(string $id)
     {
+        $this->authorizeStaff();
+
         $spj = Spj::with(['uploader', 'laporan'])->findOrFail($id);
 
         $laporanList = Laporan::where('status_laporan', 'Selesai')
@@ -164,6 +182,8 @@ class SpjController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorizeStaff();
+
         $spj = Spj::findOrFail($id);
 
         $request->validate([
@@ -209,7 +229,9 @@ class SpjController extends Controller
             $newFilePath = null;
 
             if ($request->hasFile('file_spj')) {
-                $newFilePath = $request->file('file_spj')->store('spj', 'public');
+                $file = $request->file('file_spj');
+                $fileName = $file->getClientOriginalName();
+                $newFilePath = $file->storeAs('spj', $fileName, 'public');
                 $spj->file_spj = $newFilePath;
             }
 
@@ -256,6 +278,8 @@ class SpjController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizeStaff();
+
         $spj = Spj::findOrFail($id);
 
         DB::beginTransaction();

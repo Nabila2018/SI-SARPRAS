@@ -9,10 +9,10 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .gradient-btn {
-            background: linear-gradient(135deg, #087EAF 0%, #0D929F 75%, #16A394 100%);
+            background: linear-gradient(90deg, #114F72 0%, #114F72 30%, #0D929F 70%, #16A394 100%);
         }
         .gradient-btn:hover {
-            background: linear-gradient(135deg, #087EAF 0%, #0D929F 50%, #16A394 100%);
+            background: linear-gradient(90deg, #0d4361 0%, #0d4361 30%, #0b7c87 70%, #12887b 100%);
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
@@ -21,11 +21,11 @@
         }
         /* Custom checkbox navy */
         .checkbox-navy {
-            accent-color: #087EAF;
+            accent-color: #114F72;
         }
         .checkbox-navy:checked {
-            background-color: #087EAF;
-            border-color: #087EAF;
+            background-color: #114F72;
+            border-color: #114F72;
         }
     </style>
 </head>
@@ -40,46 +40,24 @@
         <div class="absolute inset-0 bg-gradient-to-br from-[#114F72]/85 via-[#0D929F]/75 to-[#16A394]/70"></div>
 
         <div class="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-sm font-bold tracking-wider uppercase text-emerald-300">Dinas Perdagangan</h2>
-                    <p class="text-xs text-blue-100">Pemerintah Kota Padang</p>
-                </div>
+            <div>
+                <img src="{{ asset('images/Logo Dinas Perdagangan Kota Padang.png') }}"
+                     alt="Logo Dinas Perdagangan"
+                     class="h-16 w-auto object-contain drop-shadow-md">
             </div>
 
             <div class="mt-auto mb-auto">
                 <h1 class="text-4xl font-bold leading-tight mb-4">
                     Sistem Informasi Pelaporan<br>
-                    Sarana dan Prasarana Pasar<br>
-                    <span class="text-emerald-300">(SI-SARPRAS)</span>
+                    Kerusakan Sarana & Prasarana<br>
+                    Pasar Kota Padang
                 </h1>
                 <p class="text-blue-100 text-lg leading-relaxed max-w-md">
                     Platform terintegrasi untuk memantau, melaporkan, dan mengelola kondisi sarana dan prasarana pasar di Kota Padang.
                 </p>
             </div>
 
-            <div class="mt-8">
-                <p class="text-xs text-blue-200 mb-3 uppercase tracking-wider">Data Kota Padang • Per Juli 2025</p>
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="glass-card rounded-lg p-4">
-                        <p class="text-xs text-blue-200 mb-1">Laporan Masuk</p>
-                        <p class="text-3xl font-bold text-white">248</p>
-                    </div>
-                    <div class="glass-card rounded-lg p-4">
-                        <p class="text-xs text-blue-200 mb-1">Sedang Diproses</p>
-                        <p class="text-3xl font-bold text-emerald-300">67</p>
-                    </div>
-                    <div class="glass-card rounded-lg p-4">
-                        <p class="text-xs text-blue-200 mb-1">Selesai</p>
-                        <p class="text-3xl font-bold text-white">163</p>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="mt-8 text-xs text-blue-300">
                 <p>Foto: Pasar Rakyat Indonesia - Unsplash</p>
@@ -92,6 +70,9 @@
         <div class="w-full max-w-md">
             
             <div class="lg:hidden text-center mb-8">
+                <img src="{{ asset('images/Logo Dinas Perdagangan Kota Padang.png') }}"
+                     alt="Logo Dinas Perdagangan"
+                     class="h-16 w-auto mx-auto mb-3 object-contain drop-shadow-md">
                 <h1 class="text-2xl font-bold text-[#003366]">SI-SARPRAS</h1>
                 <p class="text-sm text-gray-500">Sistem Informasi Pelaporan Kerusakan</p>
             </div>

@@ -72,21 +72,43 @@
 
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-3">
+                <div class="flex flex-col sm:flex-row items-center gap-3">
 
-                    <!-- Search -->
-                    <form method="GET">
+                    <!-- Button (Staff Only) - KIRI -->
+                    @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
+                        <a href="{{ route('staff.spj.create') }}"
+                           class="h-10 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-4 text-xs font-semibold text-white hover:opacity-90 transition flex-shrink-0 leading-none">
 
-                        <div class="relative">
+                            <svg class="w-4 h-4"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M12 4v16m8-8H4"/>
+
+                            </svg>
+
+                            <span>Tambah Dokumen SPJ</span>
+
+                        </a>
+                    @endif
+
+                    <!-- Search - KANAN -->
+                    <form method="GET" class="m-0 p-0 flex items-center h-10 w-full sm:w-auto">
+
+                        <div class="relative h-10 w-full sm:w-64 flex items-center">
 
                             <input
                                 type="text"
                                 name="search"
                                 value="{{ request('search') }}"
                                 placeholder="Cari nama pekerjaan..."
-                                class="w-full sm:w-72 rounded-xl border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-[#114F72] focus:ring-[#114F72]">
+                                class="h-10 w-full rounded-full border border-gray-300 pl-9 pr-4 text-xs text-gray-700 leading-none focus:border-[#114F72] focus:outline-none focus:ring-2 focus:ring-[#114F72]/20">
 
-                            <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400"
+                            <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                                  fill="none"
                                  stroke="currentColor"
                                  viewBox="0 0 24 24">
@@ -101,26 +123,6 @@
                         </div>
 
                     </form>
-
-                    <!-- Button -->
-                    <a href="{{ route('staff.spj.create') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">
-
-                        <svg class="w-5 h-5"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24">
-
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M12 4v16m8-8H4"/>
-
-                        </svg>
-
-                        Tambah Dokumen SPJ
-
-                    </a>
 
                 </div>
 
@@ -222,55 +224,57 @@
 
                                     </a>
 
-                                    <!-- Edit -->
-                                    <a href="{{ route('staff.spj.edit',$spj->id_spj) }}"
-                                       class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition"
-                                       title="Edit">
+                                    @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
+                                        <!-- Edit -->
+                                        <a href="{{ route('staff.spj.edit',$spj->id_spj) }}"
+                                           class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition"
+                                           title="Edit">
 
-                                        <svg class="w-5 h-5"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 viewBox="0 0 24 24">
 
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M11 5h2m-7 7l8-8
-                                                     a2.828 2.828 0 114 4l-8 8
-                                                     H6v-4z"/>
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      stroke-width="2"
+                                                      d="M11 5h2m-7 7l8-8
+                                                         a2.828 2.828 0 114 4l-8 8
+                                                         H6v-4z"/>
 
-                                        </svg>
+                                            </svg>
 
-                                    </a>
+                                        </a>
 
-                                    <!-- Delete -->
-                                    <button
-                                        type="button"
-                                        onclick="openDeleteModal({{ $spj->id_spj }})"
-                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
-                                        title="Hapus">
+                                        <!-- Delete -->
+                                        <button
+                                            type="button"
+                                            onclick="openDeleteModal({{ $spj->id_spj }})"
+                                            class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
+                                            title="Hapus">
 
-                                        <svg class="w-5 h-5"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 viewBox="0 0 24 24">
 
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M19 7L5 7
-                                                     M10 11v6
-                                                     M14 11v6
-                                                     M6 7l1 12
-                                                     a2 2 0 002 2h6
-                                                     a2 2 0 002-2l1-12
-                                                     M9 7V4
-                                                     a1 1 0 011-1h4
-                                                     a1 1 0 011 1v3"/>
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      stroke-width="2"
+                                                      d="M19 7L5 7
+                                                         M10 11v6
+                                                         M14 11v6
+                                                         M6 7l1 12
+                                                         a2 2 0 002 2h6
+                                                         a2 2 0 002-2l1-12
+                                                         M9 7V4
+                                                         a1 1 0 011-1h4
+                                                         a1 1 0 011 1v3"/>
 
-                                        </svg>
+                                            </svg>
 
-                                    </button>
+                                        </button>
+                                    @endif
 
                                 </div>
 
