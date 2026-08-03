@@ -69,6 +69,10 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         return view('home');
     })->name('home');
 
+    Route::get('/panduan', function () {
+        return view('panduan');
+    })->name('panduan');
+
 
     // =======================
     // LAPORAN UPTD
