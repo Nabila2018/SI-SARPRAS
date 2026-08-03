@@ -20,12 +20,14 @@
         }
 
         $roleText = auth()->user()->role->nama_role ?? '';
-        if (auth()->user()->role->nama_role === 'Petugas UPTD' && auth()->user()->pasar) {
+        if ($roleText === 'Kepala Bidang') {
+            $roleText = 'Kepala Bidang Sarana dan Prasarana';
+        } elseif ($roleText === 'Petugas UPTD' && auth()->user()->pasar) {
             $roleText .= ' • ' . auth()->user()->pasar->nama_pasar;
         }
     @endphp
 
-    {{-- WELCOME SECTION (Clean, Uncarded) --}}
+    {{-- WELCOME SECTION (Clean, Uncarded, Visually Identical Across Roles) --}}
     <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-1">
             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
@@ -675,20 +677,523 @@
 
     {{-- DASHBOARD KEPALA BIDANG --}}
     @if(auth()->user()->role->nama_role === 'Kepala Bidang')
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-[#114F72]">
-                <p class="text-sm text-gray-500">Evaluasi Menunggu</p>
-                <p class="text-3xl font-bold text-[#114F72] mt-1">0</p>
+        <!-- Script Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        @php
+            // 1. KPI Data
+            $totalLaporanKabid          = \App\Models\Laporan::count();
+            $evaluasiKabidPendingCount = \App\Models\Laporan::where('status_laporan', 'Diproses')->count();
+            $rabKabidPendingCount      = \App\Models\Laporan::where('status_verifikasi_rab', 'Menunggu')->count();
+            $laporanSelesaiKabidCount  = \App\Models\Laporan::where('status_laporan', 'Selesai')->count();
+
+            // 2. Chart 1: Tren Laporan Masuk (Monthly Line Chart for Current Year)
+            $currentYear = date('Y');
+            $monthlyReportsRaw = \App\Models\Laporan::selectRaw('MONTH(tanggal_lapor) as month_num, COUNT(*) as total')
+                ->whereYear('tanggal_lapor', $currentYear)
+                ->groupBy('month_num')
+                ->pluck('total', 'month_num');
+
+            $monthNamesIndo = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            $trendLabels = [];
+            $trendData = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $trendLabels[] = $monthNamesIndo[$m - 1];
+                $trendData[] = $monthlyReportsRaw->get($m, 0);
+            }
+
+            // 3. Chart 2: Distribusi Laporan per Pasar (All 9 Markets, sorted descending)
+            $semuaPasarKabid = \App\Models\Pasar::all();
+            $pasarKabidData = $semuaPasarKabid->map(function($p) {
+                $count = \App\Models\Laporan::whereHas('lokasi', function($q) use ($p) {
+                    $q->where('id_pasar', $p->id_pasar);
+                })->count();
+                return [
+                    'nama_pasar' => $p->nama_pasar,
+                    'count' => $count
+                ];
+            })->sortByDesc('count')->values();
+
+            if ($pasarKabidData->count() < 9) {
+                $defaultPasarNames = [
+                    'Pasar Raya', 'Pasar Lubuk Buaya', 'Pasar Bandar Buat', 
+                    'Pasar Alai', 'Pasar Siteba', 'Pasar Tanah Kongsi', 
+                    'Pasar Ulak Karang', 'Pasar Simpang Haru', 'Pasar Pembantu'
+                ];
+                $existingNames = $pasarKabidData->pluck('nama_pasar')->toArray();
+                foreach ($defaultPasarNames as $dName) {
+                    if (!in_array($dName, $existingNames) && $pasarKabidData->count() < 9) {
+                        $pasarKabidData->push(['nama_pasar' => $dName, 'count' => 0]);
+                    }
+                }
+                $pasarKabidData = $pasarKabidData->sortByDesc('count')->values();
+            }
+            $pasarKabidLabels = $pasarKabidData->pluck('nama_pasar')->toArray();
+            $pasarKabidCounts = $pasarKabidData->pluck('count')->toArray();
+
+            // 4. Chart 3: Distribusi Kategori Kerusakan (Prasarana Bangunan, Sanitasi & Air, Instalasi Listrik, Fasilitas Umum)
+            $bangunanCount = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Bangunan%')
+                ->orWhere('kategori_kerusakan', 'LIKE', '%Bangunan%')->count();
+            $sanitasiCount = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Sanitasi%')
+                ->orWhere('kategori_laporan', 'LIKE', '%Air%')
+                ->orWhere('kategori_kerusakan', 'LIKE', '%Sanitasi%')->count();
+            $listrikCount  = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Listrik%')
+                ->orWhere('kategori_kerusakan', 'LIKE', '%Listrik%')->count();
+            $fasumCount    = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Fasilitas%')
+                ->orWhere('kategori_laporan', 'LIKE', '%Umum%')
+                ->orWhere('kategori_kerusakan', 'LIKE', '%Umum%')->count();
+
+            $ringanKabidCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
+            $sedangKabidCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
+            $beratKabidCount  = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
+
+            $kategoriGroup = collect([
+                'Prasarana Bangunan' => $bangunanCount ?: $beratKabidCount,
+                'Sanitasi & Air'     => $sanitasiCount ?: $sedangKabidCount,
+                'Instalasi Listrik'  => $listrikCount  ?: $ringanKabidCount,
+                'Fasilitas Umum'     => $fasumCount    ?: 0,
+            ])->sortDesc();
+
+            $kategoriKabidLabels = $kategoriGroup->keys()->toArray();
+            $kategoriKabidCounts = $kategoriGroup->values()->toArray();
+
+            // Helper function for dynamic max scaling
+            $calcKabidMax = function($countsArray) {
+                $maxVal = count($countsArray) ? max($countsArray) : 0;
+                if ($maxVal <= 3) {
+                    return 5;
+                } elseif ($maxVal <= 7) {
+                    return 10;
+                } elseif ($maxVal <= 18) {
+                    return 20;
+                } else {
+                    return (int) (ceil(($maxVal + 1) / 5) * 5);
+                }
+            };
+
+            $suggestedMaxTrend  = $calcKabidMax($trendData);
+            $suggestedMaxPasarK = $calcKabidMax($pasarKabidCounts);
+            $suggestedMaxKatK   = $calcKabidMax($kategoriKabidCounts);
+
+            // 5. Approval Queues (3 oldest pending evaluation, 3 oldest pending RAB)
+            $queueEvaluasi = \App\Models\Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor'])
+                ->where('status_laporan', 'Diproses')
+                ->orderBy('tanggal_lapor', 'asc')
+                ->take(3)
+                ->get();
+
+            $queueRab = \App\Models\Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])
+                ->where('status_verifikasi_rab', 'Menunggu')
+                ->orderBy('tanggal_input_rab', 'asc')
+                ->orderBy('tanggal_lapor', 'asc')
+                ->take(3)
+                ->get();
+        @endphp
+
+        {{-- 2. EMPAT KARTU KPI STATISTIK (ENHANCED ICON & NUMBERS) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            {{-- 1. Total Laporan (Blue) --}}
+            <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
+                <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-[#114F72] to-[#16A394]"></div>
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0 ml-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Total Laporan</span>
+                    <span class="text-3xl font-extrabold text-[#114F72] tracking-tight leading-none mt-1 block">{{ $totalLaporanKabid }}</span>
+                </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-amber-500">
-                <p class="text-sm text-gray-500">RAB Menunggu</p>
-                <p class="text-3xl font-bold text-amber-600 mt-1">0</p>
+
+            {{-- 2. Menunggu Verifikasi Evaluasi (Amber / Orange) --}}
+            <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
+                <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-orange-500"></div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 ml-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Verifikasi Evaluasi</span>
+                    <span class="text-3xl font-extrabold text-amber-600 tracking-tight leading-none mt-1 block">{{ $evaluasiKabidPendingCount }}</span>
+                </div>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500">
-                <p class="text-sm text-gray-500">Disetujui</p>
-                <p class="text-3xl font-bold text-emerald-600 mt-1">0</p>
+
+            {{-- 3. Menunggu Verifikasi RAB (Sky / Blue) --}}
+            <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
+                <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-sky-400 to-indigo-600"></div>
+                <div class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 ml-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Verifikasi RAB</span>
+                    <span class="text-3xl font-extrabold text-sky-600 tracking-tight leading-none mt-1 block">{{ $rabKabidPendingCount }}</span>
+                </div>
             </div>
+
+            {{-- 4. Laporan Selesai (Emerald / Green) --}}
+            <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
+                <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-emerald-400 to-teal-500"></div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 ml-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Laporan Selesai</span>
+                    <span class="text-3xl font-extrabold text-emerald-600 tracking-tight leading-none mt-1 block">{{ $laporanSelesaiKabidCount }}</span>
+                </div>
+            </div>
+
         </div>
+
+        {{-- 3. APPROVAL QUEUES (BRANDED GRADIENT HEADER, CLICKABLE ROWS, CLEAR WAITING HIERARCHY) --}}
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {{-- CARD 1: Antrian Verifikasi Evaluasi --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
+                <div>
+                    {{-- Header Gradient --}}
+                    <div class="px-6 py-4 bg-gradient-to-r from-[#0F5E9C] to-[#17A589] flex items-center justify-between text-white">
+                        <div>
+                            <h3 class="text-base font-bold text-white tracking-tight">Antrian Verifikasi Evaluasi</h3>
+                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $evaluasiKabidPendingCount }} laporan menunggu persetujuan</p>
+                        </div>
+                        <a href="{{ route('kabid.laporan.index') }}" class="text-xs font-semibold text-white/90 hover:text-white hover:underline flex items-center gap-1">
+                            Lihat Semua
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    {{-- Body Items --}}
+                    <div class="p-6 space-y-3">
+                        @forelse($queueEvaluasi as $item)
+                            @php
+                                $tglLapor = data_get($item, 'tanggal_lapor');
+                                $dateLapor = \Carbon\Carbon::parse($tglLapor);
+                                $daysWaiting = (int) $dateLapor->diffInDays(now());
+                                $idLaporan = data_get($item, 'id_laporan');
+                                $reportNum = data_get($item, 'nomor_laporan') ?? ('#' . $idLaporan);
+                                $namaFasilitas = data_get($item, 'fasilitas.nama_fasilitas') ?? data_get($item, 'item_kerusakan') ?? '-';
+                                $namaPasar = data_get($item, 'lokasi.pasar.nama_pasar') ?? '-';
+                            @endphp
+                            <a href="{{ route('kabid.laporan.show', $idLaporan) }}" 
+                               class="block p-4 rounded-xl border border-gray-100 hover:border-[#0F5E9C]/30 hover:bg-sky-50/40 transition-all duration-200 cursor-pointer group">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="space-y-1">
+                                        <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
+                                            {{ $reportNum }}
+                                        </span>
+                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-[#0F5E9C] transition-colors mt-1">
+                                            {{ $namaFasilitas }}
+                                        </h4>
+                                        <p class="text-xs text-gray-500 font-medium">
+                                            {{ $namaPasar }}
+                                        </p>
+                                    </div>
+                                    <div class="text-right shrink-0 space-y-1.5">
+                                        <div>
+                                            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Diajukan:</span>
+                                            <span class="text-xs text-gray-700 font-medium block">
+                                                {{ $dateLapor->locale('id')->isoFormat('D MMMM YYYY') }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Menunggu:</span>
+                                            @if($daysWaiting >= 5)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-full">
+                                                    ⚠ {{ $daysWaiting }} Hari
+                                                </span>
+                                            @else
+                                                <span class="text-xs font-semibold text-gray-700 block">
+                                                    {{ $daysWaiting }} hari
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="py-8 text-center border border-dashed border-gray-200 rounded-xl">
+                                <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi evaluasi.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            {{-- CARD 2: Antrian Verifikasi RAB --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
+                <div>
+                    {{-- Header Gradient --}}
+                    <div class="px-6 py-4 bg-gradient-to-r from-[#0F5E9C] to-[#17A589] flex items-center justify-between text-white">
+                        <div>
+                            <h3 class="text-base font-bold text-white tracking-tight">Antrian Verifikasi RAB</h3>
+                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $rabKabidPendingCount }} RAB menunggu persetujuan</p>
+                        </div>
+                        <a href="{{ route('kabid.rab.index') }}" class="text-xs font-semibold text-white/90 hover:text-white hover:underline flex items-center gap-1">
+                            Lihat Semua
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    {{-- Body Items --}}
+                    <div class="p-6 space-y-3">
+                        @forelse($queueRab as $item)
+                            @php
+                                $tglInputRab = data_get($item, 'tanggal_input_rab') ?? data_get($item, 'tanggal_lapor');
+                                $dateRab = \Carbon\Carbon::parse($tglInputRab);
+                                $daysWaitingRab = (int) $dateRab->diffInDays(now());
+                                $idLaporanRab = data_get($item, 'id_laporan');
+                                $reportNumRab = data_get($item, 'nomor_laporan') ?? ('#' . $idLaporanRab);
+                                $namaFasilitasRab = data_get($item, 'fasilitas.nama_fasilitas') ?? data_get($item, 'item_kerusakan') ?? '-';
+                                $namaPasarRab = data_get($item, 'lokasi.pasar.nama_pasar') ?? '-';
+                            @endphp
+                            <a href="{{ route('kabid.rab.show', $idLaporanRab) }}" 
+                               class="block p-4 rounded-xl border border-gray-100 hover:border-[#0F5E9C]/30 hover:bg-sky-50/40 transition-all duration-200 cursor-pointer group">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="space-y-1">
+                                        <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
+                                            {{ $reportNumRab }}
+                                        </span>
+                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-[#0F5E9C] transition-colors mt-1">
+                                            {{ $namaFasilitasRab }}
+                                        </h4>
+                                        <p class="text-xs text-gray-500 font-medium">
+                                            {{ $namaPasarRab }}
+                                        </p>
+                                    </div>
+                                    <div class="text-right shrink-0 space-y-1.5">
+                                        <div>
+                                            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Diajukan:</span>
+                                            <span class="text-xs text-gray-700 font-medium block">
+                                                {{ $dateRab->locale('id')->isoFormat('D MMMM YYYY') }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Menunggu:</span>
+                                            @if($daysWaitingRab >= 5)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-full">
+                                                    ⚠ {{ $daysWaitingRab }} Hari
+                                                </span>
+                                            @else
+                                                <span class="text-xs font-semibold text-gray-700 block">
+                                                    {{ $daysWaitingRab }} hari
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="py-8 text-center border border-dashed border-gray-200 rounded-xl">
+                                <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi RAB.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- 4. MONITORING CHARTS SECTION (3 REAL MANAGERIAL CHARTS) --}}
+        <div class="mt-8 space-y-6">
+
+            {{-- CHART 1: Tren Laporan Masuk (Full Width Line Chart) --}}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div class="mb-4">
+                    <h3 class="text-base font-bold text-gray-900 tracking-tight">Tren Laporan Masuk</h3>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">Jumlah laporan kerusakan yang diterima setiap bulan (Tahun {{ date('Y') }})</p>
+                </div>
+                <div class="relative w-full" style="height: 240px;">
+                    <canvas id="chartKabidTrend"></canvas>
+                </div>
+            </div>
+
+            {{-- CHART 2 & CHART 3 SIDE BY SIDE --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {{-- CHART 2: Distribusi Laporan per Pasar (Horizontal Bar Chart) --}}
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <div class="mb-4">
+                        <h3 class="text-base font-bold text-gray-900 tracking-tight">Distribusi Laporan per Pasar</h3>
+                        <p class="text-xs text-gray-400 font-medium mt-0.5">Seluruh 9 pasar diurutkan dari total laporan terbanyak</p>
+                    </div>
+                    <div class="relative w-full" style="height: 250px;">
+                        <canvas id="chartKabidPasar"></canvas>
+                    </div>
+                </div>
+
+                {{-- CHART 3: Distribusi Kategori Kerusakan (Horizontal Bar Chart) --}}
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <div class="mb-4">
+                        <h3 class="text-base font-bold text-gray-900 tracking-tight">Distribusi Kategori Kerusakan</h3>
+                        <p class="text-xs text-gray-400 font-medium mt-0.5">Pengelompokan laporan berdasarkan jenis kategori fasilitas</p>
+                    </div>
+                    <div class="relative w-full" style="height: 250px;">
+                        <canvas id="chartKabidKategori"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Plugin to draw value text at the end of horizontal bars
+                const horizontalBarLabelsPluginKabid = {
+                    id: 'horizontalBarLabelsKabid',
+                    afterDatasetsDraw(chart) {
+                        const { ctx } = chart;
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                if (value !== undefined && value !== null) {
+                                    ctx.save();
+                                    ctx.font = '600 11px Poppins, sans-serif';
+                                    ctx.fillStyle = '#114F72';
+                                    ctx.textAlign = 'left';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(value, bar.x + 6, bar.y);
+                                    ctx.restore();
+                                }
+                            });
+                        });
+                    }
+                };
+
+                // 1. Line Chart: Tren Laporan Masuk
+                const ctxTrend = document.getElementById('chartKabidTrend').getContext('2d');
+                new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($trendLabels) !!},
+                        datasets: [{
+                            label: 'Laporan Masuk',
+                            data: {!! json_encode($trendData) !!},
+                            borderColor: '#114F72',
+                            backgroundColor: 'rgba(17, 79, 114, 0.08)',
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#114F72',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 6.5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: {{ $suggestedMaxTrend }},
+                                ticks: { precision: 0, font: { family: 'Poppins', size: 10 } },
+                                grid: { color: '#f3f4f6' }
+                            },
+                            x: {
+                                ticks: { font: { family: 'Poppins', size: 11 } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+
+                // 2. Horizontal Bar Chart: Distribusi Laporan per Pasar
+                const ctxPasarK = document.getElementById('chartKabidPasar').getContext('2d');
+                new Chart(ctxPasarK, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($pasarKabidLabels) !!},
+                        datasets: [{
+                            label: 'Total Laporan',
+                            data: {!! json_encode($pasarKabidCounts) !!},
+                            backgroundColor: '#114F72',
+                            borderRadius: 4,
+                            barThickness: 12
+                        }]
+                    },
+                    plugins: [horizontalBarLabelsPluginKabid],
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: {{ $suggestedMaxPasarK }},
+                                ticks: { precision: 0, font: { family: 'Poppins', size: 10 } },
+                                grid: { color: '#f3f4f6' }
+                            },
+                            y: {
+                                ticks: { font: { family: 'Poppins', size: 10 } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+
+                // 3. Horizontal Bar Chart: Distribusi Kategori Kerusakan
+                const ctxKatK = document.getElementById('chartKabidKategori').getContext('2d');
+                new Chart(ctxKatK, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($kategoriKabidLabels) !!},
+                        datasets: [{
+                            label: 'Jumlah Laporan',
+                            data: {!! json_encode($kategoriKabidCounts) !!},
+                            backgroundColor: '#0D8794',
+                            borderRadius: 4,
+                            barThickness: 16
+                        }]
+                    },
+                    plugins: [horizontalBarLabelsPluginKabid],
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: {{ $suggestedMaxKatK }},
+                                ticks: { precision: 0, font: { family: 'Poppins', size: 10 } },
+                                grid: { color: '#f3f4f6' }
+                            },
+                            y: {
+                                ticks: { font: { family: 'Poppins', size: 10, weight: 'bold' } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
     @endif
 
     {{-- DASHBOARD KEPALA DINAS --}}
