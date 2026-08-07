@@ -119,7 +119,8 @@ class PengelolaanAkunController extends Controller
                 'nullable',
                 'exists:pasar,id_pasar',
                 Rule::requiredIf(function () use ($request) {
-                    return (int) $request->id_role === 1;
+                    $role = Role::find($request->id_role);
+                    return $role && $role->nama_role === 'Petugas UPTD';
                 }),
             ],
             'password' => 'required|string|min:8|confirmed',
@@ -135,12 +136,13 @@ class PengelolaanAkunController extends Controller
             'password.confirmed' => 'Konfirmasi kata sandi tidak sesuai.',
         ]);
 
-        // Pasar hanya boleh dimiliki Petugas UPTD
-        if ((int) $validated['id_role'] !== 1) {
+        $roleObj = Role::find($validated['id_role']);
+        if (!$roleObj || $roleObj->nama_role !== 'Petugas UPTD') {
             $validated['id_pasar'] = null;
         }
 
         User::create([
+            'id_user' => User::generateId(),
             'nama_lengkap' => $validated['nama_lengkap'],
             'email' => $validated['email'],
             'id_role' => $validated['id_role'],

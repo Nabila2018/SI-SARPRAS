@@ -9,9 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('foto_progres', function (Blueprint $table) {
-            $table->id('id_foto_progres');
-            $table->foreignId('id_progres')->constrained('progres_perbaikan', 'id_progres');
+            $table->string('id_foto_progres', 10)->primary();
+            $table->string('id_progres', 10);
             $table->string('file_foto', 255);
+
+            $table->foreign('id_progres')->references('id_progres')->on('progres_perbaikan')->onDelete('cascade');
         });
     }
 

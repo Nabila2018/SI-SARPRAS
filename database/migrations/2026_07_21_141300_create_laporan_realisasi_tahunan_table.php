@@ -13,9 +13,11 @@ return new class extends Migration
             $table->year('tahun_anggaran')->unique();
             $table->text('keterangan')->nullable();
             $table->string('file_realisasi', 255);
-            $table->foreignId('uploaded_by')->constrained('user', 'id_user');
+            $table->string('uploaded_by', 10);
             $table->dateTime('tanggal_upload');
             $table->timestamps();
+
+            $table->foreign('uploaded_by')->references('id_user')->on('user');
         });
     }
 

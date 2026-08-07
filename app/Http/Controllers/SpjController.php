@@ -110,6 +110,7 @@ class SpjController extends Controller
 
             // Simpan data SPJ baru
             $spj = Spj::create([
+                'id_spj' => Spj::generateId(),
                 'nama_pekerjaan' => $request->nama_pekerjaan,
                 'periode_mulai' => $request->periode_mulai,
                 'periode_selesai' => $request->periode_selesai,

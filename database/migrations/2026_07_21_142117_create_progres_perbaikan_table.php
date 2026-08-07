@@ -9,11 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('progres_perbaikan', function (Blueprint $table) {
-            $table->id('id_progres');
-            $table->foreignId('id_laporan')->constrained('laporan', 'id_laporan');
+            $table->string('id_progres', 10)->primary();
+            $table->string('id_laporan', 10);
             $table->integer('persentase_penyelesaian');
             $table->text('keterangan_perkembangan');
             $table->dateTime('tanggal_update');
+
+            $table->foreign('id_laporan')->references('id_laporan')->on('laporan')->onDelete('cascade');
         });
     }
 

@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('lokasi', function (Blueprint $table) {
-            $table->id('id_lokasi');
-            $table->foreignId('id_pasar')->constrained('pasar', 'id_pasar');
-            $table->unsignedBigInteger('id_induk')->nullable();
+            $table->string('id_lokasi', 10)->primary();
+            $table->string('id_pasar', 10);
+            $table->string('id_induk', 10)->nullable();
             $table->string('nama_lokasi', 100);
             $table->string('tipe_lokasi', 30);
             $table->integer('tahun_dibangun')->nullable();
@@ -20,6 +20,11 @@ return new class extends Migration
             $table->decimal('luas_bangunan', 10, 2)->nullable();
             $table->string('keterangan', 255)->nullable();
             $table->timestamps();
+
+            $table->foreign('id_pasar')
+                  ->references('id_pasar')
+                  ->on('pasar')
+                  ->onDelete('cascade');
 
             $table->foreign('id_induk')
                   ->references('id_lokasi')

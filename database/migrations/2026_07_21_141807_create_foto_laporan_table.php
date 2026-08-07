@@ -9,9 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('foto_laporan', function (Blueprint $table) {
-            $table->id('id_foto');
-            $table->foreignId('id_laporan')->constrained('laporan', 'id_laporan');
+            $table->string('id_foto', 10)->primary();
+            $table->string('id_laporan', 10);
             $table->string('file_foto', 255);
+
+            $table->foreign('id_laporan')->references('id_laporan')->on('laporan')->onDelete('cascade');
         });
     }
 

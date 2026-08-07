@@ -9,11 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bukti_pembelian', function (Blueprint $table) {
-            $table->id('id_bukti');
-            $table->foreignId('id_laporan')->constrained('laporan', 'id_laporan');
+            $table->string('id_bukti', 10)->primary();
+            $table->string('id_laporan', 10);
             $table->string('file_bukti', 255);
             $table->decimal('nominal', 15, 2);
             $table->datetime('tanggal_bukti');
+
+            $table->foreign('id_laporan')->references('id_laporan')->on('laporan')->onDelete('cascade');
         });
     }
 

@@ -138,8 +138,12 @@ class StaffLaporanController extends Controller
 
             // Insert detail_rab baru
             $details = [];
+            $latestRab = DetailRab::orderBy('id_detail_rab', 'desc')->first();
+            $startNumRab = $latestRab ? ((int) substr($latestRab->id_detail_rab, 3)) + 1 : 1;
+
             foreach ($validated['rincian_kebutuhan'] as $index => $rincian) {
                 $details[] = [
+                    'id_detail_rab' => 'RAB' . str_pad($startNumRab + $index, 3, '0', STR_PAD_LEFT),
                     'id_laporan' => $laporan->id_laporan,
                     'rincian_kebutuhan' => $rincian,
                     'volume' => $validated['volume'][$index],
@@ -307,6 +311,7 @@ class StaffLaporanController extends Controller
 
         try {
             $progres = ProgresPerbaikan::create([
+                'id_progres' => ProgresPerbaikan::generateId(),
                 'id_laporan' => $laporan->id_laporan,
                 'persentase_penyelesaian' => $nextStage,
                 'keterangan_perkembangan' => $validated['keterangan_perkembangan'],
@@ -322,6 +327,7 @@ class StaffLaporanController extends Controller
                 foreach ($request->file('foto_progres') as $file) {
                     $path = $file->store('progres', 'public');
                     FotoProgres::create([
+                        'id_foto_progres' => FotoProgres::generateId(),
                         'id_progres' => $progres->id_progres,
                         'file_foto' => $path,
                     ]);

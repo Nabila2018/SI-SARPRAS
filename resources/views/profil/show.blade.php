@@ -454,7 +454,6 @@
                     </button>
                 </div>
             </div>
-            </div>
 
 
             {{-- BUTTON --}}

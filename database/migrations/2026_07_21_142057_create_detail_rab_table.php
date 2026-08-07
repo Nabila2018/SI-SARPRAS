@@ -9,12 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detail_rab', function (Blueprint $table) {
-            $table->id('id_detail_rab');
-            $table->foreignId('id_laporan')->constrained('laporan', 'id_laporan');
+            $table->string('id_detail_rab', 10)->primary();
+            $table->string('id_laporan', 10);
             $table->string('rincian_kebutuhan', 150);
             $table->decimal('volume', 10, 3);
             $table->string('satuan', 30);
             $table->decimal('harga_satuan', 15, 2);
+
+            $table->foreign('id_laporan')->references('id_laporan')->on('laporan')->onDelete('cascade');
         });
     }
 

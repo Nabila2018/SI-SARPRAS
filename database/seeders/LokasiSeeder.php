@@ -61,8 +61,13 @@ class LokasiSeeder extends Seeder
                 $idInduk = $kodeLokasiMap[$kodeInduk];
             }
 
+            $rawIdPasar = trim((string) ($data['id_pasar'] ?? ''));
+            $idPasar = $rawIdPasar === '' ? null : ('PSR' . str_pad((int) $rawIdPasar, 3, '0', STR_PAD_LEFT));
+            $idLokasi = \App\Models\Lokasi::generateId();
+
             $insertData = [
-                'id_pasar' => trim((string) ($data['id_pasar'] ?? '')) === '' ? null : (int) $data['id_pasar'],
+                'id_lokasi' => $idLokasi,
+                'id_pasar' => $idPasar,
                 'id_induk' => $idInduk,
                 'nama_lokasi' => trim((string) ($data['nama_lokasi'] ?? '')) !== '' ? trim((string) $data['nama_lokasi']) : null,
                 'tipe_lokasi' => trim((string) ($data['tipe_lokasi'] ?? '')) !== '' ? trim((string) $data['tipe_lokasi']) : null,
@@ -73,8 +78,8 @@ class LokasiSeeder extends Seeder
                 'keterangan' => trim((string) ($data['keterangan'] ?? '')) !== '' ? trim((string) $data['keterangan']) : null,
             ];
 
-            $insertedId = DB::table('lokasi')->insertGetId($insertData);
-            $kodeLokasiMap[$kodeLokasi] = $insertedId;
+            DB::table('lokasi')->insert($insertData);
+            $kodeLokasiMap[$kodeLokasi] = $idLokasi;
         }
 
         fclose($handle);

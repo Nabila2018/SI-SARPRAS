@@ -11,8 +11,11 @@ class Lokasi extends Model
 
     protected $table = 'lokasi';
     protected $primaryKey = 'id_lokasi';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
+        'id_lokasi',
         'id_pasar',
         'id_induk',
         'nama_lokasi',
@@ -23,6 +26,26 @@ class Lokasi extends Model
         'luas_bangunan',
         'keterangan',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = static::generateId();
+            }
+        });
+    }
+
+    public static function generateId(): string
+    {
+        $prefix = 'LOC';
+        $latest = static::orderBy('id_lokasi', 'desc')->first();
+        if (!$latest) {
+            return $prefix . '001';
+        }
+        $number = (int) substr($latest->id_lokasi, strlen($prefix));
+        return $prefix . str_pad($number + 1, 3, '0', STR_PAD_LEFT);
+    }
 
     public function pasar()
     {

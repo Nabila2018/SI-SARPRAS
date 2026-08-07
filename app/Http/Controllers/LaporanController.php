@@ -62,6 +62,7 @@ class LaporanController extends Controller
         try {
             // Simpan laporan
             $laporan = Laporan::create([
+                'id_laporan' => Laporan::generateId(),
                 'id_lokasi' => $request->id_lokasi,
                 'id_fasilitas' => $request->id_fasilitas,
                 'id_pelapor' => auth()->user()->id_user,
@@ -81,6 +82,7 @@ class LaporanController extends Controller
                     $path = $foto->store('laporan', 'public');
 
                     FotoLaporan::create([
+                        'id_foto' => FotoLaporan::generateId(),
                         'id_laporan' => $laporan->id_laporan,
                         'file_foto' => $path,
                     ]);

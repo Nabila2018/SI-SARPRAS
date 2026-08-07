@@ -11,9 +11,12 @@ class Laporan extends Model
 
     protected $table = 'laporan';
     protected $primaryKey = 'id_laporan';
+    public $incrementing = false;
+    protected $keyType = 'string';
     public $timestamps = false;
 
     protected $fillable = [
+        'id_laporan',
         'id_lokasi',
         'id_fasilitas',
         'id_pelapor',
@@ -25,6 +28,7 @@ class Laporan extends Model
         'kondisi_diharapkan',
         'tanggal_lapor',
         'status_laporan',
+        'alasan_penolakan',
         'kategori_kerusakan',
         'catatan_pemeriksaan',
         'catatan_revisi_evaluasi',
@@ -34,6 +38,26 @@ class Laporan extends Model
         'tanggal_input_rab',
         'tanggal_verifikasi_rab',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = static::generateId();
+            }
+        });
+    }
+
+    public static function generateId(): string
+    {
+        $prefix = 'LAP';
+        $latest = static::orderBy('id_laporan', 'desc')->first();
+        if (!$latest) {
+            return $prefix . '001';
+        }
+        $number = (int) substr($latest->id_laporan, strlen($prefix));
+        return $prefix . str_pad($number + 1, 3, '0', STR_PAD_LEFT);
+    }
 
     public function lokasi()
     {

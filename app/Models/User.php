@@ -14,8 +14,11 @@ class User extends Authenticatable implements CanResetPasswordContract
 
     protected $table = 'user';
     protected $primaryKey = 'id_user';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
+        'id_user',
         'email',
         'password',
         'nama_lengkap',
@@ -24,6 +27,26 @@ class User extends Authenticatable implements CanResetPasswordContract
         'status_akun',
         'remember_token',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = static::generateId();
+            }
+        });
+    }
+
+    public static function generateId(): string
+    {
+        $prefix = 'USR';
+        $latest = static::orderBy('id_user', 'desc')->first();
+        if (!$latest) {
+            return $prefix . '001';
+        }
+        $number = (int) substr($latest->id_user, strlen($prefix));
+        return $prefix . str_pad($number + 1, 3, '0', STR_PAD_LEFT);
+    }
 
     protected $hidden = [
         'password',

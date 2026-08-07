@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('laporan', function (Blueprint $table) {
-            $table->id('id_laporan');
-            $table->foreignId('id_lokasi')->constrained('lokasi', 'id_lokasi');
-            $table->foreignId('id_fasilitas')->constrained('fasilitas', 'id_fasilitas');
-            $table->foreignId('id_pelapor')->constrained('user', 'id_user');
-            $table->foreignId('id_spj')->nullable()->constrained('spj', 'id_spj');
+            $table->string('id_laporan', 10)->primary();
+            $table->string('id_lokasi', 10);
+            $table->string('id_fasilitas', 10);
+            $table->string('id_pelapor', 10);
+            $table->string('id_spj', 10)->nullable();
 
             $table->enum('kategori_laporan', ['Sanitasi & Air', 'Instalasi Listrik', 'Prasarana Bangunan', 'Fasilitas Umum']);
             $table->string('item_kerusakan', 100);
@@ -36,6 +36,11 @@ return new class extends Migration
             $table->text('catatan_revisi_rab')->nullable();
             $table->datetime('tanggal_input_rab')->nullable();
             $table->datetime('tanggal_verifikasi_rab')->nullable();
+
+            $table->foreign('id_lokasi')->references('id_lokasi')->on('lokasi');
+            $table->foreign('id_fasilitas')->references('id_fasilitas')->on('fasilitas');
+            $table->foreign('id_pelapor')->references('id_user')->on('user');
+            $table->foreign('id_spj')->references('id_spj')->on('spj');
         });
     }
 

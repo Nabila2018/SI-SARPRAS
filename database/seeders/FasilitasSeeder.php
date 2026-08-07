@@ -28,7 +28,10 @@ class FasilitasSeeder extends Seeder
         ];
 
         foreach ($daftarFasilitas as $nama) {
-            Fasilitas::create(['nama_fasilitas' => $nama]);
+            Fasilitas::create([
+                'id_fasilitas' => Fasilitas::generateId(),
+                'nama_fasilitas' => $nama,
+            ]);
         }
     }
 }
