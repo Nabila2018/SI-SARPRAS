@@ -1,667 +1,163 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Laporan - SI-SARPRAS')
-@section('breadcrumb', 'Detail Laporan')
+@section('title', 'Detail Laporan #' . $laporan->id_laporan . ' - SI-SARPRAS')
+
+@section('breadcrumb')
+    <a href="{{ route('kabid.laporan.index') }}" class="hover:text-[#114F72] transition">Verifikasi Laporan</a>
+    <svg class="w-4 h-4 mx-2 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-600">Detail Laporan</span>
+@endsection
 
 @section('content')
+<div class="max-w-7xl mx-auto pb-12">
 
-<div class="max-w-4xl mx-auto pb-12">
+    @php
+        $statusBadge = match($laporan->status_laporan) {
+            'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
+            'Diproses' => 'bg-blue-100 text-blue-700 border-blue-200',
+            'Selesai' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
 
-    {{-- KEMBALI --}}
-    <a href="{{ route('kabid.laporan.index') }}"
-       class="inline-flex items-center gap-2 text-gray-600 hover:text-[#114F72] mb-6 transition">
+        $kategoriBadge = match($laporan->kategori_kerusakan) {
+            'Ringan' => 'bg-amber-100 text-amber-700 border-amber-200',
+            'Sedang' => 'bg-orange-100 text-orange-700 border-orange-200',
+            'Berat' => 'bg-red-100 text-red-700 border-red-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
+    @endphp
 
-        <svg class="w-5 h-5"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-        </svg>
-
-        Kembali ke Daftar
-    </a>
-
-
-    {{-- INFORMASI LAPORAN --}}
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
-
-        <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
-
+    <!-- Header Workspace -->
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('kabid.laporan.index') }}" class="p-2 text-gray-500 hover:text-[#114F72] hover:bg-gray-100 rounded-xl transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+            </a>
             <div>
-                <h2 class="text-lg font-bold text-gray-800">
-                    Informasi Laporan
-                </h2>
-
-                <p class="text-sm text-gray-500 mt-1">
-                    Detail laporan kerusakan yang diteruskan untuk verifikasi.
-                </p>
+                <h1 class="text-xl font-bold text-gray-800">{{ $laporan->id_laporan }} — {{ $laporan->fasilitas->nama_fasilitas ?? 'Laporan Kerusakan' }}</h1>
+                <p class="text-xs text-gray-500 mt-1">Dibuat pada {{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->translatedFormat('d F Y') }}</p>
             </div>
+        </div>
 
-            <span class="inline-flex items-center rounded-full border
-                         border-orange-200 bg-orange-50
-                         px-3 py-1 text-xs font-semibold text-orange-700">
-                {{ $laporan->status_laporan }}
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $statusBadge }}">
+                Status: {{ $laporan->status_laporan }}
             </span>
-
-        </div>
-
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-
-            {{-- Pelapor --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Pelapor
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->pelapor?->nama_lengkap ?? '-' }}
-                </p>
-            </div>
-
-
-            {{-- Tanggal --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Tanggal Lapor
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->format('d M Y') }}
-                </p>
-            </div>
-
-
-            {{-- Pasar --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Pasar
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->lokasi?->pasar?->nama_pasar ?? '-' }}
-                </p>
-            </div>
-
-
-            {{-- Lokasi --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Lokasi
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->lokasi?->nama_lokasi ?? '-' }}
-                </p>
-            </div>
-
-
-            {{-- Lokasi Spesifik --}}
-            @if($laporan->lokasi_spesifik)
-                <div>
-                    <p class="text-gray-500 text-xs uppercase tracking-wider">
-                        Lokasi Spesifik
-                    </p>
-
-                    <p class="font-medium text-gray-800 mt-1">
-                        {{ $laporan->lokasi_spesifik }}
-                    </p>
-                </div>
+            @if($laporan->kategori_kerusakan)
+                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $kategoriBadge }}">
+                    Kerusakan {{ $laporan->kategori_kerusakan }}
+                </span>
             @endif
-
-
-            {{-- Fasilitas --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Fasilitas
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->fasilitas?->nama_fasilitas ?? '-' }}
-                </p>
-            </div>
-
-
-            {{-- Kategori --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Kategori Laporan
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->kategori_laporan ?? '-' }}
-                </p>
-            </div>
-
-
-            {{-- Item Kerusakan --}}
-            <div>
-                <p class="text-gray-500 text-xs uppercase tracking-wider">
-                    Item Kerusakan
-                </p>
-
-                <p class="font-medium text-gray-800 mt-1">
-                    {{ $laporan->item_kerusakan ?? '-' }}
-                </p>
-            </div>
-
         </div>
-
-
-        {{-- Deskripsi --}}
-        <div class="mt-5 pt-4 border-t border-gray-100">
-
-            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
-                Deskripsi Kerusakan
-            </p>
-
-            <p class="text-gray-800 text-sm leading-relaxed">
-                {{ $laporan->deskripsi_kerusakan ?: '-' }}
-            </p>
-
-        </div>
-
-
-        {{-- Kondisi Diharapkan --}}
-        <div class="mt-4 pt-4 border-t border-gray-100">
-
-            <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">
-                Kondisi Diharapkan
-            </p>
-
-            <p class="text-gray-800 text-sm leading-relaxed">
-                {{ $laporan->kondisi_diharapkan ?: '-' }}
-            </p>
-
-        </div>
-
     </div>
 
+    <!-- Workflow Timeline -->
+    @include('kabid.laporan.partials._workflow_timeline')
 
-    {{-- FOTO DOKUMENTASI --}}
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
-
-        <h2 class="text-lg font-bold text-gray-800 mb-4">
-            Foto Dokumentasi
-        </h2>
-
-        @if($laporan->fotoLaporan->count() > 0)
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-
-                @foreach($laporan->fotoLaporan as $index => $foto)
-
-                    <button type="button"
-                            onclick="openFotoModal({{ $index }})"
-                            class="block rounded-lg overflow-hidden
-                                   border border-gray-200 hover:shadow-md
-                                   transition cursor-pointer">
-
-                        <img src="{{ asset('storage/' . $foto->file_foto) }}"
-                             alt="Foto Dokumentasi"
-                             class="w-full h-32 object-cover">
-
-                    </button>
-
-                @endforeach
-
-            </div>
-
-        @else
-
-            <div class="rounded-lg bg-gray-50 border border-gray-100
-                        px-4 py-5 text-sm text-gray-500 text-center">
-                Tidak ada foto dokumentasi.
-            </div>
-
-        @endif
-    
-
-    </div>
-
-
-    {{-- HASIL EVALUASI STAFF --}}
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-
-        <div class="mb-5">
-
-            <h2 class="text-lg font-bold text-gray-800">
-                Hasil Evaluasi Staff
-            </h2>
-
-            <p class="text-sm text-gray-500 mt-1">
-                Hasil pemeriksaan Staff Sarana dan Prasarana.
-            </p>
-
+    <!-- Alert Notifications -->
+    @if(session('success'))
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 flex items-center gap-3">
+            <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>{{ session('success') }}</p>
         </div>
-
-
-        @php
-            $badgeClass = match ($laporan->kategori_kerusakan) {
-                'Ringan' => 'bg-amber-100 text-amber-700 border-amber-200',
-                'Sedang' => 'bg-orange-100 text-orange-700 border-orange-200',
-                'Berat' => 'bg-red-100 text-red-700 border-red-200',
-                default => 'bg-gray-100 text-gray-600 border-gray-200',
-            };
-        @endphp
-
-
-        @if($laporan->kategori_kerusakan || $laporan->catatan_pemeriksaan)
-
-            <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-4">
-
-                {{-- Kategori Kerusakan --}}
-                <div>
-
-                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">
-                        Kategori Kerusakan
-                    </p>
-
-                    @if($laporan->kategori_kerusakan)
-
-                        <span class="inline-flex items-center rounded-full border
-                                     px-2.5 py-1 text-xs font-medium
-                                     {{ $badgeClass }}">
-
-                            {{ $laporan->kategori_kerusakan }}
-
-                        </span>
-
-                    @else
-                        <p class="text-sm text-gray-700">-</p>
-                    @endif
-
-                </div>
-
-
-                {{-- Catatan --}}
-                <div>
-
-                    <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">
-                        Catatan Pemeriksaan
-                    </p>
-
-                    <p class="text-sm text-gray-700 leading-relaxed">
-                        {{ $laporan->catatan_pemeriksaan ?: '-' }}
-                    </p>
-
-                </div>
-
-            </div>
-
-        @else
-
-            <div class="rounded-lg bg-gray-50 border border-gray-100
-                        px-4 py-5 text-sm text-gray-500 text-center">
-                Belum terdapat hasil evaluasi Staff.
-            </div>
-
-        @endif
-
-    </div>
-{{-- KEPUTUSAN KEPALA BIDANG --}}
-<div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mt-6">
-
-    <h2 class="text-lg font-bold text-gray-800 mb-2">
-        Verifikasi Laporan
-    </h2>
-
-    <p class="text-sm text-gray-500 mb-5">
-        Berikan keputusan terhadap laporan berdasarkan hasil evaluasi Staff.
-    </p>
-
-    <div class="flex justify-end gap-3">
-
-    <button type="button"
-            onclick="openKembalikanModal()"
-            class="px-6 py-3 rounded-xl font-semibold text-white shadow-md
-                   bg-gradient-to-r from-[#F59E0B] to-[#EF4444]
-                   hover:opacity-90 transition">
-        Kembalikan
-    </button>
-
-    <button type="button"
-            onclick="openSetujuiModal()"
-            class="px-6 py-3 rounded-xl font-semibold text-white shadow-md
-                   bg-gradient-to-r from-[#114F72] to-[#16A394]
-                   hover:opacity-90 transition">
-        Setujui Laporan
-    </button>
-
-</div>
-
-
-    {{-- MODAL KONFIRMASI SETUJUI --}}
-<div id="setujuiModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
-     onclick="if(event.target === this) closeSetujuiModal()">
-
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-         onclick="event.stopPropagation()">
-
-        <h3 class="text-lg font-semibold text-gray-800">
-            Setujui Laporan
-        </h3>
-
-        <p class="mt-2 text-sm text-gray-600">
-            Apakah Anda yakin ingin menyetujui laporan ini?
-        </p>
-
-        <div class="mt-6 flex justify-end gap-3">
-
-            <button type="button"
-                    onclick="closeSetujuiModal()"
-                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                Batal
-            </button>
-
-            <form action="{{ route('kabid.laporan.setujui', $laporan->id_laporan) }}"
-                  method="POST">
-                @csrf
-
-                <button type="submit"
-                        class="rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">
-                    Ya, Setujui
-                </button>
-            </form>
-
+    @endif
+    @if(session('error'))
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>{{ session('error') }}</p>
         </div>
-</div>
-</div>
-    {{-- MODAL KEMBALIKAN LAPORAN --}}
-<div id="kembalikanModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
-     onclick="if(event.target === this) closeKembalikanModal()">
-
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-         onclick="event.stopPropagation()">
-
-        <h3 class="text-lg font-semibold text-gray-800">
-            Kembalikan Laporan
-        </h3>
-
-        <p class="mt-2 text-sm text-gray-600">
-            Tuliskan alasan atau catatan pengembalian laporan.
-        </p>
-
-        <form action="{{ route('kabid.laporan.kembalikan', $laporan->id_laporan) }}"
-              method="POST"
-              class="mt-5">
-
-            @csrf
-
-            <label for="catatan_revisi_evaluasi"
-                   class="block text-sm font-medium text-gray-700 mb-2">
-                Catatan Pengembalian
-                <span class="text-red-500">*</span>
-            </label>
-
-            <textarea
-                id="catatan_revisi_evaluasi"
-                name="catatan_revisi_evaluasi"
-                rows="4"
-                required
-                maxlength="1000"
-                placeholder="Tuliskan alasan laporan dikembalikan..."
-                class="w-full rounded-xl border border-gray-300 px-4 py-3
-                       text-sm focus:border-[#16A394] focus:ring-[#16A394]
-                       resize-none">{{ old('catatan_revisi_evaluasi') }}</textarea>
-
-            <div class="mt-6 flex justify-end gap-3">
-
-                <button type="button"
-                        onclick="closeKembalikanModal()"
-                        class="rounded-lg border border-gray-300 px-4 py-2
-                               text-sm font-medium text-gray-600
-                               hover:bg-gray-50 transition">
-                    Batal
-                </button>
-
-                <button type="submit"
-                        class="rounded-lg bg-gradient-to-r from-[#F59E0B] to-[#EF4444]
-                               px-4 py-2 text-sm font-semibold text-white
-                               shadow-sm hover:opacity-90 transition">
-                    Ya, Kembalikan
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-</div>
-
-<script>
-    function openSetujuiModal() {
-        const modal = document.getElementById('setujuiModal');
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeSetujuiModal() {
-        const modal = document.getElementById('setujuiModal');
-
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = '';
-    }
-
-    function openKembalikanModal() {
-        const modal = document.getElementById('kembalikanModal');
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeKembalikanModal() {
-        const modal = document.getElementById('kembalikanModal');
-
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = '';
-    }
-</script>
-</div>
-</div>
-
-
-{{-- ============================== --}}
-{{-- MODAL FOTO --}}
-{{-- ============================== --}}
-
-@if($laporan->fotoLaporan->count() > 0)
-
-<div id="fotoModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4"
-     onclick="if(event.target === this) closeFotoModal()">
-
-
-    {{-- Close --}}
-    <button type="button"
-            onclick="closeFotoModal()"
-            class="absolute top-4 right-4 text-white/80 hover:text-white transition">
-
-        <svg class="w-8 h-8"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"/>
-
-        </svg>
-
-    </button>
-
-
-    {{-- Previous --}}
-    <button type="button"
-            id="fotoPrevBtn"
-            onclick="showPrevFoto()"
-            class="absolute left-4 top-1/2 -translate-y-1/2
-                   text-white/80 hover:text-white transition">
-
-        <svg class="w-10 h-10"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"/>
-
-        </svg>
-
-    </button>
-
-
-    {{-- Foto --}}
-    <img id="fotoModalImg"
-         src=""
-         alt="Foto Dokumentasi"
-         class="max-h-[85vh] max-w-full rounded-lg shadow-2xl">
-
-
-    {{-- Next --}}
-    <button type="button"
-            id="fotoNextBtn"
-            onclick="showNextFoto()"
-            class="absolute right-4 top-1/2 -translate-y-1/2
-                   text-white/80 hover:text-white transition">
-
-        <svg class="w-10 h-10"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"/>
-
-        </svg>
-
-    </button>
-
-
-    {{-- Counter --}}
-    <div id="fotoCounter"
-         class="absolute bottom-4 left-1/2 -translate-x-1/2
-                text-white/80 text-sm">
-    </div>
-
-</div>
-
-
-<script>
-    const fotoList = @json(
-        $laporan->fotoLaporan
-            ->map(fn($foto) => asset('storage/' . $foto->file_foto))
-            ->values()
-    );
-
-    let fotoIndex = 0;
-
-
-    function updateFotoModal() {
-
-        document.getElementById('fotoModalImg').src =
-            fotoList[fotoIndex];
-
-        document.getElementById('fotoCounter').textContent =
-            (fotoIndex + 1) + ' / ' + fotoList.length;
-
-
-        const showNavigation = fotoList.length > 1;
-
-        document.getElementById('fotoPrevBtn').style.display =
-            showNavigation ? 'block' : 'none';
-
-        document.getElementById('fotoNextBtn').style.display =
-            showNavigation ? 'block' : 'none';
-    }
-
-
-    function openFotoModal(index) {
-
-        fotoIndex = index;
-
-        updateFotoModal();
-
-        const modal =
-            document.getElementById('fotoModal');
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-
-        document.body.style.overflow = 'hidden';
-    }
-
-
-    function closeFotoModal() {
-
-        const modal =
-            document.getElementById('fotoModal');
-
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-
-        document.body.style.overflow = '';
-    }
-
-
-    function showPrevFoto() {
-
-        fotoIndex =
-            (fotoIndex - 1 + fotoList.length)
-            % fotoList.length;
-
-        updateFotoModal();
-    }
-
-
-    function showNextFoto() {
-
-        fotoIndex =
-            (fotoIndex + 1)
-            % fotoList.length;
-
-        updateFotoModal();
-    }
-
-
-    document.addEventListener('keydown', function (event) {
-
-        const modal =
-            document.getElementById('fotoModal');
-
-        if (modal.classList.contains('hidden')) {
-            return;
+    @endif
+
+    <!-- Tabs Navigation Bar -->
+    @php
+        $roleName = auth()->user()->role->nama_role ?? '';
+
+        $isReportActive = !in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan', 'Ditolak']);
+        $evaluasiDone = !is_null($laporan->kategori_kerusakan) && $isReportActive;
+        $rabApproved = $laporan->status_verifikasi_rab === 'Disetujui' && $isReportActive;
+
+        $tabEnabled = [
+            'informasi' => true,
+            'evaluasi' => true,
+            'rab' => $evaluasiDone,
+            'progress' => $rabApproved,
+            'bukti' => $rabApproved,
+        ];
+
+        $allowedTabs = match($roleName) {
+            'Petugas UPTD' => ['informasi', 'evaluasi', 'progress'],
+            'Staff Sarana dan Prasarana' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            'Kepala Bidang' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            'Kepala Dinas' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            default => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti']
+        };
+
+        $requestedTab = request()->query('tab', 'informasi');
+        if (in_array($requestedTab, $allowedTabs) && ($tabEnabled[$requestedTab] ?? false)) {
+            $activeTab = $requestedTab;
+        } else {
+            $activeTab = 'informasi';
         }
 
-        if (event.key === 'Escape') {
-            closeFotoModal();
-        }
+        $tabLabels = [
+            'informasi' => 'Informasi',
+            'evaluasi' => 'Evaluasi',
+            'rab' => 'RAB',
+            'progress' => 'Progress',
+            'bukti' => 'Bukti Pembelian',
+        ];
+    @endphp
 
-        if (event.key === 'ArrowLeft') {
-            showPrevFoto();
-        }
+    <div class="mb-6 border-b border-gray-200 bg-white px-4 rounded-xl border shadow-sm">
+        <nav class="-mb-px flex gap-6 overflow-x-auto" aria-label="Tabs">
+            @foreach($allowedTabs as $tabKey)
+                @php
+                    $isEnabled = $tabEnabled[$tabKey] ?? false;
+                    $isActive = ($activeTab === $tabKey);
+                    $currentUrl = request()->fullUrlWithQuery(['tab' => $tabKey]);
+                @endphp
 
-        if (event.key === 'ArrowRight') {
-            showNextFoto();
-        }
-    });
-</script>
+                @if($isEnabled)
+                    <a href="{{ $currentUrl }}"
+                       class="inline-flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-semibold transition-colors whitespace-nowrap {{ $isActive ? 'border-[#114F72] text-[#114F72]' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}">
+                        {{ $tabLabels[$tabKey] ?? ucfirst($tabKey) }}
+                    </a>
+                @else
+                    <span class="inline-flex items-center gap-1.5 border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-300 cursor-not-allowed whitespace-nowrap opacity-60"
+                          title="Selesaikan tahap sebelumnya terlebih dahulu">
+                        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        {{ $tabLabels[$tabKey] ?? ucfirst($tabKey) }}
+                    </span>
+                @endif
+            @endforeach
+        </nav>
+    </div>
 
-@endif
+    <!-- Grid Layout: Content Area + Sticky Sidebar -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content Area -->
+        <div class="lg:col-span-2 space-y-6">
+            @include('kabid.laporan.partials._' . $activeTab)
+        </div>
 
+        <!-- Sticky Right Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-6">
+                @include('kabid.laporan.partials._sidebar')
+            </div>
+        </div>
+    </div>
+
+</div>
 @endsection

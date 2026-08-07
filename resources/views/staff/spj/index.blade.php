@@ -249,7 +249,7 @@
                                         <!-- Delete -->
                                         <button
                                             type="button"
-                                            onclick="openDeleteModal({{ $spj->id_spj }})"
+                                            onclick="openDeleteModal(@json($spj->id_spj))"
                                             class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
                                             title="Hapus">
 
@@ -314,24 +314,26 @@
                                         Dokumen SPJ yang ditambahkan akan muncul di sini.
                                     </p>
 
-                                    <a href="{{ route('staff.spj.create') }}"
-                                       class="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">
+                                    @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
+                                        <a href="{{ route('staff.spj.create') }}"
+                                           class="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">
 
-                                        <svg class="w-5 h-5"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
+                                            <svg class="w-5 h-5"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 viewBox="0 0 24 24">
 
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M12 4v16m8-8H4"/>
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      stroke-width="2"
+                                                      d="M12 4v16m8-8H4"/>
 
-                                        </svg>
+                                            </svg>
 
-                                        Tambah Dokumen SPJ
+                                            Tambah Dokumen SPJ
 
-                                    </a>
+                                        </a>
+                                    @endif
 
                                 </div>
 

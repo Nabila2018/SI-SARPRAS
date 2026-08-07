@@ -193,7 +193,7 @@
                                     {{-- EDIT --}}
                                     <button type="button"
                                         onclick="openEditModal(
-                                            {{ $user->id_user }},
+                                            @json($user->id_user),
                                             @js($user->nama_lengkap),
                                             @js($user->email),
                                             @js($user->role->nama_role ?? '-'),
@@ -249,7 +249,7 @@
 
                         <button type="button"
                                 onclick="openStatusModal(
-                                    {{ $user->id_user }},
+                                    @json($user->id_user),
                                     @js($user->nama_lengkap),
                                     @js($user->status_akun)
                                 )"
@@ -746,8 +746,8 @@
 
     tambahRole.addEventListener('change', function () {
 
-        // id_role 1 = Petugas UPTD
-        if (this.value === '1') {
+        // id_role RL001 = Petugas UPTD
+        if (this.value === 'RL001') {
 
             tambahPasar.disabled = false;
             tambahPasar.required = true;

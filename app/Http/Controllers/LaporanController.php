@@ -134,7 +134,9 @@ class LaporanController extends Controller
             'fasilitas',
             'fotoLaporan',
             'pelapor',
-            'progresPerbaikan.fotoProgres'
+            'detailRab',
+            'progresPerbaikan.fotoProgres',
+            'buktiPembelian'
         ])->findOrFail($id);
 
         $laporan->load(['fotoLaporan' => function ($query) use ($laporan) {

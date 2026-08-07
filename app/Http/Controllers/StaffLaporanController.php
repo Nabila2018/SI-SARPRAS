@@ -7,12 +7,42 @@ use App\Models\Pasar;
 use App\Models\DetailRab;
 use App\Models\ProgresPerbaikan;
 use App\Models\FotoProgres;
+use App\Models\BuktiPembelian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 class StaffLaporanController extends Controller
 {
+    /**
+     * Export RAB ke berkas PDF.
+     */
+    public function exportRabPdf($id)
+    {
+        $laporan = Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])->findOrFail($id);
+
+        if ($laporan->detailRab->isEmpty()) {
+            return back()->with('error', 'RAB belum memiliki rincian kebutuhan.');
+        }
+
+        $logoBase64 = '';
+        if (extension_loaded('gd')) {
+            $logoPath = public_path('images/Logo Dinas Perdagangan Kota Padang.png');
+            if (file_exists($logoPath)) {
+                $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+                $data = file_get_contents($logoPath);
+                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rab', compact('laporan', 'logoBase64'));
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download("RAB_{$laporan->id_laporan}.pdf");
+    }
+
     // Daftar semua laporan masuk (Staff)
     public function index(Request $request)
     {
@@ -53,7 +83,7 @@ class StaffLaporanController extends Controller
         ]);
 
         return redirect()
-            ->route('laporan.show', $laporan->id_laporan)
+            ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'evaluasi'])
             ->with('success', 'Evaluasi berhasil disimpan.');
     }
 
@@ -78,7 +108,7 @@ class StaffLaporanController extends Controller
         ]);
 
         return redirect()
-            ->route('laporan.show', $laporan->id_laporan)
+            ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'evaluasi'])
             ->with('success', 'Laporan berhasil diteruskan ke Kabid.');
     }
 
@@ -154,16 +184,17 @@ class StaffLaporanController extends Controller
 
             DetailRab::insert($details);
 
-            // Update tanggal input RAB
+            // Update tanggal input RAB & status verifikasi RAB ke Kabid
             $laporan->update([
+                'status_verifikasi_rab' => 'Menunggu',
                 'tanggal_input_rab' => now(),
             ]);
 
             DB::commit();
 
             return redirect()
-                ->route('staff.laporan.rab.show', $laporan->id_laporan)
-                ->with('success', 'RAB berhasil disimpan.');
+                ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'rab'])
+                ->with('success', 'RAB berhasil dibuat dan diteruskan ke Kabid.');
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -297,14 +328,15 @@ class StaffLaporanController extends Controller
 
         $validated = $request->validate([
             'keterangan_perkembangan' => ['required', 'string', 'max:2000'],
-            'foto_progres' => ['required', 'array', 'min:1'],
+            'foto_progres' => ['required', 'array', 'min:1', 'max:5'],
             'foto_progres.*' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:4096'],
         ], [
             'keterangan_perkembangan.required' => 'Keterangan perkembangan wajib diisi.',
             'foto_progres.required' => 'Minimal 1 foto progres wajib diunggah.',
             'foto_progres.min' => 'Minimal 1 foto progres wajib diunggah.',
+            'foto_progres.max' => 'Maksimal 5 foto progres yang dapat diunggah sekaligus.',
             'foto_progres.*.image' => 'File foto harus berupa gambar (jpg, jpeg, png).',
-            'foto_progres.*.max' => 'Ukuran file foto maksimal 4 MB.',
+            'foto_progres.*.max' => 'Ukuran file foto maksimal 4 MB per foto.',
         ]);
 
         DB::beginTransaction();
@@ -337,11 +369,94 @@ class StaffLaporanController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('laporan.show', $laporan->id_laporan)
+                ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'progress'])
                 ->with('success', "Progres perbaikan Tahap {$nextStage}% berhasil disimpan.");
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Unggah bukti pembelian baru (Staff).
+     */
+    public function storeBuktiPembelian(Request $request, $id)
+    {
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $laporan = Laporan::findOrFail($id);
+
+        if ($laporan->status_verifikasi_rab !== 'Disetujui') {
+            return back()->with('error', 'Bukti pembelian hanya dapat diunggah setelah RAB disetujui oleh Kabid.');
+        }
+
+        $validated = $request->validate([
+            'file_bukti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'nominal' => ['required', 'numeric', 'min:1'],
+            'tanggal_bukti' => ['required', 'date'],
+        ], [
+            'file_bukti.required' => 'Berkas bukti pembelian wajib diunggah.',
+            'file_bukti.mimes' => 'Format berkas harus berupa PDF, JPG, JPEG, atau PNG.',
+            'file_bukti.max' => 'Ukuran berkas maksimal 5 MB.',
+            'nominal.required' => 'Nominal transaksi wajib diisi.',
+            'tanggal_bukti.required' => 'Tanggal nota/bukti transaksi wajib diisi.',
+        ]);
+
+        $file = $request->file('file_bukti');
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $originalName);
+        $filename = time() . '_' . Str::random(5) . '_' . $cleanName . '.' . $extension;
+        $path = $file->storeAs('bukti_pembelian', $filename, 'public');
+
+        BuktiPembelian::create([
+            'id_bukti' => BuktiPembelian::generateId(),
+            'id_laporan' => $laporan->id_laporan,
+            'file_bukti' => $path,
+            'nominal' => $validated['nominal'],
+            'tanggal_bukti' => $validated['tanggal_bukti'],
+        ]);
+
+        return redirect()
+            ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'bukti'])
+            ->with('success', 'Bukti pembelian berhasil diunggah.');
+    }
+
+    /**
+     * Hapus bukti pembelian (Staff).
+     */
+    public function deleteBuktiPembelian($id, $buktiId)
+    {
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $bukti = BuktiPembelian::where('id_laporan', $id)->findOrFail($buktiId);
+
+        if (Storage::disk('public')->exists($bukti->file_bukti)) {
+            Storage::disk('public')->delete($bukti->file_bukti);
+        }
+
+        $bukti->delete();
+
+        return redirect()
+            ->route('laporan.show', ['id' => $id, 'tab' => 'bukti'])
+            ->with('success', 'Bukti pembelian berhasil dihapus.');
+    }
+
+    /**
+     * Unduh berkas bukti pembelian (Staff, Kabid, Kadis).
+     */
+    public function downloadBuktiPembelian($id, $buktiId)
+    {
+        $bukti = BuktiPembelian::where('id_laporan', $id)->findOrFail($buktiId);
+
+        if (!Storage::disk('public')->exists($bukti->file_bukti)) {
+            return back()->with('error', 'Berkas bukti pembelian tidak ditemukan di server.');
+        }
+
+        return Storage::disk('public')->download($bukti->file_bukti);
     }
 }

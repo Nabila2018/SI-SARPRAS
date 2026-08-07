@@ -12,6 +12,7 @@ class BuktiPembelian extends Model
     protected $table = 'bukti_pembelian';
     protected $primaryKey = 'id_bukti';
     public $incrementing = false;
+    public $timestamps = false;
     protected $keyType = 'string';
 
     protected $fillable = [

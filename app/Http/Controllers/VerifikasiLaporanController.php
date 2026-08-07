@@ -33,7 +33,10 @@ class VerifikasiLaporanController extends Controller
             'lokasi.pasar',
             'fasilitas',
             'pelapor',
-            'fotoLaporan'
+            'fotoLaporan',
+            'detailRab',
+            'progresPerbaikan.fotoProgres',
+            'buktiPembelian'
         ])
             ->where('status_laporan', 'Diproses')
             ->findOrFail($id);

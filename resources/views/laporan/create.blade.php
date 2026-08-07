@@ -411,7 +411,7 @@
     // Auto-load lokasi saat halaman dimuat (untuk UPTD)
     document.addEventListener('DOMContentLoaded', function() {
         @if(auth()->user()->role->nama_role === 'Petugas UPTD' && $pasarTerpilih)
-            loadLokasi({{ $pasarTerpilih }});
+            loadLokasi(@json($pasarTerpilih));
         @endif
     });
 

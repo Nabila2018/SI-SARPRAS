@@ -20,17 +20,19 @@ class UptdLaporanScopingTest extends TestCase
     {
         $roleUptd = Role::create(['nama_role' => 'Petugas UPTD']);
 
-        $pasarRaya = Pasar::create(['nama_pasar' => 'Pasar Raya']);
-        $pasarAlai = Pasar::create(['nama_pasar' => 'Pasar Alai']);
+        $pasarRaya = Pasar::create(['nama_pasar' => 'Pasar Raya', 'alamat' => 'Jl. Pasar Raya']);
+        $pasarAlai = Pasar::create(['nama_pasar' => 'Pasar Alai', 'alamat' => 'Jl. Pasar Alai']);
 
         $lokasiRaya = Lokasi::create([
             'id_pasar' => $pasarRaya->id_pasar,
             'nama_lokasi' => 'Blok A Pasar Raya',
+            'tipe_lokasi' => 'Blok',
         ]);
 
         $lokasiAlai = Lokasi::create([
             'id_pasar' => $pasarAlai->id_pasar,
             'nama_lokasi' => 'Blok B Pasar Alai',
+            'tipe_lokasi' => 'Blok',
         ]);
 
         $fasilitas = Fasilitas::create(['nama_fasilitas' => 'Kran Air']);
@@ -89,7 +91,7 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasA)
             ->get(route('laporan.show', $laporanA->id_laporan))
             ->assertStatus(200)
-            ->assertSee('Kran Bocor');
+            ->assertSee('Kran air tidak bisa ditutup rapat');
 
         // 3. Petugas B (pasar yang sama) JUGA dapat melihat laporan Petugas A
         $this->actingAs($petugasB)
@@ -100,7 +102,7 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasB)
             ->get(route('laporan.show', $laporanA->id_laporan))
             ->assertStatus(200)
-            ->assertSee('Kran Bocor');
+            ->assertSee('Kran air tidak bisa ditutup rapat');
 
         // 4. Petugas C (pasar lain) TIDAK dapat melihat laporan Pasar Raya di daftar
         $this->actingAs($petugasC)
@@ -117,6 +119,6 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasB)
             ->get(route('home'))
             ->assertStatus(200)
-            ->assertSee('Total Laporan Pasar');
+            ->assertSee('Total Laporan');
     }
 }

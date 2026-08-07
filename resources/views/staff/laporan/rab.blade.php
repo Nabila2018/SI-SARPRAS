@@ -17,12 +17,12 @@
 <div class="max-w-5xl mx-auto pb-12">
 
     <!-- Tombol Kembali -->
-    <a href="{{ route('staff.laporan.index') }}"
+    <a href="{{ route('laporan.show', $laporan->id_laporan) }}"
        class="inline-flex items-center gap-2 text-gray-600 hover:text-[#114F72] mb-6 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
         </svg>
-        Kembali ke Daftar
+        Kembali ke Detail Laporan
     </a>
 
     
@@ -49,41 +49,53 @@
         </div>
     @endif
 
-    <!-- Status RAB -->
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-800">Status RAB</h2>
-            @php
-                $statusBadge = match($laporan->status_verifikasi_rab) {
-                    'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
-                    'Disetujui' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                    'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
-                    default => 'bg-gray-100 text-gray-600 border-gray-200',
-                };
-                $statusText = $laporan->status_verifikasi_rab ?? 'Belum Dibuat';
-            @endphp
-            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium {{ $statusBadge }}">
-                {{ $statusText }}
-            </span>
-        </div>
-
-        @if($laporan->status_verifikasi_rab === 'Dikembalikan' && $laporan->catatan_revisi_rab)
-            <div class="rounded-lg border border-red-200 bg-red-50 p-4 mb-4">
-                <p class="text-xs uppercase tracking-wider text-red-600 font-medium mb-1">Catatan Revisi dari Kabid</p>
-                <p class="text-sm text-red-700">{{ $laporan->catatan_revisi_rab }}</p>
-            </div>
-        @endif
-    </div>
-
     <!-- Form RAB -->
     @php
         $isEditable = is_null($laporan->status_verifikasi_rab) || $laporan->status_verifikasi_rab === 'Dikembalikan';
         $existingDetails = $laporan->detailRab;
         $hasExisting = $existingDetails->count() > 0;
+
+        $statusText = match($laporan->status_verifikasi_rab) {
+            'Menunggu' => 'Menunggu',
+            'Disetujui' => 'Disetujui',
+            'Dikembalikan' => 'Dikembalikan',
+            default => ($hasExisting ? 'Belum Diteruskan' : 'Belum Dibuat'),
+        };
+
+        $statusBadge = match($laporan->status_verifikasi_rab) {
+            'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
+            'Disetujui' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
     @endphp
 
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4">Detail Rencana Anggaran Biaya</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-gray-100 pb-4">
+            <h2 class="text-lg font-bold text-gray-800">Detail Rencana Anggaran Biaya</h2>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $statusBadge }}">
+                    {{ $statusText }}
+                </span>
+
+                @if($hasExisting)
+                    <a href="{{ route('laporan.rab.pdf', $laporan->id_laporan) }}"
+                       class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-[#114F72] transition">
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download PDF
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        @if($laporan->status_verifikasi_rab === 'Dikembalikan' && $laporan->catatan_revisi_rab)
+            <div class="rounded-lg border border-red-200 bg-red-50 p-4 mb-4">
+                <p class="text-xs uppercase tracking-wider text-red-600 font-semibold mb-1">Catatan Revisi dari Kabid</p>
+                <p class="text-sm text-red-700">{{ $laporan->catatan_revisi_rab }}</p>
+            </div>
+        @endif
 
         <form id="rabForm" action="{{ route('staff.laporan.rab.store', $laporan->id_laporan) }}" method="POST">
             @csrf
@@ -187,23 +199,16 @@
                 </table>
             </div>
 
-                        @if($isEditable)
-                <div class="mt-4 flex flex-wrap gap-3">
-                    <button type="button" onclick="addRow()" class="inline-flex items-center gap-2 rounded-lg border border-[#114F72] px-4 py-2 text-sm font-medium text-[#114F72] hover:bg-[#114F72]/5 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Tambah Baris
-                    </button>
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+                <div class="flex flex-wrap items-center gap-3">
+                    @if($isEditable)
+                        <button type="button" onclick="addRow()" class="inline-flex items-center gap-2 rounded-lg border border-[#114F72] px-4 py-2 text-sm font-medium text-[#114F72] hover:bg-[#114F72]/5 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Tambah Baris
+                        </button>
 
-                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-6 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-                        </svg>
-                        Simpan RAB
-                    </button>
-
-                    @if($hasExisting)
                         <button type="button" onclick="openForwardRabModal()"
                             class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-6 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,14 +218,11 @@
                         </button>
                     @endif
                 </div>
-            @endif
-        </form>
 
-        @if($isEditable && $hasExisting)
-            <form id="forwardForm" action="{{ route('staff.laporan.rab.forward', $laporan->id_laporan) }}" method="POST" class="hidden">
-                @csrf
-            </form>
-        @endif
+                {{-- Reserved Slot for Future Download PDF Feature --}}
+                <div id="rabPdfActionContainer" class="flex items-center"></div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -233,7 +235,7 @@
         <p class="mt-2 text-sm text-gray-600">Apakah Anda yakin ingin meneruskan RAB ini ke Kabid untuk diverifikasi?</p>
         <div class="mt-6 flex justify-end gap-3">
             <button type="button" onclick="closeForwardRabModal()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
-            <button type="button" onclick="document.getElementById('forwardForm').submit();" class="rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Ya, Teruskan</button>
+            <button type="button" onclick="document.getElementById('rabForm').submit();" class="rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Ya, Teruskan</button>
         </div>
     </div>
 </div>

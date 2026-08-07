@@ -1,387 +1,163 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Laporan - SI-SARPRAS')
-@section('breadcrumb', 'Detail Laporan')
+@section('title', 'Detail Laporan #' . $laporan->id_laporan . ' - SI-SARPRAS')
+
+@section('breadcrumb')
+    <a href="{{ route('laporan.index') }}" class="hover:text-[#114F72] transition">Daftar Laporan Masuk</a>
+    <svg class="w-4 h-4 mx-2 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="text-gray-600">Detail Laporan</span>
+@endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto pb-12">
+<div class="max-w-7xl mx-auto pb-12">
 
-    <!-- Header -->
-    <div class="flex items-center gap-3 mb-8">
-        <a href="{{ route('laporan.index') }}" class="p-2 text-gray-500 hover:text-[#114F72] hover:bg-gray-100 rounded-lg transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Detail Laporan</h1>
-            <p class="text-gray-500 text-sm mt-0.5">ID Laporan: #{{ $laporan->id_laporan }}</p>
+    @php
+        $statusBadge = match($laporan->status_laporan) {
+            'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
+            'Diproses' => 'bg-blue-100 text-blue-700 border-blue-200',
+            'Selesai' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
+
+        $kategoriBadge = match($laporan->kategori_kerusakan) {
+            'Ringan' => 'bg-amber-100 text-amber-700 border-amber-200',
+            'Sedang' => 'bg-orange-100 text-orange-700 border-orange-200',
+            'Berat' => 'bg-red-100 text-red-700 border-red-200',
+            default => 'bg-gray-100 text-gray-600 border-gray-200',
+        };
+    @endphp
+
+    <!-- Header Workspace -->
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('laporan.index') }}" class="p-2 text-gray-500 hover:text-[#114F72] hover:bg-gray-100 rounded-xl transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">{{ $laporan->id_laporan }} — {{ $laporan->fasilitas->nama_fasilitas ?? 'Laporan Kerusakan' }}</h1>
+                <p class="text-xs text-gray-500 mt-1">Dibuat pada {{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->translatedFormat('d F Y') }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $statusBadge }}">
+                Status: {{ $laporan->status_laporan }}
+            </span>
+            @if($laporan->kategori_kerusakan)
+                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $kategoriBadge }}">
+                    Kerusakan {{ $laporan->kategori_kerusakan }}
+                </span>
+            @endif
         </div>
     </div>
 
-    <!-- Alert -->
+    <!-- Workflow Timeline -->
+    @include('laporan.partials._workflow_timeline')
+
+    <!-- Alert Notifications -->
     @if(session('success'))
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <svg class="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 flex items-center gap-3">
+            <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p class="text-sm text-emerald-700">{{ session('success') }}</p>
+            <p>{{ session('success') }}</p>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>{{ session('error') }}</p>
         </div>
     @endif
 
-    <!-- Status Banner -->
+    <!-- Tabs Navigation Bar -->
     @php
-        $statusBanner = [
-            'Menunggu' => ['bg-amber-50 border-amber-200 text-amber-800', 'Menunggu peninjauan dari Staff Sarana dan Prasarana'],
-            'Diproses' => ['bg-blue-50 border-blue-200 text-blue-800', 'Sedang dalam proses perbaikan'],
-            'Selesai' => ['bg-emerald-50 border-emerald-200 text-emerald-800', 'Laporan telah selesai ditangani'],
-            'Dikembalikan' => ['bg-red-50 border-red-200 text-red-800', 'Laporan dikembalikan untuk revisi'],
+        $roleName = auth()->user()->role->nama_role ?? '';
+
+        $isReportActive = !in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan', 'Ditolak']);
+        $evaluasiDone = !is_null($laporan->kategori_kerusakan) && $isReportActive;
+        $rabApproved = $laporan->status_verifikasi_rab === 'Disetujui' && $isReportActive;
+
+        $tabEnabled = [
+            'informasi' => true,
+            'evaluasi' => true,
+            'rab' => $evaluasiDone,
+            'progress' => $rabApproved,
+            'bukti' => $rabApproved,
         ];
-        $banner = $statusBanner[$laporan->status_laporan] ?? ['bg-gray-50 border-gray-200 text-gray-800', 'Status tidak diketahui'];
-    @endphp
-    <div class="rounded-xl border p-4 mb-6 flex items-start gap-3 {{ $banner[0] }}">
-        <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div>
-            <p class="font-semibold text-sm">Status: {{ $laporan->status_laporan }}</p>
-            <p class="text-sm opacity-80">{{ $banner[1] }}</p>
-        </div>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Kolom Kiri: Info Laporan -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <!-- Informasi Dasar -->
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5">
-                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        Informasi Laporan
-                    </h2>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Item Kerusakan</p>
-                            <p class="text-sm font-medium text-gray-800">{{ $laporan->item_kerusakan }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kategori</p>
-                            <p class="text-sm font-medium text-gray-800">{{ $laporan->kategori_laporan }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Fasilitas</p>
-                            <p class="text-sm font-medium text-gray-800">{{ $laporan->fasilitas->nama_fasilitas ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tanggal Lapor</p>
-                            <p class="text-sm font-medium text-gray-800">{{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->format('d F Y, H:i') }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-gray-100 pt-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Lokasi Spesifik</p>
-                        <p class="text-sm text-gray-700">
-                            {{ $laporan->lokasi->nama_lokasi ?? '-' }} 
-                            <span class="text-gray-400">({{ $laporan->lokasi->pasar->nama_pasar ?? '-' }})</span>
-                        </p>
-                        @if($laporan->lokasi_spesifik)
-                            <p class="text-xs text-gray-500 mt-1">Detail: {{ $laporan->lokasi_spesifik }}</p>
-                        @endif
-                    </div>
+        $allowedTabs = match($roleName) {
+            'Petugas UPTD' => ['informasi', 'evaluasi', 'progress'],
+            'Staff Sarana dan Prasarana' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            'Kepala Bidang' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            'Kepala Dinas' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
+            default => ['informasi', 'evaluasi', 'progress']
+        };
 
-                    <div class="border-t border-gray-100 pt-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Deskripsi Kerusakan</p>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $laporan->deskripsi_kerusakan }}</p>
-                    </div>
-
-                    <div class="border-t border-gray-100 pt-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kondisi yang Diharapkan</p>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $laporan->kondisi_diharapkan }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Foto Laporan -->
-            @if($laporan->fotoLaporan->count() > 0)
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5">
-                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        Foto Dokumentasi
-                    </h2>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        @foreach($laporan->fotoLaporan as $index => $foto)
-                        <button type="button"
-                                onclick="openFotoModal({{ $index }})"
-                                class="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all cursor-pointer">
-                            <img src="{{ asset('storage/' . $foto->file_foto) }}" alt="Foto Laporan" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                        </button>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <!-- Hasil Evaluasi (Kalau sudah dievaluasi) -->
-            @if($laporan->kategori_kerusakan)
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5">
-                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Hasil Evaluasi
-                    </h2>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kategori Kerusakan</p>
-                            <span class="inline-flex px-3 py-1 rounded-full text-xs font-medium
-                                @if($laporan->kategori_kerusakan === 'Ringan') bg-green-100 text-green-700
-                                @elseif($laporan->kategori_kerusakan === 'Sedang') bg-yellow-100 text-yellow-700
-                                @else bg-red-100 text-red-700 @endif">
-                                {{ $laporan->kategori_kerusakan }}
-                            </span>
-                        </div>
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Status Verifikasi</p>
-                            <p class="text-sm font-medium text-gray-800">{{ $laporan->status_verifikasi_evaluasi ?? 'Menunggu' }}</p>
-                        </div>
-                    </div>
-                    @if($laporan->catatan_pemeriksaan)
-                    <div class="border-t border-gray-100 pt-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Catatan Pemeriksaan</p>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $laporan->catatan_pemeriksaan }}</p>
-                    </div>
-                    @endif
-                    @if($laporan->catatan_revisi_evaluasi)
-                    <div class="border-t border-gray-100 pt-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Catatan Revisi</p>
-                        <p class="text-sm text-red-600 leading-relaxed">{{ $laporan->catatan_revisi_evaluasi }}</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
-            @endif
-
-            <!-- Progres Perbaikan (Read-only UPTD) -->
-            @if($laporan->progresPerbaikan && $laporan->progresPerbaikan->count() > 0)
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        Progres Perbaikan
-                    </h2>
-                    @php
-                        $latestStage = $laporan->progresPerbaikan->max('persentase_penyelesaian');
-                    @endphp
-                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-[#114F72] text-white">
-                        {{ $latestStage }}%
-                    </span>
-                </div>
-                <div class="p-6 space-y-4">
-                    @foreach($laporan->progresPerbaikan->sortBy('persentase_penyelesaian') as $progres)
-                        <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center rounded-lg bg-[#114F72] text-white px-2.5 py-0.5 text-xs font-bold">
-                                    Tahap {{ $progres->persentase_penyelesaian }}%
-                                </span>
-                                <span class="text-xs text-gray-500">
-                                    {{ \Carbon\Carbon::parse($progres->tanggal_update)->format('d F Y, H:i') }}
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-700 leading-relaxed mb-3">{{ $progres->keterangan_perkembangan }}</p>
-
-                            @if($progres->fotoProgres && $progres->fotoProgres->count() > 0)
-                                <div class="grid grid-cols-3 gap-2">
-                                    @foreach($progres->fotoProgres as $foto)
-                                        <div class="aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                            <img src="{{ asset('storage/' . $foto->file_foto) }}" alt="Foto Progres" class="w-full h-full object-cover">
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-        </div>
-
-        <!-- Kolom Kanan: Info Pelapor & Ringkasan -->
-        <div class="space-y-6">
-            
-            <!-- Info Pelapor -->
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="text-sm font-semibold text-gray-700">Informasi Pelapor</h3>
-                </div>
-                <div class="p-6 space-y-3">
-                    <div>
-                        <p class="text-xs text-gray-500 mb-0.5">Nama</p>
-                        <p class="text-sm font-medium text-gray-800">{{ $laporan->pelapor->nama_lengkap ?? '-' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 mb-0.5">Role</p>
-                        <p class="text-sm font-medium text-gray-800">{{ $laporan->pelapor->role->nama_role ?? '-' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ringkasan Status -->
-            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="text-sm font-semibold text-gray-700">Ringkasan Status</h3>
-                </div>
-                <div class="p-6 space-y-4">
-                    
-                    <!-- Step 1 -->
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-800">Laporan Dibuat</p>
-                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->format('d M Y') }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full {{ $laporan->kategori_kerusakan ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400' }} flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
-                        <div>
-                            <p class="text-sm font-medium {{ $laporan->kategori_kerusakan ? 'text-gray-800' : 'text-gray-400' }}">Evaluasi Staff</p>
-                            <p class="text-xs text-gray-500">{{ $laporan->tanggal_verifikasi_evaluasi ? \Carbon\Carbon::parse($laporan->tanggal_verifikasi_evaluasi)->format('d M Y') : 'Menunggu' }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full {{ $laporan->status_verifikasi_rab === 'Disetujui' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400' }} flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
-                        <div>
-                            <p class="text-sm font-medium {{ $laporan->status_verifikasi_rab === 'Disetujui' ? 'text-gray-800' : 'text-gray-400' }}">Verifikasi RAB</p>
-                            <p class="text-xs text-gray-500">{{ $laporan->tanggal_verifikasi_rab ? \Carbon\Carbon::parse($laporan->tanggal_verifikasi_rab)->format('d M Y') : 'Menunggu' }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full {{ $laporan->status_laporan === 'Selesai' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400' }} flex items-center justify-center flex-shrink-0 text-xs font-bold">4</div>
-                        <div>
-                            <p class="text-sm font-medium {{ $laporan->status_laporan === 'Selesai' ? 'text-gray-800' : 'text-gray-400' }}">Perbaikan Selesai</p>
-                            <p class="text-xs text-gray-500">{{ $laporan->status_laporan === 'Selesai' ? 'Selesai' : 'Menunggu' }}</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-</div>
-
-@if($laporan->fotoLaporan->count() > 0)
-<div id="fotoModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4"
-     onclick="if(event.target === this) closeFotoModal()">
-
-    <button type="button"
-            onclick="closeFotoModal()"
-            class="absolute top-4 right-4 text-white/80 hover:text-white transition">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-    </button>
-
-    <button type="button"
-            id="fotoPrevBtn"
-            onclick="showPrevFoto()"
-            class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-    </button>
-
-    <img id="fotoModalImg"
-         src=""
-         alt="Foto Dokumentasi"
-         class="max-h-[85vh] max-w-full rounded-lg shadow-2xl">
-
-    <button type="button"
-            id="fotoNextBtn"
-            onclick="showNextFoto()"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-    </button>
-
-    <div id="fotoCounter"
-         class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm"></div>
-</div>
-
-<script>
-    const fotoList = @json($laporan->fotoLaporan->map(fn($f) => asset('storage/' . $f->file_foto))->values());
-    let fotoIndex = 0;
-
-    function updateFotoModal() {
-        document.getElementById('fotoModalImg').src = fotoList[fotoIndex];
-        document.getElementById('fotoCounter').textContent = (fotoIndex + 1) + ' / ' + fotoList.length;
-
-        const showNav = fotoList.length > 1;
-        document.getElementById('fotoPrevBtn').style.display = showNav ? 'block' : 'none';
-        document.getElementById('fotoNextBtn').style.display = showNav ? 'block' : 'none';
-    }
-
-    function openFotoModal(index) {
-        fotoIndex = index;
-        updateFotoModal();
-        const modal = document.getElementById('fotoModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeFotoModal() {
-        const modal = document.getElementById('fotoModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = '';
-    }
-
-    function showPrevFoto() {
-        fotoIndex = (fotoIndex - 1 + fotoList.length) % fotoList.length;
-        updateFotoModal();
-    }
-
-    function showNextFoto() {
-        fotoIndex = (fotoIndex + 1) % fotoList.length;
-        updateFotoModal();
-    }
-
-    document.addEventListener('keydown', function (e) {
-        const modal = document.getElementById('fotoModal');
-        if (modal && !modal.classList.contains('hidden')) {
-            if (e.key === 'Escape') closeFotoModal();
-            if (e.key === 'ArrowLeft') showPrevFoto();
-            if (e.key === 'ArrowRight') showNextFoto();
+        $requestedTab = request()->query('tab', 'informasi');
+        if (in_array($requestedTab, $allowedTabs) && ($tabEnabled[$requestedTab] ?? false)) {
+            $activeTab = $requestedTab;
+        } else {
+            $activeTab = 'informasi';
         }
-    });
-</script>
-@endif
+
+        $tabLabels = [
+            'informasi' => 'Informasi',
+            'evaluasi' => 'Evaluasi',
+            'rab' => 'RAB',
+            'progress' => 'Progress',
+            'bukti' => 'Bukti Pembelian',
+        ];
+    @endphp
+
+    <div class="mb-6 border-b border-gray-200 bg-white px-4 rounded-xl border shadow-sm">
+        <nav class="-mb-px flex gap-6 overflow-x-auto" aria-label="Tabs">
+            @foreach($allowedTabs as $tabKey)
+                @php
+                    $isEnabled = $tabEnabled[$tabKey] ?? false;
+                    $isActive = ($activeTab === $tabKey);
+                    $currentUrl = request()->fullUrlWithQuery(['tab' => $tabKey]);
+                @endphp
+
+                @if($isEnabled)
+                    <a href="{{ $currentUrl }}"
+                       class="inline-flex items-center gap-2 border-b-2 py-4 px-1 text-sm font-semibold transition-colors whitespace-nowrap {{ $isActive ? 'border-[#114F72] text-[#114F72]' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}">
+                        {{ $tabLabels[$tabKey] ?? ucfirst($tabKey) }}
+                    </a>
+                @else
+                    <span class="inline-flex items-center gap-1.5 border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-300 cursor-not-allowed whitespace-nowrap opacity-60"
+                          title="Selesaikan tahap sebelumnya terlebih dahulu">
+                        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        {{ $tabLabels[$tabKey] ?? ucfirst($tabKey) }}
+                    </span>
+                @endif
+            @endforeach
+        </nav>
+    </div>
+
+    <!-- Grid Layout: Content Area + Sticky Sidebar -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content Area -->
+        <div class="lg:col-span-2 space-y-6">
+            @include('laporan.partials._' . $activeTab)
+        </div>
+
+        <!-- Sticky Right Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-6">
+                @include('laporan.partials._sidebar')
+            </div>
+        </div>
+    </div>
+
+</div>
 @endsection
