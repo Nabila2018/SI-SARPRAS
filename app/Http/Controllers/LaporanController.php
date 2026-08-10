@@ -27,7 +27,8 @@ class LaporanController extends Controller
             $pasarTerpilih = null;
         }
 
-        $fasilitas = Fasilitas::all();
+        // Dropdown fasilitas diisi secara dinamis via /api/fasilitas/{id_lokasi}
+        // setelah user memilih lokasi. Fasilitas::all() tidak lagi digunakan di sini.
         $kategoriLaporan = [
             'Sanitasi & Air',
             'Instalasi Listrik',
@@ -37,7 +38,7 @@ class LaporanController extends Controller
 
         return view(
             'laporan.create',
-            compact('pasar', 'fasilitas', 'kategoriLaporan', 'pasarTerpilih')
+            compact('pasar', 'kategoriLaporan', 'pasarTerpilih')
         );
     }
 
@@ -45,16 +46,32 @@ class LaporanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_pasar' => 'required|exists:pasar,id_pasar',
-            'id_lokasi' => 'required|exists:lokasi,id_lokasi',
-            'id_fasilitas' => 'required|exists:fasilitas,id_fasilitas',
-            'kategori_laporan' => 'required|in:Sanitasi & Air,Instalasi Listrik,Prasarana Bangunan,Fasilitas Umum',
-            'item_kerusakan' => 'required|string|max:100',
-            'lokasi_spesifik' => 'nullable|string|max:255',
+            'id_pasar'           => 'required|exists:pasar,id_pasar',
+            'id_lokasi'          => 'required|exists:lokasi,id_lokasi',
+            'id_fasilitas'       => [
+                'required',
+                'exists:fasilitas,id_fasilitas',
+                // Validasi server-side: kombinasi id_lokasi + id_fasilitas harus ada
+                // di tabel lokasi_fasilitas. Mencegah user mengirim fasilitas yang
+                // tidak tersedia pada lokasi yang dipilih, meski bypass JS di frontend.
+                function ($attribute, $value, $fail) use ($request) {
+                    $exists = DB::table('lokasi_fasilitas')
+                        ->where('id_lokasi', $request->id_lokasi)
+                        ->where('id_fasilitas', $value)
+                        ->exists();
+
+                    if (!$exists) {
+                        $fail('Fasilitas yang dipilih tidak tersedia pada lokasi tersebut.');
+                    }
+                },
+            ],
+            'kategori_laporan'   => 'required|in:Sanitasi & Air,Instalasi Listrik,Prasarana Bangunan,Fasilitas Umum',
+            'item_kerusakan'     => 'required|string|max:100',
+            'lokasi_spesifik'    => 'nullable|string|max:255',
             'deskripsi_kerusakan' => 'required|string',
             'kondisi_diharapkan' => 'required|string',
-            'foto_laporan' => 'required|array|min:1',
-            'foto_laporan.*' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_laporan'       => 'required|array|min:1',
+            'foto_laporan.*'     => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -156,6 +173,11 @@ class LaporanController extends Controller
         // Staff pakai view berbeda
         if (auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana') {
             return view('staff.laporan.show', compact('laporan'));
+        }
+
+        // Kepala Bidang pakai view kabid
+        if (auth()->user()->role->nama_role === 'Kepala Bidang') {
+            return view('kabid.laporan.show', compact('laporan'));
         }
 
         // Default: view UPTD

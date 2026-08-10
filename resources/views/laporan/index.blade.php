@@ -57,8 +57,9 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Kerusakan</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lokasi</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pasar & Lokasi</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fasilitas</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategori Kerusakan</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
@@ -69,14 +70,16 @@
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $laporan->firstItem() + $loop->index }}</td>
                             <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-gray-800">{{ $l->item_kerusakan }}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">{{ $l->kategori_laporan }}</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
                             </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm text-gray-700">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
-                                <p class="text-xs text-gray-400">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                            <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                {{ $l->fasilitas->nama_fasilitas ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4">

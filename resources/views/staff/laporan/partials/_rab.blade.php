@@ -4,17 +4,17 @@
     $hasExisting = $existingDetails && $existingDetails->count() > 0;
 
     $statusText = match($laporan->status_verifikasi_rab) {
-        'Menunggu' => 'Menunggu',
+        'Menunggu' => 'Menunggu Verifikasi',
         'Disetujui' => 'Disetujui',
         'Dikembalikan' => 'Dikembalikan',
-        default => ($hasExisting ? 'Belum Diteruskan' : 'Belum Dibuat'),
+        default => ($hasExisting ? 'Draft' : 'Belum Dibuat'),
     };
 
     $statusBadge = match($laporan->status_verifikasi_rab) {
         'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
         'Disetujui' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
         'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
-        default => 'bg-gray-100 text-gray-600 border-gray-200',
+        default => ($hasExisting ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-600 border-gray-200'),
     };
 @endphp
 
@@ -154,26 +154,42 @@
             </table>
         </div>
 
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
-            <div class="flex flex-wrap items-center gap-3">
-                @if($isEditable)
-                    <button type="button" onclick="addRow()" class="inline-flex items-center gap-2 rounded-xl border border-[#114F72] px-4 py-2 text-sm font-medium text-[#114F72] hover:bg-[#114F72]/5 transition">
+        @if($isEditable)
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100">
+                <div>
+                    <button type="button" onclick="addRow()" class="inline-flex items-center gap-2 rounded-xl border border-[#114F72] px-4 py-2.5 text-xs font-semibold text-[#114F72] hover:bg-[#114F72]/5 transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         Tambah Baris
                     </button>
+                </div>
 
-                    <button type="button" onclick="openForwardRabModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-6 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                        </svg>
-                        Teruskan ke Kabid
-                    </button>
-                @endif
+                <div class="flex flex-col items-end gap-1.5">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Button Simpan Draft -->
+                        <button type="submit" name="action_type" value="draft"
+                                class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Simpan Draft
+                        </button>
+
+                        <!-- Button Kirim ke Kabid -->
+                        <button type="button" onclick="openForwardRabModal()"
+                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                            </svg>
+                            {{ $laporan->status_verifikasi_rab === 'Dikembalikan' ? 'Kirim Ulang ke Kabid' : 'Kirim ke Kabid' }}
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] text-gray-400 italic">Draft dapat diubah kembali sebelum dikirim ke Kabid.</p>
+                </div>
             </div>
-        </div>
+        @endif
     </form>
 </div>
 
@@ -182,17 +198,27 @@
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
      onclick="if(event.target === this) closeForwardRabModal()">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onclick="event.stopPropagation()">
-        <h3 class="text-lg font-bold text-gray-800">Teruskan RAB ke Kabid</h3>
-        <p class="mt-2 text-sm text-gray-600">Apakah Anda yakin ingin meneruskan RAB ini ke Kabid untuk diverifikasi?</p>
+        <h3 class="text-lg font-bold text-gray-800">Kirim RAB ke Kabid</h3>
+        <p class="mt-2 text-sm text-gray-600">Apakah Anda yakin ingin mengirim RAB ini ke Kabid untuk diverifikasi? Setelah dikirim, data RAB tidak dapat diubah lagi sampai diverifikasi oleh Kabid.</p>
         <div class="mt-6 flex justify-end gap-3">
             <button type="button" onclick="closeForwardRabModal()" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
-            <button type="button" onclick="document.getElementById('rabForm').submit();" class="rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Ya, Teruskan</button>
+            <button type="button" onclick="submitFormWithAction('submit')" class="rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Ya, Kirim ke Kabid</button>
         </div>
     </div>
 </div>
 
 <script>
     const isEditable = @json($isEditable);
+
+    function submitFormWithAction(actionType) {
+        const form = document.getElementById('rabForm');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'action_type';
+        input.value = actionType;
+        form.appendChild(input);
+        form.submit();
+    }
 
     function formatRupiah(number) {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);

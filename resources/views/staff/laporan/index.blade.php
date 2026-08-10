@@ -159,15 +159,17 @@
                                 No
                             </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Pasar
+                                Pasar & Lokasi
                             </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Fasilitas
                             </th>
-
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Kategori Kerusakan
+                            </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Tanggal   
-
+                            </th>
                             <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
@@ -186,26 +188,28 @@
                                     {{ $laporan->firstItem() + $index }}
                                 </td>
 
-                                <!-- Pasar -->
+                                <!-- Pasar & Lokasi -->
                                 <td class="px-6 py-4">
-                                    <p class="text-sm font-medium text-gray-800">
+                                    <p class="text-sm font-semibold text-gray-900">
                                         {{ $l->lokasi->pasar->nama_pasar ?? '-' }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        {{ $l->lokasi->nama_lokasi ?? '-' }}
                                     </p>
                                 </td>
 
                                 <!-- Fasilitas -->
-                                <td class="px-6 py-4">
-                                    <p class="text-sm font-medium text-gray-800">
-                                        {{ $l->fasilitas->nama_fasilitas ?? '-' }}
-                                    </p>
-                                    <p class="text-xs text-gray-500 mt-0.5">
-                                        {{ $l->kategori_laporan }}
-                                    </p>
+                                <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                    {{ $l->fasilitas->nama_fasilitas ?? '-' }}
                                 </td>
-                        
+
+                                <!-- Kategori Kerusakan -->
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                </td>
 
                                 <!-- Tanggal -->
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                     {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}
                                 </td>
 

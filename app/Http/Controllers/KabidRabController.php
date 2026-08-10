@@ -8,19 +8,21 @@ use Illuminate\Http\Request;
 class KabidRabController extends Controller
 {
     /**
-     * Menampilkan daftar RAB yang diteruskan Staff ke Kabid.
+     * Menampilkan daftar RAB yang menunggu verifikasi dari Kabid.
      */
     public function index(Request $request)
     {
         $query = Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])
             ->whereNotNull('status_verifikasi_rab');
 
-        // Filter berdasarkan status verifikasi RAB
+        // Default: prioritaskan tampilan RAB berstatus 'Menunggu'
         if ($request->filled('status')) {
             $query->where('status_verifikasi_rab', $request->status);
+        } else {
+            $query->where('status_verifikasi_rab', 'Menunggu');
         }
 
-        // Filter pencarian berdasarkan nama pasar, fasilitas, atau item kerusakan
+        // Filter pencarian berdasarkan nama pasar, fasilitas, atau ID laporan
         $search = trim((string) $request->input('search', ''));
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -28,7 +30,7 @@ class KabidRabController extends Controller
                     $subQuery->where('nama_pasar', 'like', "%{$search}%");
                 })->orWhereHas('fasilitas', function ($subQuery) use ($search) {
                     $subQuery->where('nama_fasilitas', 'like', "%{$search}%");
-                })->orWhere('item_kerusakan', 'like', "%{$search}%");
+                })->orWhere('id_laporan', 'like', "%{$search}%");
             });
         }
 
@@ -43,15 +45,11 @@ class KabidRabController extends Controller
     }
 
     /**
-     * Menampilkan detail RAB dan laporan terkait.
+     * Redirect langsung ke Workspace Detail Laporan pada Tab RAB.
      */
     public function show($id)
     {
-        $laporan = Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab', 'fotoLaporan'])
-            ->whereNotNull('status_verifikasi_rab')
-            ->findOrFail($id);
-
-        return view('kabid.rab.show', compact('laporan'));
+        return redirect()->route('laporan.show', ['id' => $id, 'tab' => 'rab']);
     }
 
     /**
@@ -71,7 +69,7 @@ class KabidRabController extends Controller
         ]);
 
         return redirect()
-            ->route('kabid.rab.show', $laporan->id_laporan)
+            ->route('kabid.rab.index')
             ->with('success', 'RAB berhasil disetujui.');
     }
 
@@ -100,7 +98,7 @@ class KabidRabController extends Controller
         ]);
 
         return redirect()
-            ->route('kabid.rab.show', $laporan->id_laporan)
+            ->route('kabid.rab.index')
             ->with('success', 'RAB berhasil dikembalikan untuk revisi.');
     }
 }

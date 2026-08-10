@@ -261,7 +261,24 @@ Route::middleware(['auth', 'account.active'])->group(function () {
             ];
         });
     })->name('api.lokasi');
+
+    // =======================
+    // API FASILITAS
+    // =======================
+
+    // Load fasilitas yang tersedia pada suatu lokasi via tabel lokasi_fasilitas.
+    // Hanya fasilitas yang memiliki mapping (id_lokasi + id_fasilitas) yang dikembalikan.
+    // Tidak ada fallback ke parent lokasi. Nilai jumlah tidak diekspos.
+    Route::get('/api/fasilitas/{lokasi}', function ($lokasiId) {
+
+        $fasilitas = \App\Models\Fasilitas::whereHas('lokasiFasilitas', function ($q) use ($lokasiId) {
+            $q->where('id_lokasi', $lokasiId);
+        })->orderBy('nama_fasilitas')->get(['id_fasilitas', 'nama_fasilitas']);
+
+        return response()->json($fasilitas);
+    })->name('api.fasilitas');
 });
+
 
 
 // =======================

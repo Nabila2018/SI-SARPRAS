@@ -4,54 +4,61 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Laporan;
+use Illuminate\Http\Request;
 
 class VerifikasiLaporanController extends Controller
 {
     /**
-     * Menampilkan daftar laporan yang sudah diteruskan Staff ke Kabid.
+     * Menampilkan daftar laporan yang menunggu verifikasi evaluasi dari Kabid.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $laporans = Laporan::with([
+        $query = Laporan::with([
             'lokasi.pasar',
             'fasilitas',
             'pelapor'
-        ])
-            ->where('status_laporan', 'Diproses')
-            ->orderBy('tanggal_lapor', 'desc')
-            ->get();
+        ]);
+
+        // Filter berdasarkan status jika ada, default hanya yang 'Diproses' (Menunggu Verifikasi Evaluasi)
+        if ($request->filled('status')) {
+            $query->where('status_laporan', $request->status);
+        } else {
+            $query->where('status_laporan', 'Diproses');
+        }
+
+        // Search query
+        $search = trim((string) $request->input('search', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('lokasi.pasar', function ($subQuery) use ($search) {
+                    $subQuery->where('nama_pasar', 'like', "%{$search}%");
+                })->orWhereHas('fasilitas', function ($subQuery) use ($search) {
+                    $subQuery->where('nama_fasilitas', 'like', "%{$search}%");
+                })->orWhere('id_laporan', 'like', "%{$search}%");
+            });
+        }
+
+        $laporans = $query->orderBy('tanggal_lapor', 'desc')
+            ->paginate(10)
+            ->appends($request->only(['search', 'status']));
 
         return view('kabid.laporan.index', compact('laporans'));
     }
 
     /**
-     * Menampilkan detail laporan.
+     * Redirect langsung ke Workspace Detail Laporan pada Tab Evaluasi.
      */
     public function show($id)
     {
-        $laporan = Laporan::with([
-            'lokasi.pasar',
-            'fasilitas',
-            'pelapor',
-            'fotoLaporan',
-            'detailRab',
-            'progresPerbaikan.fotoProgres',
-            'buktiPembelian'
-        ])
-            ->where('status_laporan', 'Diproses')
-            ->findOrFail($id);
-
-        return view('kabid.laporan.show', compact('laporan'));
+        return redirect()->route('laporan.show', ['id' => $id, 'tab' => 'evaluasi']);
     }
 
     /**
- * Kepala Bidang menyetujui laporan.
- */
+     * Kepala Bidang menyetujui evaluasi laporan.
+     */
     public function setujui($id)
     {
-
-        $laporan = Laporan::where('status_laporan', 'Diproses')
-            ->findOrFail($id);
+        $laporan = Laporan::whereIn('status_laporan', ['Diproses', 'Menunggu'])->findOrFail($id);
 
         $laporan->update([
             'status_laporan' => 'Disetujui',
@@ -60,19 +67,21 @@ class VerifikasiLaporanController extends Controller
 
         return redirect()
             ->route('kabid.laporan.index')
-            ->with('success', 'Laporan berhasil disetujui.');
+            ->with('success', 'Hasil evaluasi laporan berhasil disetujui.');
     }
 
     /**
- * Kepala Bidang mengembalikan laporan.
- */
+     * Kepala Bidang mengembalikan evaluasi laporan untuk revisi.
+     */
     public function kembalikan($id)
     {
-        $laporan = Laporan::where('status_laporan', 'Diproses')
-            ->findOrFail($id);
+        $laporan = Laporan::whereIn('status_laporan', ['Diproses', 'Menunggu'])->findOrFail($id);
 
         $validated = request()->validate([
             'catatan_revisi_evaluasi' => 'required|string|max:1000',
+        ], [
+            'catatan_revisi_evaluasi.required' => 'Catatan revisi evaluasi wajib diisi.',
+            'catatan_revisi_evaluasi.max' => 'Catatan revisi maksimal 1000 karakter.',
         ]);
 
         $laporan->update([
@@ -83,6 +92,6 @@ class VerifikasiLaporanController extends Controller
 
         return redirect()
             ->route('kabid.laporan.index')
-            ->with('success', 'Laporan berhasil dikembalikan.');
+            ->with('success', 'Hasil evaluasi laporan berhasil dikembalikan untuk revisi.');
     }
- }
+}

@@ -110,14 +110,13 @@
                     <label for="id_fasilitas" class="block text-sm font-semibold text-gray-700 mb-2">
                         Fasilitas <span class="text-red-500">*</span>
                     </label>
-                    <select name="id_fasilitas" id="id_fasilitas" required
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white">
-                        <option value="">-- Pilih Fasilitas --</option>
-                        @foreach($fasilitas as $f)
-                            <option value="{{ $f->id_fasilitas }}" {{ old('id_fasilitas') == $f->id_fasilitas ? 'selected' : '' }}>
-                                {{ $f->nama_fasilitas }}
-                            </option>
-                        @endforeach
+                    {{-- Kondisi awal: disabled. JS akan mengisi dan mengaktifkan setelah
+                         user memilih lokasi via /api/fasilitas/{id_lokasi}.
+                         Jika old('id_fasilitas') ada (recovery setelah validation error),
+                         JS akan pre-select nilai tersebut saat fasilitas list dimuat. --}}
+                    <select name="id_fasilitas" id="id_fasilitas" required disabled
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <option value="">-- Pilih lokasi terlebih dahulu --</option>
                     </select>
                     @error('id_fasilitas')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -253,16 +252,115 @@
 
 @section('scripts')
 <script>
-    const pasarSelect = document.getElementById('id_pasar');
-    const lokasiInput = document.getElementById('lokasi-search');
-    const lokasiOptions = document.getElementById('lokasi-options');
-    const lokasiWrapper = document.getElementById('lokasi-wrapper');
-    const lokasiHidden = document.querySelector('input[name="id_lokasi"]');
+    const pasarSelect    = document.getElementById('id_pasar');
+    const lokasiInput    = document.getElementById('lokasi-search');
+    const lokasiOptions  = document.getElementById('lokasi-options');
+    const lokasiWrapper  = document.getElementById('lokasi-wrapper');
+    const lokasiHidden   = document.querySelector('input[name="id_lokasi"]');
     const lokasiReadonly = document.getElementById('lokasi-readonly');
+    const fasilitasSelect = document.getElementById('id_fasilitas');
     let lokasiData = [];
+    let fasilitasAbortController = null;
 
-    function renderLokasiOptions(query = '') {
-        const searchQuery = query.toLowerCase();
+    // Nilai lama dari session — digunakan untuk recovery setelah validation error.
+    @php
+        $oldLokasiIdPhp    = old('id_lokasi')    ?? '';
+        $oldFasilitasIdPhp = old('id_fasilitas') ?? '';
+    @endphp
+    const oldLokasiId    = @json($oldLokasiIdPhp);
+    const oldFasilitasId = @json($oldFasilitasIdPhp);
+
+
+    // -------------------------------------------------------
+    // Fungsi Fasilitas
+    // -------------------------------------------------------
+
+    /**
+     * Reset dropdown fasilitas ke kondisi awal: disabled, placeholder default.
+     * Dipanggil saat lokasi dikosongkan atau diganti.
+     */
+    function resetFasilitas() {
+        if (fasilitasAbortController) {
+            fasilitasAbortController.abort();
+            fasilitasAbortController = null;
+        }
+        fasilitasSelect.innerHTML = '<option value="">-- Pilih lokasi terlebih dahulu --</option>';
+        fasilitasSelect.disabled = true;
+    }
+
+    /**
+     * Load fasilitas dari /api/fasilitas/{lokasiId}.
+     * Hanya fasilitas yang terdaftar di lokasi_fasilitas untuk lokasi tersebut
+     * yang akan ditampilkan. Tidak ada fallback ke parent lokasi.
+     *
+     * @param {string} lokasiId - id_lokasi yang dipilih user
+     */
+    function loadFasilitas(lokasiId) {
+        if (!lokasiId) {
+            resetFasilitas();
+            return;
+        }
+
+        // Cancel request sebelumnya jika user cepat mengganti lokasi
+        if (fasilitasAbortController) {
+            fasilitasAbortController.abort();
+        }
+        fasilitasAbortController = new AbortController();
+
+        // Loading state
+        fasilitasSelect.disabled = true;
+        fasilitasSelect.innerHTML = '<option value="">Memuat fasilitas...</option>';
+
+        fetch('/api/fasilitas/' + lokasiId, { signal: fasilitasAbortController.signal })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Response ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                fasilitasSelect.innerHTML = '';
+
+                if (!data || !data.length) {
+                    // Lokasi tidak memiliki fasilitas yang terdaftar
+                    fasilitasSelect.innerHTML = '<option value="">Tidak ada fasilitas tersedia untuk lokasi ini</option>';
+                    fasilitasSelect.disabled = true;
+                    return;
+                }
+
+                // Opsi placeholder
+                var defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '-- Pilih Fasilitas --';
+                fasilitasSelect.appendChild(defaultOpt);
+
+                // Isi fasilitas dari API; pre-select jika ada old value
+                data.forEach(function(f) {
+                    var opt = document.createElement('option');
+                    opt.value = f.id_fasilitas;
+                    opt.textContent = f.nama_fasilitas;
+                    if (oldFasilitasId && f.id_fasilitas === oldFasilitasId) {
+                        opt.selected = true;
+                    }
+                    fasilitasSelect.appendChild(opt);
+                });
+
+                fasilitasSelect.disabled = false;
+            })
+            .catch(function(error) {
+                if (error.name === 'AbortError') return; // request di-cancel — normal
+                console.error('Error loading fasilitas:', error);
+                fasilitasSelect.innerHTML = '<option value="">Gagal memuat fasilitas, coba lagi</option>';
+                fasilitasSelect.disabled = true;
+            });
+    }
+
+    // -------------------------------------------------------
+    // Fungsi Lokasi (dipertahankan dan diperluas)
+    // -------------------------------------------------------
+
+    function renderLokasiOptions(query) {
+        const searchQuery = (query || '').toLowerCase();
         const filtered = lokasiData.filter(function(item) {
             return (item.name || '').toLowerCase().includes(searchQuery);
         });
@@ -280,9 +378,11 @@
             option.className = 'block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors';
             option.textContent = item.name;
             option.addEventListener('click', function() {
-                lokasiInput.value = item.name;
+                lokasiInput.value  = item.name;
                 lokasiHidden.value = item.id;
                 lokasiOptions.classList.add('hidden');
+                // Load fasilitas untuk lokasi yang baru dipilih
+                loadFasilitas(item.id);
             });
             lokasiOptions.appendChild(option);
         });
@@ -293,10 +393,12 @@
     function setLokasiInputEnabled(enabled) {
         lokasiInput.disabled = !enabled;
         if (!enabled) {
-            lokasiInput.value = '';
+            lokasiInput.value  = '';
             lokasiHidden.value = '';
             lokasiOptions.innerHTML = '';
             lokasiOptions.classList.add('hidden');
+            // Reset fasilitas setiap kali lokasi dikosongkan
+            resetFasilitas();
         }
     }
 
@@ -314,7 +416,7 @@
         lokasiOptions.classList.add('hidden');
     }
 
-    // Fungsi load lokasi
+    // Fungsi load lokasi (dipertahankan, ditambah hook loadFasilitas)
     function loadLokasi(pasarId) {
         if (!pasarId) {
             lokasiData = [];
@@ -326,9 +428,9 @@
             return;
         }
 
-        fetch(`/api/lokasi/${pasarId}`)
-            .then(response => response.json())
-            .then(data => {
+        fetch('/api/lokasi/' + pasarId)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 const locations = Array.isArray(data) ? data : [];
                 const hasChildLocations = locations.some(function(lokasi) {
                     return lokasi.id_induk !== null && lokasi.id_induk !== undefined && lokasi.id_induk !== '';
@@ -347,6 +449,7 @@
                     return;
                 }
 
+                // Lokasi tunggal tanpa anak → readonly + auto-load fasilitas
                 if (!hasChildLocations && rootLocations.length === 1) {
                     const lokasi = rootLocations[0];
                     const displayName = lokasi.nama_lengkap || lokasi.nama_lokasi_lengkap || lokasi.nama_lokasi;
@@ -356,6 +459,8 @@
                     lokasiReadonly.textContent = displayName;
                     showLokasiSelector(false);
                     setLokasiInputEnabled(false);
+                    // Auto-load fasilitas untuk lokasi tunggal yang sudah di-set otomatis
+                    loadFasilitas(lokasi.id_lokasi);
                     return;
                 }
 
@@ -371,9 +476,21 @@
                 setLokasiInputEnabled(true);
                 lokasiInput.value = '';
                 renderLokasiOptions('');
+
+                // Recovery setelah validation error: auto-pilih lokasi lama
+                // agar fasilitas juga ikut dimuat ulang secara otomatis.
+                if (oldLokasiId) {
+                    const oldLokasi = lokasiData.find(function(l) { return l.id === oldLokasiId; });
+                    if (oldLokasi) {
+                        lokasiInput.value  = oldLokasi.name;
+                        lokasiHidden.value = oldLokasi.id;
+                        lokasiOptions.classList.add('hidden');
+                        loadFasilitas(oldLokasi.id);
+                    }
+                }
             })
-            .catch(error => {
-                console.error('Error:', error);
+            .catch(function(error) {
+                console.error('Error loading lokasi:', error);
                 lokasiData = [];
                 lokasiHidden.value = '';
                 lokasiReadonly.textContent = '';
@@ -419,7 +536,7 @@
     function showFileNames(input) {
         const preview = document.getElementById('file-preview');
         preview.innerHTML = '';
-        
+
         if (input.files && input.files.length > 0) {
             for (let i = 0; i < input.files.length; i++) {
                 const file = input.files[i];
@@ -438,3 +555,4 @@
 </script>
 @endsection
 @endsection
+

@@ -144,8 +144,12 @@ class StaffLaporanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        if ($laporan->status_laporan !== 'Disetujui') {
-            return back()->with('error', 'RAB hanya dapat dibuat jika laporan sudah disetujui.');
+        if (in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan', 'Ditolak'])) {
+            return back()->with('error', 'RAB hanya dapat diisi jika laporan sudah dalam proses penanganan.');
+        }
+
+        if (in_array($laporan->status_verifikasi_rab, ['Menunggu', 'Disetujui'])) {
+            return back()->with('error', 'RAB yang sedang dalam proses verifikasi atau sudah disetujui tidak dapat diubah.');
         }
 
         // Validasi: minimal 1 baris detail
@@ -158,6 +162,12 @@ class StaffLaporanController extends Controller
             'satuan.*' => ['required', 'string', 'max:30'],
             'harga_satuan' => ['required', 'array', 'min:1'],
             'harga_satuan.*' => ['required', 'numeric', 'min:1'],
+        ], [
+            'rincian_kebutuhan.required' => 'Minimal 1 rincian kebutuhan RAB wajib diisi.',
+            'rincian_kebutuhan.*.required' => 'Rincian kebutuhan wajib diisi.',
+            'volume.*.required' => 'Volume wajib diisi.',
+            'satuan.*.required' => 'Satuan wajib diisi.',
+            'harga_satuan.*.required' => 'Harga satuan wajib diisi.',
         ]);
 
         DB::beginTransaction();
@@ -184,17 +194,27 @@ class StaffLaporanController extends Controller
 
             DetailRab::insert($details);
 
-            // Update tanggal input RAB & status verifikasi RAB ke Kabid
-            $laporan->update([
-                'status_verifikasi_rab' => 'Menunggu',
-                'tanggal_input_rab' => now(),
-            ]);
+            $actionType = $request->input('action_type', 'draft');
+
+            if ($actionType === 'submit') {
+                $laporan->update([
+                    'status_verifikasi_rab' => 'Menunggu',
+                    'catatan_revisi_rab' => null,
+                    'tanggal_input_rab' => now(),
+                ]);
+                $message = 'RAB berhasil dikirim ke Kabid untuk diverifikasi.';
+            } else {
+                $laporan->update([
+                    'tanggal_input_rab' => now(),
+                ]);
+                $message = 'Draft RAB berhasil disimpan.';
+            }
 
             DB::commit();
 
             return redirect()
                 ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'rab'])
-                ->with('success', 'RAB berhasil dibuat dan diteruskan ke Kabid.');
+                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -226,7 +246,7 @@ class StaffLaporanController extends Controller
         ]);
 
         return redirect()
-            ->route('staff.laporan.rab.show', $laporan->id_laporan)
+            ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'rab'])
             ->with('success', 'RAB berhasil diteruskan ke Kabid.');
     }
         /**

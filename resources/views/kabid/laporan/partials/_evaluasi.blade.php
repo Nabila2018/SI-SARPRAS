@@ -1,6 +1,6 @@
 @php
     $hasEvaluation = !is_null($laporan->kategori_kerusakan);
-    $canVerify = $laporan->status_laporan === 'Menunggu' && $hasEvaluation;
+    $canVerify = in_array($laporan->status_laporan, ['Diproses', 'Menunggu']) && $hasEvaluation;
 @endphp
 
 <!-- Hasil Evaluasi Staff -->
@@ -114,7 +114,7 @@
             @csrf
             <div>
                 <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1">Catatan Revisi <span class="text-red-500">*</span></label>
-                <textarea name="catatan_revisi_laporan" rows="4" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm" placeholder="Berikan catatan perbaikan/alasan pengembalian..."></textarea>
+                <textarea name="catatan_revisi_evaluasi" rows="4" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm" placeholder="Berikan catatan perbaikan/alasan pengembalian..."></textarea>
             </div>
 
             <div class="mt-6 flex justify-end gap-3 pt-3 border-t">

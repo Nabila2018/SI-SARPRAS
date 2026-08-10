@@ -58,12 +58,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
             {{-- 1. Total Laporan (Blue) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[100px]">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[104px]">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-[#114F72] to-[#16A394]"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Laporan</span>
@@ -76,11 +76,11 @@
             </div>
 
             {{-- 2. Menunggu (Orange / Amber) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[100px]">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[104px]">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-orange-500"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
@@ -94,11 +94,11 @@
             </div>
 
             {{-- 3. Disetujui (Teal / Sky) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[100px]">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[104px]">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-teal-400 to-sky-500"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
@@ -112,11 +112,11 @@
             </div>
 
             {{-- 4. Dikembalikan (Red / Rose Accent) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[100px]">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[104px]">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-rose-500 to-red-600"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                         </svg>
                     </div>
@@ -130,11 +130,11 @@
             </div>
 
             {{-- 5. Selesai (Green / Emerald) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[100px]">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[104px]">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-emerald-400 to-teal-500"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                     </div>
@@ -204,8 +204,9 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No</th>
-                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Kerusakan</th>
-                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pasar & Lokasi</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fasilitas</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategori Kerusakan</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
@@ -234,14 +235,16 @@
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $index + 1 }}</td>
                                     <td class="px-6 py-4">
-                                        <p class="text-sm font-medium text-gray-800">{{ $l->item_kerusakan }}</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">{{ $l->kategori_laporan }}</p>
+                                        <p class="text-sm font-semibold text-gray-900">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
                                     </td>
-                                    <td class="px-6 py-4">
-                                        <p class="text-sm text-gray-700">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
-                                        <p class="text-xs text-gray-400">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                        {{ $l->fasilitas->nama_fasilitas ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
+                                        {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}
                                     </td>
                                     <td class="px-6 py-4">
@@ -320,19 +323,30 @@
             $pasarLabels = $pasarAktifData->pluck('nama_pasar')->toArray();
             $pasarCounts = $pasarAktifData->pluck('count')->toArray();
 
-            // 2. Data Kategori Kerusakan (Ringan, Sedang, Berat)
+            // 2. Data Kategori Kerusakan (Fixed order: Ringan -> Sedang -> Berat)
             $ringanCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
             $sedangCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
             $beratCount  = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
 
-            $kategoriList = collect([
-                'Ringan' => $ringanCount,
-                'Sedang' => $sedangCount,
-                'Berat'  => $beratCount,
-            ])->sortDesc();
+            // Fixed category mapping with fixed colors mapped explicitly by category name
+            $kategoriDataMap = [
+                'Ringan' => [
+                    'count' => $ringanCount,
+                    'color' => '#F59E0B' // Amber / Yellow
+                ],
+                'Sedang' => [
+                    'count' => $sedangCount,
+                    'color' => '#F97316' // Orange
+                ],
+                'Berat' => [
+                    'count' => $beratCount,
+                    'color' => '#EF4444' // Red
+                ],
+            ];
 
-            $kategoriLabels = $kategoriList->keys()->toArray();
-            $kategoriCounts = $kategoriList->values()->toArray();
+            $kategoriLabels = array_keys($kategoriDataMap);
+            $kategoriCounts = array_column($kategoriDataMap, 'count');
+            $kategoriColors = array_column($kategoriDataMap, 'color');
 
             // Dynamic Max Scaling Function to prevent bars from taking 100% width when values are low
             $calcDynamicMax = function($countsArray) {
@@ -363,12 +377,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {{-- 1. Total Laporan (Blue) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[90px] w-full">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-[#114F72] to-[#16A394]"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-6.5 h-6.5 rounded-md bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Laporan</span>
@@ -379,11 +393,11 @@
             </div>
 
             {{-- 2. Menunggu Evaluasi (Amber / Orange) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[90px] w-full">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-orange-500"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-6.5 h-6.5 rounded-md bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
@@ -395,11 +409,11 @@
             </div>
 
             {{-- 3. Diproses (Sky / Blue) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[90px] w-full">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-sky-400 to-blue-600"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-6.5 h-6.5 rounded-md bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                     </div>
@@ -411,11 +425,11 @@
             </div>
 
             {{-- 4. Selesai (Emerald / Green) --}}
-            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[90px] w-full">
+            <div class="relative overflow-hidden bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-emerald-400 to-teal-500"></div>
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-6.5 h-6.5 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-2.5 pl-1">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                     </div>
@@ -549,7 +563,7 @@
                         datasets: [{
                             label: 'Jumlah Laporan',
                             data: {!! json_encode($kategoriCounts) !!},
-                            backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                            backgroundColor: {!! json_encode($kategoriColors) !!},
                             borderRadius: 4,
                             barThickness: 32
                         }]
@@ -603,8 +617,9 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">No</th>
-                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Kerusakan</th>
-                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pasar & Lokasi</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fasilitas</th>
+                                <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategori Kerusakan</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
@@ -631,14 +646,16 @@
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $index + 1 }}</td>
                                     <td class="px-6 py-4">
-                                        <p class="text-sm font-medium text-gray-800">{{ $l->item_kerusakan }}</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">{{ $l->kategori_laporan }}</p>
+                                        <p class="text-sm font-semibold text-gray-900">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
                                     </td>
-                                    <td class="px-6 py-4">
-                                        <p class="text-sm text-gray-700">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
-                                        <p class="text-xs text-gray-400">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                        {{ $l->fasilitas->nama_fasilitas ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
+                                        {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}
                                     </td>
                                     <td class="px-6 py-4">
@@ -796,9 +813,9 @@
             {{-- 1. Total Laporan (Blue) --}}
             <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-[#114F72] to-[#16A394]"></div>
-                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0 ml-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0 ml-1">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
                     </svg>
                 </div>
                 <div>
@@ -810,8 +827,8 @@
             {{-- 2. Menunggu Verifikasi Evaluasi (Amber / Orange) --}}
             <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-orange-500"></div>
-                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 ml-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 ml-1">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
@@ -824,8 +841,8 @@
             {{-- 3. Menunggu Verifikasi RAB (Sky / Blue) --}}
             <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-sky-400 to-indigo-600"></div>
-                <div class="w-12 h-12 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 ml-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 ml-1">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
@@ -838,8 +855,8 @@
             {{-- 4. Laporan Selesai (Emerald / Green) --}}
             <div class="relative overflow-hidden bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center gap-3.5 h-[96px] w-full">
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-emerald-400 to-teal-500"></div>
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 ml-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 ml-1">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </div>
@@ -887,15 +904,22 @@
                                class="block p-4 rounded-xl border border-gray-100 hover:border-[#0F5E9C]/30 hover:bg-sky-50/40 transition-all duration-200 cursor-pointer group">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="space-y-1">
-                                        <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
-                                            {{ $reportNum }}
-                                        </span>
-                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-[#0F5E9C] transition-colors mt-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
+                                                {{ $reportNum }}
+                                            </span>
+                                            <span class="text-xs font-bold text-gray-900">
+                                                {{ $namaPasar }}{{ data_get($item, 'lokasi.nama_lokasi') ? ' - '.data_get($item, 'lokasi.nama_lokasi') : '' }}
+                                            </span>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800 group-hover:text-[#0F5E9C] transition-colors mt-1">
                                             {{ $namaFasilitas }}
                                         </h4>
-                                        <p class="text-xs text-gray-500 font-medium">
-                                            {{ $namaPasar }}
-                                        </p>
+                                        @if(data_get($item, 'item_kerusakan') && data_get($item, 'item_kerusakan') !== $namaFasilitas)
+                                            <p class="text-xs text-gray-500 font-normal">
+                                                Kerusakan: {{ data_get($item, 'item_kerusakan') }}
+                                            </p>
+                                        @endif
                                     </div>
                                     <div class="text-right shrink-0 space-y-1.5">
                                         <div>
@@ -964,15 +988,22 @@
                                class="block p-4 rounded-xl border border-gray-100 hover:border-[#0F5E9C]/30 hover:bg-sky-50/40 transition-all duration-200 cursor-pointer group">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="space-y-1">
-                                        <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
-                                            {{ $reportNumRab }}
-                                        </span>
-                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-[#0F5E9C] transition-colors mt-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-block text-xs font-bold text-[#0F5E9C] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
+                                                {{ $reportNumRab }}
+                                            </span>
+                                            <span class="text-xs font-bold text-gray-900">
+                                                {{ $namaPasarRab }}{{ data_get($item, 'lokasi.nama_lokasi') ? ' - '.data_get($item, 'lokasi.nama_lokasi') : '' }}
+                                            </span>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800 group-hover:text-[#0F5E9C] transition-colors mt-1">
                                             {{ $namaFasilitasRab }}
                                         </h4>
-                                        <p class="text-xs text-gray-500 font-medium">
-                                            {{ $namaPasarRab }}
-                                        </p>
+                                        @if(data_get($item, 'item_kerusakan') && data_get($item, 'item_kerusakan') !== $namaFasilitasRab)
+                                            <p class="text-xs text-gray-500 font-normal">
+                                                Kerusakan: {{ data_get($item, 'item_kerusakan') }}
+                                            </p>
+                                        @endif
                                     </div>
                                     <div class="text-right shrink-0 space-y-1.5">
                                         <div>

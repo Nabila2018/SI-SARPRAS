@@ -2,8 +2,26 @@
 
 @section('title', 'Detail Laporan #' . $laporan->id_laporan . ' - SI-SARPRAS')
 
+@php
+    $userRole = auth()->user()->role->nama_role ?? '';
+    $backRoute = match($userRole) {
+        'Petugas UPTD' => route('laporan.index'),
+        'Staff Sarana dan Prasarana' => route('staff.laporan.index'),
+        'Kepala Bidang' => route('kabid.laporan.index'),
+        'Kepala Dinas' => route('home'),
+        default => route('home'),
+    };
+    $backLabel = match($userRole) {
+        'Petugas UPTD' => 'Riwayat Laporan',
+        'Staff Sarana dan Prasarana' => 'Daftar Laporan Masuk',
+        'Kepala Bidang' => 'Verifikasi Evaluasi',
+        'Kepala Dinas' => 'Dashboard',
+        default => 'Dashboard',
+    };
+@endphp
+
 @section('breadcrumb')
-    <a href="{{ route('laporan.index') }}" class="hover:text-[#114F72] transition">Daftar Laporan Masuk</a>
+    <a href="{{ $backRoute }}" class="hover:text-[#114F72] transition">{{ $backLabel }}</a>
     <svg class="w-4 h-4 mx-2 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>
@@ -33,7 +51,7 @@
     <!-- Header Workspace -->
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div class="flex items-center gap-4">
-            <a href="{{ route('laporan.index') }}" class="p-2 text-gray-500 hover:text-[#114F72] hover:bg-gray-100 rounded-xl transition-colors">
+            <a href="{{ $backRoute }}" class="p-2 text-gray-500 hover:text-[#114F72] hover:bg-gray-100 rounded-xl transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
