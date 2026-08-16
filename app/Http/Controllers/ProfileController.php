@@ -26,18 +26,10 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:100',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:100',
-                \Illuminate\Validation\Rule::unique('user', 'email')->ignore($user->id_user, 'id_user'),
-            ],
         ]);
 
         $user->update([
             'nama_lengkap' => $validated['nama_lengkap'],
-            'email' => $validated['email'],
         ]);
 
         return redirect()

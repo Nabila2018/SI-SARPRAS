@@ -33,6 +33,11 @@ class PengelolaanAkunController extends Controller
             $query->where('id_role', $request->role);
         }
 
+        // Filter berdasarkan status akun
+        if ($request->filled('status')) {
+            $query->where('status_akun', $request->status);
+        }
+
         $users = $query
             ->orderBy('nama_lengkap')
             ->get();
@@ -68,42 +73,6 @@ class PengelolaanAkunController extends Controller
         return back()->with(
             'success',
             'Status akun berhasil diperbarui.'
-        );
-    }
-
-    /**
-     * Memperbarui data akun pengguna.
-     */
-    public function update(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
-
-        $request->merge(['_form' => 'edit', '_edit_id' => $id]);
-
-        $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:100',
-                Rule::unique('user', 'email')->ignore($user->id_user, 'id_user'),
-            ],
-        ], [
-            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah digunakan oleh akun lain.',
-        ]);
-
-        $user->update([
-            'nama_lengkap' => $validated['nama_lengkap'],
-            'email' => $validated['email'],
-        ]);
-
-        return back()->with(
-            'success',
-            'Data akun berhasil diperbarui.'
         );
     }
 

@@ -259,28 +259,6 @@
                               focus:border-[#16A394] focus:ring-0">
             </div>
 
-            {{-- EMAIL --}}
-            <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Email
-                </label>
-
-                <input type="email"
-                       name="email"
-                       value="{{ old('email', $user->email) }}"
-                       required
-                       maxlength="100"
-                       class="w-full rounded-lg border border-gray-300
-                              px-4 py-2.5 text-sm outline-none
-                              focus:border-[#16A394] focus:ring-0">
-
-                @error('email')
-                    <p class="mt-1 text-sm text-red-500">
-                        {{ $message }}
-                    </p>
-                @enderror
-            </div>
-
 
             {{-- BUTTON --}}
             <div class="flex justify-end gap-3 pt-3">

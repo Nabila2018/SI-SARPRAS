@@ -11,6 +11,8 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\KabidRabController;
 use App\Http\Controllers\SpjController;
 use App\Http\Controllers\LaporanRealisasiTahunanController;
+use App\Http\Controllers\KadinLaporanController;
+use App\Http\Controllers\HomeController;
 
 // =======================
 // PUBLIC (Tanpa Login)
@@ -65,9 +67,8 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     // HOME
     // =======================
 
-    Route::get('/home', function () {
-        return view('home');
-    })->name('home');
+    Route::get('/home', [HomeController::class, 'index'])
+        ->name('home');
 
     Route::get('/panduan', function () {
         return view('panduan');
@@ -145,9 +146,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::patch('/staff/akun/{id}/status', [PengelolaanAkunController::class, 'toggleStatus'])
         ->name('staff.akun.toggle-status');
 
-        Route::patch('/staff/akun/{id}', [PengelolaanAkunController::class, 'update'])
-        ->name('staff.akun.update');
-
         Route::post('/staff/akun', [PengelolaanAkunController::class, 'store'])
         ->name('staff.akun.store');
 
@@ -202,6 +200,20 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::post('/kabid/rab/{id}/kembalikan', [KabidRabController::class, 'kembalikan'])
             ->name('kabid.rab.kembalikan');
     }); 
+
+    // =======================
+    // MONITORING LAPORAN - KEPALA DINAS
+    // =======================
+    Route::middleware(['role:Kepala Dinas'])->group(function () {
+        Route::get('/kadin/laporan', [KadinLaporanController::class, 'index'])
+            ->name('kadin.laporan.index');
+
+        Route::get('/kadin/laporan/count', [KadinLaporanController::class, 'countCetak'])
+            ->name('kadin.laporan.count');
+
+        Route::get('/kadin/laporan/print', [KadinLaporanController::class, 'printPdf'])
+            ->name('kadin.laporan.print');
+    });
 
 
     // =======================

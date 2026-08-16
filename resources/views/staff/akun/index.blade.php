@@ -81,40 +81,62 @@
                           focus:border-[#16A394] focus:ring-0 outline-none transition-colors">
         </div>
 
-        {{-- FILTER ICON --}}
-        <div class="relative w-11 h-11">
-
-            <select name="role"
-                    onchange="this.form.submit()"
-                    class="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer
-                           outline-none focus:outline-none focus:ring-0">
-
-                <option value="">Semua Role</option>
-
-                @foreach($roles as $role)
-                    <option value="{{ $role->id_role }}"
-                        {{ request('role') == $role->id_role ? 'selected' : '' }}>
-                        {{ $role->nama_role }}
-                    </option>
-                @endforeach
-
-            </select>
-
-            <div class="w-11 h-11 rounded-full border border-gray-300 bg-white
-                        flex items-center justify-center pointer-events-none
-                        {{ request('role') ? 'border-[#16A394] bg-[#16A394]/10' : '' }}">
-
-                <svg class="w-5 h-5 {{ request('role') ? 'text-[#16A394]' : 'text-gray-500' }}"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+        {{-- FILTER TOGGLE BUTTON --}}
+        <div class="relative">
+            <button type="button"
+                    id="filterToggle"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-full border transition-all
+                           {{ (request('role') || request('status')) ? 'border-[#16A394] bg-[#16A394]/10 text-[#16A394] ring-2 ring-[#16A394]/20' : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50' }}"
+                    aria-label="Filter"
+                    title="Filter Akun">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6V4z"/>
                 </svg>
+            </button>
 
+            {{-- FILTER POPOVER --}}
+            <div id="filterPopover" class="absolute right-0 top-13 z-30 hidden w-60 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl">
+                <div class="space-y-4">
+                    <div>
+                        <label for="filterRole" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Role
+                        </label>
+                        <select id="filterRole"
+                                name="role"
+                                class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#16A394] focus:outline-none focus:ring-1 focus:ring-[#16A394]"
+                                onchange="this.form.submit()">
+                            <option value="">Semua Role</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id_role }}" {{ request('role') == $role->id_role ? 'selected' : '' }}>
+                                    {{ $role->nama_role }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="filterStatus" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Status
+                        </label>
+                        <select id="filterStatus"
+                                name="status"
+                                class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-[#16A394] focus:outline-none focus:ring-1 focus:ring-[#16A394]"
+                                onchange="this.form.submit()">
+                            <option value="">Semua Status</option>
+                            <option value="Aktif" {{ request('status') === 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                            <option value="Nonaktif" {{ request('status') === 'Nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                        </select>
+                    </div>
+
+                    @if(request('role') || request('status') || request('search'))
+                        <div class="pt-2 border-t border-gray-100 flex justify-end">
+                            <a href="{{ route('staff.akun.index') }}"
+                               class="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors">
+                                Reset Filter
+                            </a>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -190,38 +212,6 @@
 
                                 <div class="flex items-center justify-center gap-2">
                                     
-                                    {{-- EDIT --}}
-                                    <button type="button"
-                                        onclick="openEditModal(
-                                            @json($user->id_user),
-                                            @js($user->nama_lengkap),
-                                            @js($user->email),
-                                            @js($user->role->nama_role ?? '-'),
-                                            @js($user->pasar->nama_pasar ?? '-')
-                                        )"
-                                        title="Edit akun"
-                                        class="flex h-9 w-9 items-center justify-center
-                                            rounded-lg border border-gray-200
-                                            text-gray-500
-                                            hover:border-[#16A394]
-                                            hover:bg-[#16A394]/5
-                                            hover:text-[#16A394]
-                                            transition">
-
-                                        <svg class="w-4 h-4"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="2"
-                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-
-                                        </svg>
-
-                                    </button>
-
                     {{-- AKTIF / NONAKTIF --}}
                     @if($user->id_user === auth()->id())
 
@@ -248,11 +238,10 @@
                     @else
 
                         <button type="button"
-                                onclick="openStatusModal(
-                                    @json($user->id_user),
-                                    @js($user->nama_lengkap),
-                                    @js($user->status_akun)
-                                )"
+                                data-id="{{ $user->id_user }}"
+                                data-nama="{{ $user->nama_lengkap }}"
+                                data-status="{{ $user->status_akun }}"
+                                onclick="openStatusModal(this)"
                                 title="{{ $user->status_akun === 'Aktif'
                                     ? 'Nonaktifkan akun'
                                     : 'Aktifkan akun' }}"
@@ -513,126 +502,7 @@
                                         </div>
                                     </div>
 
-{{-- MODAL EDIT AKUN --}}
-<div id="editAkunModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4"
-     onclick="if(event.target === this) closeEditModal()">
 
-    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
-         onclick="event.stopPropagation()">
-
-        {{-- HEADER MODAL --}}
-        <div class="mb-6">
-            <h2 class="text-xl font-bold text-gray-800">
-                Edit Akun
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-500">
-                Perbarui informasi akun pengguna
-            </p>
-        </div>
-
-        <form id="editAkunForm" method="POST">
-
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="_form" value="edit">
-            <input type="hidden" name="_edit_id" id="editFormUserId" value="{{ old('_edit_id') }}">
-
-            <div class="space-y-4">
-
-                {{-- NAMA LENGKAP --}}
-                <div>
-                    <label for="editNama"
-                           class="mb-2 block text-sm font-medium text-gray-700">
-                        Nama Lengkap <span class="text-red-500">*</span>
-                    </label>
-
-                    <input type="text"
-                           id="editNama"
-                           name="nama_lengkap"
-                           value="{{ old('_form') === 'edit' ? old('nama_lengkap') : '' }}"
-                           required
-                           maxlength="100"
-                           class="w-full rounded-lg border {{ old('_form') === 'edit' && $errors->has('nama_lengkap') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
-                                  focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
-                    @if(old('_form') === 'edit' && $errors->has('nama_lengkap'))
-                        <p class="mt-1 text-xs text-red-500">{{ $errors->first('nama_lengkap') }}</p>
-                    @endif
-                </div>
-
-                {{-- EMAIL --}}
-                <div>
-                    <label for="editEmail"
-                           class="mb-2 block text-sm font-medium text-gray-700">
-                        Email <span class="text-red-500">*</span>
-                    </label>
-
-                    <input type="email"
-                           id="editEmail"
-                           name="email"
-                           value="{{ old('_form') === 'edit' ? old('email') : '' }}"
-                           required
-                           maxlength="100"
-                           class="w-full rounded-lg border {{ old('_form') === 'edit' && $errors->has('email') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' }} px-4 py-2.5
-                                  focus:border-[#16A394] focus:ring-1 focus:ring-[#16A394]">
-                    @if(old('_form') === 'edit' && $errors->has('email'))
-                        <p class="mt-1 text-xs text-red-500">{{ $errors->first('email') }}</p>
-                    @endif
-                </div>
-
-                {{-- ROLE --}}
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">
-                        Role
-                    </label>
-
-                    <input type="text"
-                           id="editRole"
-                           readonly
-                           class="w-full cursor-not-allowed rounded-lg border border-gray-200
-                                  bg-gray-100 px-4 py-2.5 text-gray-500">
-                </div>
-
-                {{-- UNIT / PASAR --}}
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">
-                        Unit / Pasar
-                    </label>
-
-                    <input type="text"
-                           id="editPasar"
-                           readonly
-                           class="w-full cursor-not-allowed rounded-lg border border-gray-200
-                                  bg-gray-100 px-4 py-2.5 text-gray-500">
-                </div>
-
-            </div>
-
-            {{-- BUTTON --}}
-            <div class="mt-6 flex justify-end gap-3">
-
-                <button type="button"
-                        onclick="closeEditModal()"
-                        class="rounded-lg border border-gray-300 px-5 py-2.5
-                               text-sm font-medium text-gray-600
-                               hover:bg-gray-50 transition">
-                    Batal
-                </button>
-
-                <button type="submit"
-                        class="rounded-lg bg-gradient-to-r from-[#114F72] to-[#16A394]
-                               px-5 py-2.5 text-sm font-semibold text-white
-                               shadow-sm hover:opacity-90 transition">
-                    Simpan Perubahan
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-</div>
 
 {{-- MODAL KONFIRMASI STATUS AKUN --}}
 <div id="statusAkunModal"
@@ -682,35 +552,7 @@
 
 <script>
 
-    // =====================================================
-    // EDIT AKUN
-    // =====================================================
 
-    function openEditModal(id, nama, email, role, pasar) {
-        const modal = document.getElementById('editAkunModal');
-        const form = document.getElementById('editAkunForm');
-
-        document.getElementById('editNama').value = nama;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editRole').value = role;
-        document.getElementById('editPasar').value = pasar;
-
-        form.action = `/staff/akun/${id}`;
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeEditModal() {
-        const modal = document.getElementById('editAkunModal');
-
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-
-        document.body.style.overflow = '';
-    }
 
 
     // =====================================================
@@ -733,6 +575,20 @@
         modal.classList.remove('flex');
 
         document.body.style.overflow = '';
+    }
+
+    function toggleAkunPassword(fieldId, btn) {
+        const input = document.getElementById(fieldId);
+        if (!input) return;
+        const isNowText = input.type === 'password';
+        input.type = isNowText ? 'text' : 'password';
+        
+        const eyeIcon = btn.querySelector('.icon-eye');
+        const eyeOffIcon = btn.querySelector('.icon-eye-off');
+        if (eyeIcon && eyeOffIcon) {
+            eyeIcon.classList.toggle('hidden', !isNowText);
+            eyeOffIcon.classList.toggle('hidden', isNowText);
+        }
     }
 
 
@@ -800,6 +656,12 @@
     // =====================================================
 
     function openStatusModal(id, nama, status) {
+        if (typeof id === 'object' && id !== null) {
+            const btn = id;
+            id = btn.dataset.id;
+            nama = btn.dataset.nama;
+            status = btn.dataset.status;
+        }
 
         const modal = document.getElementById('statusAkunModal');
         const form = document.getElementById('statusAkunForm');
@@ -850,31 +712,33 @@
     }
 
 
-    // Auto-buka modal tambah/edit jika ada error validasi
-    @if($errors->any())
+    // Auto-buka modal tambah jika ada error validasi
+    @if($errors->any() && old('_form') === 'tambah')
         document.addEventListener('DOMContentLoaded', function () {
-            @if(old('_form') === 'tambah')
-                openTambahAkunModal();
-            @elseif(old('_form') === 'edit' && old('_edit_id'))
-                const editId = @js(old('_edit_id'));
-                const editNama = @js(old('nama_lengkap'));
-                const editEmail = @js(old('email'));
-                const form = document.getElementById('editAkunForm');
-                
-                document.getElementById('editNama').value = editNama;
-                document.getElementById('editEmail').value = editEmail;
-                if (document.getElementById('editFormUserId')) {
-                    document.getElementById('editFormUserId').value = editId;
-                }
-                form.action = `/staff/akun/${editId}`;
-
-                const modal = document.getElementById('editAkunModal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                document.body.style.overflow = 'hidden';
-            @endif
+            openTambahAkunModal();
         });
     @endif
+
+    // Filter Toggle Popover
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('filterToggle');
+        const popover = document.getElementById('filterPopover');
+
+        if (!toggle || !popover) return;
+
+        toggle.addEventListener('click', function (event) {
+            event.stopPropagation();
+            popover.classList.toggle('hidden');
+        });
+
+        popover.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+        document.addEventListener('click', function () {
+            popover.classList.add('hidden');
+        });
+    });
 
 </script>
 

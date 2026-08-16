@@ -25,10 +25,45 @@
         } elseif ($roleText === 'Petugas UPTD' && auth()->user()->pasar) {
             $roleText .= ' • ' . auth()->user()->pasar->nama_pasar;
         }
+
+        // Fallback calculation for period variables if loaded without controller
+        $selectedYear = $selectedYear ?? (int) request('tahun', $now->year);
+        $bulanReq = request('bulan');
+        if ($bulanReq === 'semua' || $bulanReq === 'all') {
+            $selectedMonth = null;
+        } elseif (array_key_exists('selectedMonth', get_defined_vars())) {
+            // controller variable is set
+        } elseif (!is_null($bulanReq) && is_numeric($bulanReq)) {
+            $mInt = (int) $bulanReq;
+            $selectedMonth = ($mInt >= 1 && $mInt <= 12) ? $mInt : null;
+        } else {
+            $selectedMonth = (int) $now->month;
+        }
+
+        $monthNamesIndo = $monthNamesIndo ?? [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        if (is_null($selectedMonth)) {
+            $startDate = $startDate ?? \Carbon\Carbon::create($selectedYear, 1, 1)->startOfDay();
+            $endDate = $endDate ?? \Carbon\Carbon::create($selectedYear, 12, 31)->endOfDay();
+            $periodTitle = $periodTitle ?? "Ringkasan Laporan Tahun {$selectedYear}";
+            $chartSubtitle = $chartSubtitle ?? "Periode Tahun {$selectedYear}";
+        } else {
+            $startDate = $startDate ?? \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->startOfDay();
+            $endDate = $endDate ?? \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth()->endOfDay();
+            $namaBulan = $monthNamesIndo[$selectedMonth] ?? '';
+            $periodTitle = $periodTitle ?? "Ringkasan Laporan {$namaBulan} {$selectedYear}";
+            $chartSubtitle = $chartSubtitle ?? "Periode {$namaBulan} {$selectedYear}";
+        }
+
+        $availableYears = $availableYears ?? range($now->year - 2, $now->year + 1);
     @endphp
 
-    {{-- WELCOME SECTION (Clean, Uncarded, Visually Identical Across Roles) --}}
-    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    {{-- WELCOME SECTION --}}
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-1">
             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
                 {{ $greeting }}, {{ auth()->user()->nama_lengkap }}
@@ -43,10 +78,49 @@
             </p>
         </div>
     </div>
+
+    {{-- UNCARDED PERIOD FILTER HEADER (CLEAN & MINIMAL) --}}
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight">
+                {{ $periodTitle }}
+            </h2>
+        </div>
+
+        <form method="GET" action="{{ route('home') }}" class="flex items-center gap-2">
+            {{-- DROPDOWN BULAN --}}
+            <select name="bulan" 
+                    onchange="this.form.submit()"
+                    class="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 outline-none focus:border-[#16A394] focus:ring-0 cursor-pointer shadow-sm">
+                <option value="semua" {{ is_null($selectedMonth) ? 'selected' : '' }}>Semua Bulan</option>
+                @foreach($monthNamesIndo as $mNum => $mName)
+                    <option value="{{ $mNum }}" {{ (!is_null($selectedMonth) && $selectedMonth == $mNum) ? 'selected' : '' }}>
+                        {{ $mName }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- DROPDOWN TAHUN --}}
+            <select name="tahun" 
+                    onchange="this.form.submit()"
+                    class="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-700 outline-none focus:border-[#16A394] focus:ring-0 cursor-pointer shadow-sm">
+                @foreach($availableYears as $yearOpt)
+                    <option value="{{ $yearOpt }}" {{ $selectedYear == $yearOpt ? 'selected' : '' }}>
+                        {{ $yearOpt }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+    </div>
+
     {{-- DASHBOARD PETUGAS UPTD --}}
     @if(auth()->user()->role->nama_role === 'Petugas UPTD')
         @php
-            $laporanUptdRecent = \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))
+            $uptdPasarId = auth()->user()->id_pasar;
+            $laporanUptdBase = \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', $uptdPasarId))
+                ->whereBetween('tanggal_lapor', [$startDate, $endDate]);
+
+            $laporanUptdRecent = (clone $laporanUptdBase)
                 ->with(['lokasi.pasar', 'fasilitas'])
                 ->orderByDesc('tanggal_lapor')
                 ->orderByDesc('id_laporan')
@@ -70,7 +144,7 @@
                 </div>
                 <div class="text-center my-auto">
                     <span class="text-2xl font-extrabold text-[#114F72] tracking-tight">
-                        {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->count() }}
+                        {{ (clone $laporanUptdBase)->count() }}
                     </span>
                 </div>
             </div>
@@ -88,7 +162,7 @@
                 </div>
                 <div class="text-center my-auto">
                     <span class="text-2xl font-extrabold text-amber-600 tracking-tight">
-                        {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Menunggu')->count() }}
+                        {{ (clone $laporanUptdBase)->where('status_laporan', 'Menunggu')->count() }}
                     </span>
                 </div>
             </div>
@@ -106,7 +180,7 @@
                 </div>
                 <div class="text-center my-auto">
                     <span class="text-2xl font-extrabold text-teal-600 tracking-tight">
-                        {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Disetujui')->count() }}
+                        {{ (clone $laporanUptdBase)->where('status_laporan', 'Disetujui')->count() }}
                     </span>
                 </div>
             </div>
@@ -124,7 +198,7 @@
                 </div>
                 <div class="text-center my-auto">
                     <span class="text-2xl font-extrabold text-rose-600 tracking-tight">
-                        {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Dikembalikan')->count() }}
+                        {{ (clone $laporanUptdBase)->where('status_laporan', 'Dikembalikan')->count() }}
                     </span>
                 </div>
             </div>
@@ -142,7 +216,7 @@
                 </div>
                 <div class="text-center my-auto">
                     <span class="text-2xl font-extrabold text-emerald-600 tracking-tight">
-                        {{ \App\Models\Laporan::whereHas('lokasi', fn($q) => $q->where('id_pasar', auth()->user()->id_pasar))->where('status_laporan', 'Selesai')->count() }}
+                        {{ (clone $laporanUptdBase)->where('status_laporan', 'Selesai')->count() }}
                     </span>
                 </div>
             </div>
@@ -166,7 +240,7 @@
                     <p class="text-xs text-white/85 mt-0.5 font-medium">Laporkan kerusakan fasilitas pasar</p>
                 </a>
 
-                {{-- Card 2: Lihat Riwayat Laporan (History Clock Rewind Icon) --}}
+                {{-- Card 2: Lihat Riwayat Laporan --}}
                 <a href="{{ route('laporan.index') }}" 
                    class="group block bg-gradient-to-r from-[#0B6B8A] via-[#0D8794] to-[#149887] py-5 px-6 rounded-xl text-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 text-center">
                     <div class="mb-2 text-white flex justify-center">
@@ -186,7 +260,7 @@
             <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <h2 class="text-lg font-semibold text-gray-800">Laporan Terbaru</h2>
                 </div>
@@ -275,28 +349,33 @@
                     <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <p class="text-sm text-gray-500">Belum ada laporan yang diajukan.</p>
+                    <p class="text-sm text-gray-500">Belum ada laporan pada periode ini.</p>
                 </div>
             @endif
         </div>
     @endif
-    {{-- DASHBOARD STAFF SARPRAS --}}
+
+    {{-- DASHBOARD STAFF SARANA DAN PRASARANA --}}
     @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
         <!-- Script Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         @php
-            $totalLaporan   = \App\Models\Laporan::count();
-            $evaluasiCount  = \App\Models\Laporan::where('status_laporan', 'Menunggu')->count();
-            $sedangDiproses = \App\Models\Laporan::where('status_laporan', 'Diproses')->count();
-            $selesaiCount   = \App\Models\Laporan::where('status_laporan', 'Selesai')->count();
+            $staffPeriodBase = \App\Models\Laporan::whereBetween('tanggal_lapor', [$startDate, $endDate]);
 
-            // 1. Data All 9 Markets active report count (Real Horizontal Bar Chart)
+            $totalLaporan   = (clone $staffPeriodBase)->count();
+            $evaluasiCount  = (clone $staffPeriodBase)->where('status_laporan', 'Menunggu')->count();
+            $sedangDiproses = (clone $staffPeriodBase)->where('status_laporan', 'Diproses')->count();
+            $selesaiCount   = (clone $staffPeriodBase)->where('status_laporan', 'Selesai')->count();
+
+            // 1. Data All 9 Markets active report count within period
             $semuaPasar = \App\Models\Pasar::all();
-            $pasarAktifData = $semuaPasar->map(function($p) {
+            $pasarAktifData = $semuaPasar->map(function($p) use ($startDate, $endDate) {
                 $count = \App\Models\Laporan::whereHas('lokasi', function($q) use ($p) {
                     $q->where('id_pasar', $p->id_pasar);
-                })->whereIn('status_laporan', ['Menunggu', 'Diproses', 'Dikembalikan'])->count();
+                })->whereIn('status_laporan', ['Menunggu', 'Diproses', 'Dikembalikan'])
+                  ->whereBetween('tanggal_lapor', [$startDate, $endDate])
+                  ->count();
 
                 return [
                     'nama_pasar' => $p->nama_pasar,
@@ -304,7 +383,6 @@
                 ];
             })->sortByDesc('count')->values();
 
-            // Ensure 9 markets are listed cleanly if database has fewer
             if ($pasarAktifData->count() < 9) {
                 $defaultNamaPasar = [
                     'Pasar Raya', 'Pasar Lubuk Buaya', 'Pasar Bandar Buat', 
@@ -323,57 +401,41 @@
             $pasarLabels = $pasarAktifData->pluck('nama_pasar')->toArray();
             $pasarCounts = $pasarAktifData->pluck('count')->toArray();
 
-            // 2. Data Kategori Kerusakan (Fixed order: Ringan -> Sedang -> Berat)
-            $ringanCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
-            $sedangCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
-            $beratCount  = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
+            // 2. Data Kategori Kerusakan within period
+            $ringanCount = (clone $staffPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
+            $sedangCount = (clone $staffPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
+            $beratCount  = (clone $staffPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
 
-            // Fixed category mapping with fixed colors mapped explicitly by category name
             $kategoriDataMap = [
-                'Ringan' => [
-                    'count' => $ringanCount,
-                    'color' => '#F59E0B' // Amber / Yellow
-                ],
-                'Sedang' => [
-                    'count' => $sedangCount,
-                    'color' => '#F97316' // Orange
-                ],
-                'Berat' => [
-                    'count' => $beratCount,
-                    'color' => '#EF4444' // Red
-                ],
+                'Ringan' => ['count' => $ringanCount, 'color' => '#F59E0B'],
+                'Sedang' => ['count' => $sedangCount, 'color' => '#F97316'],
+                'Berat'  => ['count' => $beratCount,  'color' => '#EF4444'],
             ];
 
             $kategoriLabels = array_keys($kategoriDataMap);
             $kategoriCounts = array_column($kategoriDataMap, 'count');
             $kategoriColors = array_column($kategoriDataMap, 'color');
 
-            // Dynamic Max Scaling Function to prevent bars from taking 100% width when values are low
             $calcDynamicMax = function($countsArray) {
                 $maxVal = count($countsArray) ? max($countsArray) : 0;
-                if ($maxVal <= 3) {
-                    return 5;
-                } elseif ($maxVal <= 7) {
-                    return 10;
-                } elseif ($maxVal <= 18) {
-                    return 20;
-                } else {
-                    return (int) (ceil(($maxVal + 1) / 5) * 5);
-                }
+                if ($maxVal <= 3) return 5;
+                if ($maxVal <= 7) return 10;
+                if ($maxVal <= 18) return 20;
+                return (int) (ceil(($maxVal + 1) / 5) * 5);
             };
 
             $suggestedMaxPasar = $calcDynamicMax($pasarCounts);
             $suggestedMaxKategori = $calcDynamicMax($kategoriCounts);
 
-            // 3. Three (3) Latest Reports
-            $laporanTerbaruStaff = \App\Models\Laporan::with(['lokasi.pasar', 'fasilitas'])
+            // 3. Three (3) Latest Reports within period
+            $laporanTerbaruStaff = (clone $staffPeriodBase)->with(['lokasi.pasar', 'fasilitas'])
                 ->orderByDesc('tanggal_lapor')
                 ->orderByDesc('id_laporan')
                 ->take(3)
                 ->get();
         @endphp
 
-        {{-- 2. EMPAT KPI CARDS (SATU BARIS) --}}
+        {{-- 2. EMPAT KPI CARDS --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {{-- 1. Total Laporan (Blue) --}}
@@ -442,25 +504,25 @@
 
         </div>
 
-        {{-- 3. CHART SECTION (REAL HORIZONTAL & VERTICAL BAR CHARTS SIDE BY SIDE) --}}
+        {{-- 3. CHART SECTION --}}
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            {{-- LEFT CARD: Laporan Aktif per Pasar (Chart.js Real Horizontal Bar Chart - All 9 Markets) --}}
+            {{-- LEFT CARD --}}
             <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
                 <div class="mb-4">
                     <h2 class="text-base font-bold text-gray-900 tracking-tight">Laporan Aktif per Pasar</h2>
-                    <p class="text-xs text-gray-400 font-medium mt-0.5">Seluruh 9 pasar diurutkan dari laporan aktif terbanyak</p>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $chartSubtitle }}</p>
                 </div>
                 <div class="relative w-full" style="height: 250px;">
                     <canvas id="chartPasarAktif"></canvas>
                 </div>
             </div>
 
-            {{-- RIGHT CARD: Kategori Kerusakan (Chart.js Real Vertical Bar Chart - Compact) --}}
+            {{-- RIGHT CARD --}}
             <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
                 <div class="mb-4">
                     <h2 class="text-base font-bold text-gray-900 tracking-tight">Kategori Kerusakan</h2>
-                    <p class="text-xs text-gray-400 font-medium mt-0.5">Jumlah laporan berdasarkan tingkat kerusakan</p>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $chartSubtitle }}</p>
                 </div>
                 <div class="relative w-full" style="height: 250px;">
                     <canvas id="chartKategoriKerusakan"></canvas>
@@ -471,7 +533,6 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Inline plugin to draw numbers at the end of horizontal bars
                 const horizontalBarLabelsPlugin = {
                     id: 'horizontalBarLabels',
                     afterDatasetsDraw(chart) {
@@ -494,7 +555,6 @@
                     }
                 };
 
-                // Inline plugin to draw numbers at the top of vertical bars
                 const verticalBarLabelsPlugin = {
                     id: 'verticalBarLabels',
                     afterDatasetsDraw(chart) {
@@ -517,7 +577,6 @@
                     }
                 };
 
-                // 1. Horizontal Bar Chart All 9 Pasar
                 const ctxPasar = document.getElementById('chartPasarAktif').getContext('2d');
                 new Chart(ctxPasar, {
                     type: 'bar',
@@ -536,9 +595,7 @@
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             x: {
                                 beginAtZero: true,
@@ -554,7 +611,6 @@
                     }
                 });
 
-                // 2. Vertical Bar Chart Kategori Kerusakan
                 const ctxKategori = document.getElementById('chartKategoriKerusakan').getContext('2d');
                 new Chart(ctxKategori, {
                     type: 'bar',
@@ -572,9 +628,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             y: {
                                 beginAtZero: true,
@@ -592,14 +646,12 @@
             });
         </script>
 
-        {{-- 4. LAPORAN TERBARU (EXACT LAPORAN.INDEX STYLE, 3 LATEST RECORDS) --}}
+        {{-- 4. LAPORAN TERBARU --}}
         <div class="mt-8 bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            
-            {{-- Header Tabel --}}
             <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#114F72]/5 to-[#16A394]/5 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <h2 class="text-lg font-semibold text-gray-800">Laporan Terbaru</h2>
                 </div>
@@ -686,7 +738,7 @@
                     <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <p class="text-sm text-gray-500">Belum ada laporan yang diajukan.</p>
+                    <p class="text-sm text-gray-500">Belum ada laporan pada periode ini.</p>
                 </div>
             @endif
         </div>
@@ -698,33 +750,52 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         @php
+            $kabidPeriodBase = \App\Models\Laporan::whereBetween('tanggal_lapor', [$startDate, $endDate]);
+
             // 1. KPI Data
-            $totalLaporanKabid          = \App\Models\Laporan::count();
-            $evaluasiKabidPendingCount = \App\Models\Laporan::where('status_laporan', 'Diproses')->count();
-            $rabKabidPendingCount      = \App\Models\Laporan::where('status_verifikasi_rab', 'Menunggu')->count();
-            $laporanSelesaiKabidCount  = \App\Models\Laporan::where('status_laporan', 'Selesai')->count();
+            $totalLaporanKabid          = (clone $kabidPeriodBase)->count();
+            $evaluasiKabidPendingCount = (clone $kabidPeriodBase)->where('status_laporan', 'Diproses')->count();
+            $rabKabidPendingCount      = (clone $kabidPeriodBase)->where('status_verifikasi_rab', 'Menunggu')->count();
+            $laporanSelesaiKabidCount  = (clone $kabidPeriodBase)->where('status_laporan', 'Selesai')->count();
 
-            // 2. Chart 1: Tren Laporan Masuk (Monthly Line Chart for Current Year)
-            $currentYear = date('Y');
-            $monthlyReportsRaw = \App\Models\Laporan::selectRaw('MONTH(tanggal_lapor) as month_num, COUNT(*) as total')
-                ->whereYear('tanggal_lapor', $currentYear)
-                ->groupBy('month_num')
-                ->pluck('total', 'month_num');
-
-            $monthNamesIndo = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            // 2. Chart 1: Tren Laporan Masuk
             $trendLabels = [];
             $trendData = [];
-            for ($m = 1; $m <= 12; $m++) {
-                $trendLabels[] = $monthNamesIndo[$m - 1];
-                $trendData[] = $monthlyReportsRaw->get($m, 0);
+            $trendSubTitle = '';
+
+            if (is_null($selectedMonth)) {
+                $trendSubTitle = "Periode Tahun {$selectedYear}";
+                $monthlyReportsRaw = \App\Models\Laporan::selectRaw('MONTH(tanggal_lapor) as month_num, COUNT(*) as total')
+                    ->whereYear('tanggal_lapor', $selectedYear)
+                    ->groupBy('month_num')
+                    ->pluck('total', 'month_num');
+
+                $monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                for ($m = 1; $m <= 12; $m++) {
+                    $trendLabels[] = $monthNamesShort[$m - 1];
+                    $trendData[] = $monthlyReportsRaw->get($m, 0);
+                }
+            } else {
+                $namaBulanSelect = $monthNamesIndo[$selectedMonth] ?? '';
+                $trendSubTitle = "Periode {$namaBulanSelect} {$selectedYear}";
+                $daysInMonth = $startDate->daysInMonth;
+                $dailyReportsRaw = (clone $kabidPeriodBase)
+                    ->selectRaw('DAY(tanggal_lapor) as day_num, COUNT(*) as total')
+                    ->groupBy('day_num')
+                    ->pluck('total', 'day_num');
+
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $trendLabels[] = (string) $d;
+                    $trendData[] = $dailyReportsRaw->get($d, 0);
+                }
             }
 
-            // 3. Chart 2: Distribusi Laporan per Pasar (All 9 Markets, sorted descending)
+            // 3. Chart 2: Distribusi Laporan per Pasar
             $semuaPasarKabid = \App\Models\Pasar::all();
-            $pasarKabidData = $semuaPasarKabid->map(function($p) {
+            $pasarKabidData = $semuaPasarKabid->map(function($p) use ($startDate, $endDate) {
                 $count = \App\Models\Laporan::whereHas('lokasi', function($q) use ($p) {
                     $q->where('id_pasar', $p->id_pasar);
-                })->count();
+                })->whereBetween('tanggal_lapor', [$startDate, $endDate])->count();
                 return [
                     'nama_pasar' => $p->nama_pasar,
                     'count' => $count
@@ -748,21 +819,32 @@
             $pasarKabidLabels = $pasarKabidData->pluck('nama_pasar')->toArray();
             $pasarKabidCounts = $pasarKabidData->pluck('count')->toArray();
 
-            // 4. Chart 3: Distribusi Kategori Kerusakan (Prasarana Bangunan, Sanitasi & Air, Instalasi Listrik, Fasilitas Umum)
-            $bangunanCount = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Bangunan%')
-                ->orWhere('kategori_kerusakan', 'LIKE', '%Bangunan%')->count();
-            $sanitasiCount = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Sanitasi%')
-                ->orWhere('kategori_laporan', 'LIKE', '%Air%')
-                ->orWhere('kategori_kerusakan', 'LIKE', '%Sanitasi%')->count();
-            $listrikCount  = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Listrik%')
-                ->orWhere('kategori_kerusakan', 'LIKE', '%Listrik%')->count();
-            $fasumCount    = \App\Models\Laporan::where('kategori_laporan', 'LIKE', '%Fasilitas%')
-                ->orWhere('kategori_laporan', 'LIKE', '%Umum%')
-                ->orWhere('kategori_kerusakan', 'LIKE', '%Umum%')->count();
+            // 4. Chart 3: Distribusi Kategori Kerusakan (Kabid)
+            $bangunanCount = (clone $kabidPeriodBase)->where(function($q) {
+                $q->where('kategori_laporan', 'LIKE', '%Bangunan%')
+                  ->orWhere('kategori_kerusakan', 'LIKE', '%Bangunan%');
+            })->count();
 
-            $ringanKabidCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
-            $sedangKabidCount = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
-            $beratKabidCount  = \App\Models\Laporan::where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
+            $sanitasiCount = (clone $kabidPeriodBase)->where(function($q) {
+                $q->where('kategori_laporan', 'LIKE', '%Sanitasi%')
+                  ->orWhere('kategori_laporan', 'LIKE', '%Air%')
+                  ->orWhere('kategori_kerusakan', 'LIKE', '%Sanitasi%');
+            })->count();
+
+            $listrikCount  = (clone $kabidPeriodBase)->where(function($q) {
+                $q->where('kategori_laporan', 'LIKE', '%Listrik%')
+                  ->orWhere('kategori_kerusakan', 'LIKE', '%Listrik%');
+            })->count();
+
+            $fasumCount    = (clone $kabidPeriodBase)->where(function($q) {
+                $q->where('kategori_laporan', 'LIKE', '%Fasilitas%')
+                  ->orWhere('kategori_laporan', 'LIKE', '%Umum%')
+                  ->orWhere('kategori_kerusakan', 'LIKE', '%Umum%');
+            })->count();
+
+            $ringanKabidCount = (clone $kabidPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Ringan%')->count();
+            $sedangKabidCount = (clone $kabidPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Sedang%')->count();
+            $beratKabidCount  = (clone $kabidPeriodBase)->where('kategori_kerusakan', 'LIKE', '%Berat%')->count();
 
             $kategoriGroup = collect([
                 'Prasarana Bangunan' => $bangunanCount ?: $beratKabidCount,
@@ -774,32 +856,26 @@
             $kategoriKabidLabels = $kategoriGroup->keys()->toArray();
             $kategoriKabidCounts = $kategoriGroup->values()->toArray();
 
-            // Helper function for dynamic max scaling
             $calcKabidMax = function($countsArray) {
                 $maxVal = count($countsArray) ? max($countsArray) : 0;
-                if ($maxVal <= 3) {
-                    return 5;
-                } elseif ($maxVal <= 7) {
-                    return 10;
-                } elseif ($maxVal <= 18) {
-                    return 20;
-                } else {
-                    return (int) (ceil(($maxVal + 1) / 5) * 5);
-                }
+                if ($maxVal <= 3) return 5;
+                if ($maxVal <= 7) return 10;
+                if ($maxVal <= 18) return 20;
+                return (int) (ceil(($maxVal + 1) / 5) * 5);
             };
 
             $suggestedMaxTrend  = $calcKabidMax($trendData);
             $suggestedMaxPasarK = $calcKabidMax($pasarKabidCounts);
             $suggestedMaxKatK   = $calcKabidMax($kategoriKabidCounts);
 
-            // 5. Approval Queues (3 oldest pending evaluation, 3 oldest pending RAB)
-            $queueEvaluasi = \App\Models\Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor'])
+            // 5. Approval Queues
+            $queueEvaluasi = (clone $kabidPeriodBase)->with(['lokasi.pasar', 'fasilitas', 'pelapor'])
                 ->where('status_laporan', 'Diproses')
                 ->orderBy('tanggal_lapor', 'asc')
                 ->take(3)
                 ->get();
 
-            $queueRab = \App\Models\Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])
+            $queueRab = (clone $kabidPeriodBase)->with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])
                 ->where('status_verifikasi_rab', 'Menunggu')
                 ->orderBy('tanggal_input_rab', 'asc')
                 ->orderBy('tanggal_lapor', 'asc')
@@ -807,7 +883,7 @@
                 ->get();
         @endphp
 
-        {{-- 2. EMPAT KARTU KPI STATISTIK (ENHANCED ICON & NUMBERS) --}}
+        {{-- 2. EMPAT KARTU KPI STATISTIK --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {{-- 1. Total Laporan (Blue) --}}
@@ -815,7 +891,7 @@
                 <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-[#114F72] to-[#16A394]"></div>
                 <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#114F72] shrink-0 ml-1">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 002 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
                     </svg>
                 </div>
                 <div>
@@ -868,17 +944,16 @@
 
         </div>
 
-        {{-- 3. APPROVAL QUEUES (BRANDED GRADIENT HEADER, CLICKABLE ROWS, CLEAR WAITING HIERARCHY) --}}
+        {{-- 3. APPROVAL QUEUES --}}
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {{-- CARD 1: Antrian Verifikasi Evaluasi --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>
-                    {{-- Header Gradient --}}
                     <div class="px-6 py-4 bg-gradient-to-r from-[#0F5E9C] to-[#17A589] flex items-center justify-between text-white">
                         <div>
                             <h3 class="text-base font-bold text-white tracking-tight">Antrian Verifikasi Evaluasi</h3>
-                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $evaluasiKabidPendingCount }} laporan menunggu persetujuan</p>
+                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $evaluasiKabidPendingCount }} laporan • {{ $chartSubtitle }}</p>
                         </div>
                         <a href="{{ route('kabid.laporan.index') }}" class="text-xs font-semibold text-white/90 hover:text-white hover:underline flex items-center gap-1">
                             Lihat Semua
@@ -888,7 +963,6 @@
                         </a>
                     </div>
 
-                    {{-- Body Items --}}
                     <div class="p-6 space-y-3">
                         @forelse($queueEvaluasi as $item)
                             @php
@@ -948,7 +1022,7 @@
                                 <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi evaluasi.</p>
+                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi evaluasi pada periode ini.</p>
                             </div>
                         @endforelse
                     </div>
@@ -958,11 +1032,10 @@
             {{-- CARD 2: Antrian Verifikasi RAB --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>
-                    {{-- Header Gradient --}}
                     <div class="px-6 py-4 bg-gradient-to-r from-[#0F5E9C] to-[#17A589] flex items-center justify-between text-white">
                         <div>
                             <h3 class="text-base font-bold text-white tracking-tight">Antrian Verifikasi RAB</h3>
-                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $rabKabidPendingCount }} RAB menunggu persetujuan</p>
+                            <p class="text-xs text-white/80 font-medium mt-0.5">{{ $rabKabidPendingCount }} RAB • {{ $chartSubtitle }}</p>
                         </div>
                         <a href="{{ route('kabid.rab.index') }}" class="text-xs font-semibold text-white/90 hover:text-white hover:underline flex items-center gap-1">
                             Lihat Semua
@@ -972,7 +1045,6 @@
                         </a>
                     </div>
 
-                    {{-- Body Items --}}
                     <div class="p-6 space-y-3">
                         @forelse($queueRab as $item)
                             @php
@@ -1032,7 +1104,7 @@
                                 <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi RAB.</p>
+                                <p class="text-xs text-gray-500 font-medium">Tidak ada antrian verifikasi RAB pada periode ini.</p>
                             </div>
                         @endforelse
                     </div>
@@ -1041,14 +1113,14 @@
 
         </div>
 
-        {{-- 4. MONITORING CHARTS SECTION (3 REAL MANAGERIAL CHARTS) --}}
+        {{-- 4. MONITORING CHARTS SECTION --}}
         <div class="mt-8 space-y-6">
 
-            {{-- CHART 1: Tren Laporan Masuk (Full Width Line Chart) --}}
+            {{-- CHART 1: Tren Laporan Masuk --}}
             <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div class="mb-4">
                     <h3 class="text-base font-bold text-gray-900 tracking-tight">Tren Laporan Masuk</h3>
-                    <p class="text-xs text-gray-400 font-medium mt-0.5">Jumlah laporan kerusakan yang diterima setiap bulan (Tahun {{ date('Y') }})</p>
+                    <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $trendSubTitle }}</p>
                 </div>
                 <div class="relative w-full" style="height: 240px;">
                     <canvas id="chartKabidTrend"></canvas>
@@ -1058,22 +1130,22 @@
             {{-- CHART 2 & CHART 3 SIDE BY SIDE --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {{-- CHART 2: Distribusi Laporan per Pasar (Horizontal Bar Chart) --}}
+                {{-- CHART 2: Distribusi Laporan per Pasar --}}
                 <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div class="mb-4">
                         <h3 class="text-base font-bold text-gray-900 tracking-tight">Distribusi Laporan per Pasar</h3>
-                        <p class="text-xs text-gray-400 font-medium mt-0.5">Seluruh 9 pasar diurutkan dari total laporan terbanyak</p>
+                        <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $chartSubtitle }}</p>
                     </div>
                     <div class="relative w-full" style="height: 250px;">
                         <canvas id="chartKabidPasar"></canvas>
                     </div>
                 </div>
 
-                {{-- CHART 3: Distribusi Kategori Kerusakan (Horizontal Bar Chart) --}}
+                {{-- CHART 3: Distribusi Kategori Kerusakan --}}
                 <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div class="mb-4">
                         <h3 class="text-base font-bold text-gray-900 tracking-tight">Distribusi Kategori Kerusakan</h3>
-                        <p class="text-xs text-gray-400 font-medium mt-0.5">Pengelompokan laporan berdasarkan jenis kategori fasilitas</p>
+                        <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $chartSubtitle }}</p>
                     </div>
                     <div class="relative w-full" style="height: 250px;">
                         <canvas id="chartKabidKategori"></canvas>
@@ -1086,7 +1158,6 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Plugin to draw value text at the end of horizontal bars
                 const horizontalBarLabelsPluginKabid = {
                     id: 'horizontalBarLabelsKabid',
                     afterDatasetsDraw(chart) {
@@ -1109,7 +1180,6 @@
                     }
                 };
 
-                // 1. Line Chart: Tren Laporan Masuk
                 const ctxTrend = document.getElementById('chartKabidTrend').getContext('2d');
                 new Chart(ctxTrend, {
                     type: 'line',
@@ -1132,9 +1202,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             y: {
                                 beginAtZero: true,
@@ -1150,7 +1218,6 @@
                     }
                 });
 
-                // 2. Horizontal Bar Chart: Distribusi Laporan per Pasar
                 const ctxPasarK = document.getElementById('chartKabidPasar').getContext('2d');
                 new Chart(ctxPasarK, {
                     type: 'bar',
@@ -1169,9 +1236,7 @@
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             x: {
                                 beginAtZero: true,
@@ -1187,7 +1252,6 @@
                     }
                 });
 
-                // 3. Horizontal Bar Chart: Distribusi Kategori Kerusakan
                 const ctxKatK = document.getElementById('chartKabidKategori').getContext('2d');
                 new Chart(ctxKatK, {
                     type: 'bar',
@@ -1206,9 +1270,7 @@
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
                             x: {
                                 beginAtZero: true,
@@ -1229,14 +1291,19 @@
 
     {{-- DASHBOARD KEPALA DINAS --}}
     @if(auth()->user()->role->nama_role === 'Kepala Dinas')
+        @php
+            $kadisPeriodBase = \App\Models\Laporan::whereBetween('tanggal_lapor', [$startDate, $endDate]);
+            $totalLaporanKadis = (clone $kadisPeriodBase)->count();
+            $selesaiKadisCount = (clone $kadisPeriodBase)->where('status_laporan', 'Selesai')->count();
+        @endphp
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-[#114F72]">
-                <p class="text-sm text-gray-500">Total Laporan Aktif</p>
-                <p class="text-3xl font-bold text-[#114F72] mt-1">0</p>
+                <p class="text-sm text-gray-500">Total Laporan ({{ $chartSubtitle }})</p>
+                <p class="text-3xl font-bold text-[#114F72] mt-1">{{ $totalLaporanKadis }}</p>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500">
-                <p class="text-sm text-gray-500">Selesai Tahun Ini</p>
-                <p class="text-3xl font-bold text-emerald-600 mt-1">0</p>
+                <p class="text-sm text-gray-500">Selesai ({{ $chartSubtitle }})</p>
+                <p class="text-3xl font-bold text-emerald-600 mt-1">{{ $selesaiKadisCount }}</p>
             </div>
         </div>
     @endif
