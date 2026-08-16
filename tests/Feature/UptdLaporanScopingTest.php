@@ -86,7 +86,7 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasA)
             ->get(route('laporan.index'))
             ->assertStatus(200)
-            ->assertSee('Kran Bocor');
+            ->assertSee('Sanitasi &amp; Air', false);
 
         $this->actingAs($petugasA)
             ->get(route('laporan.show', $laporanA->id_laporan))
@@ -97,7 +97,7 @@ class UptdLaporanScopingTest extends TestCase
         $this->actingAs($petugasB)
             ->get(route('laporan.index'))
             ->assertStatus(200)
-            ->assertSee('Kran Bocor');
+            ->assertSee('Sanitasi &amp; Air', false);
 
         $this->actingAs($petugasB)
             ->get(route('laporan.show', $laporanA->id_laporan))

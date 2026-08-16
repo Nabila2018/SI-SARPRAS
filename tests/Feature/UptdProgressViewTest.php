@@ -50,6 +50,8 @@ class UptdProgressViewTest extends TestCase
             'kondisi_diharapkan' => 'Diperbaiki',
             'tanggal_lapor' => now(),
             'status_laporan' => 'Diproses',
+            'status_verifikasi_rab' => 'Disetujui',
+            'kategori_kerusakan' => 'Ringan',
         ]);
 
         // Add 2 progress updates (0% and 50%)

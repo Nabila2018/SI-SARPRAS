@@ -394,11 +394,8 @@
         lokasiInput.disabled = !enabled;
         if (!enabled) {
             lokasiInput.value  = '';
-            lokasiHidden.value = '';
             lokasiOptions.innerHTML = '';
             lokasiOptions.classList.add('hidden');
-            // Reset fasilitas setiap kali lokasi dikosongkan
-            resetFasilitas();
         }
     }
 
@@ -458,7 +455,7 @@
                     lokasiHidden.value = lokasi.id_lokasi;
                     lokasiReadonly.textContent = displayName;
                     showLokasiSelector(false);
-                    setLokasiInputEnabled(false);
+                    lokasiInput.disabled = true;
                     // Auto-load fasilitas untuk lokasi tunggal yang sudah di-set otomatis
                     loadFasilitas(lokasi.id_lokasi);
                     return;

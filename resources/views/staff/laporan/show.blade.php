@@ -90,15 +90,14 @@
             'evaluasi' => true,
             'rab' => $evaluasiDone,
             'progress' => $rabApproved,
-            'bukti' => $rabApproved,
         ];
 
         $allowedTabs = match($roleName) {
             'Petugas UPTD' => ['informasi', 'evaluasi', 'progress'],
-            'Staff Sarana dan Prasarana' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
-            'Kepala Bidang' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
-            'Kepala Dinas' => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti'],
-            default => ['informasi', 'evaluasi', 'rab', 'progress', 'bukti']
+            'Staff Sarana dan Prasarana' => ['informasi', 'evaluasi', 'rab', 'progress'],
+            'Kepala Bidang' => ['informasi', 'evaluasi', 'rab', 'progress'],
+            'Kepala Dinas' => ['informasi', 'evaluasi', 'rab', 'progress'],
+            default => ['informasi', 'evaluasi', 'rab', 'progress']
         };
 
         $requestedTab = request()->query('tab', 'informasi');
@@ -113,7 +112,6 @@
             'evaluasi' => 'Evaluasi',
             'rab' => 'RAB',
             'progress' => 'Progress',
-            'bukti' => 'Bukti Pembelian',
         ];
     @endphp
 

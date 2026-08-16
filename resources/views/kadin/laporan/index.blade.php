@@ -124,15 +124,29 @@
         @if($laporanList->count() > 0)
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50/80">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pasar & Lokasi</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fasilitas</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kategori Kerusakan</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                No
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Pasar & Lokasi
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Fasilitas
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Kategori Kerusakan
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Tanggal   
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -144,55 +158,60 @@
                                     'Disetujui' => 'bg-teal-100 text-teal-700 border-teal-200',
                                     'Selesai' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
                                     'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
-                                    'Ditolak' => 'bg-red-100 text-red-700 border-red-200',
-                                ];
-
-                                $kategoriColors = [
-                                    'Ringan' => 'bg-amber-50 text-amber-600 border-amber-200',
-                                    'Sedang' => 'bg-orange-50 text-orange-600 border-orange-200',
-                                    'Berat'  => 'bg-red-50 text-red-600 border-red-200',
+                                    'Ditolak' => 'bg-gray-100 text-gray-700 border-gray-300',
                                 ];
                             @endphp
-                            <tr class="hover:bg-gray-50/60 transition-colors">
-                                <td class="px-5 py-4 text-xs font-semibold text-gray-500">
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+
+                                <!-- No -->
+                                <td class="px-6 py-4 text-sm text-gray-600">
                                     {{ $laporanList->firstItem() + $index }}
                                 </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-xs font-bold text-gray-900">{{ $l->lokasi->pasar->nama_pasar ?? '-' }}</p>
-                                    <p class="text-[11px] text-gray-500 mt-0.5">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
-                                </td>
-                                <td class="px-5 py-4">
-                                    <p class="text-xs font-semibold text-gray-800">
-                                        {{ $l->fasilitas->nama_fasilitas ?? '-' }}
+
+                                <!-- Pasar & Lokasi -->
+                                <td class="px-6 py-4">
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        {{ $l->lokasi->pasar->nama_pasar ?? '-' }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        {{ $l->lokasi->nama_lokasi ?? '-' }}
                                     </p>
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    @if($l->kategori_kerusakan)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border {{ $kategoriColors[$l->kategori_kerusakan] ?? 'bg-gray-100 text-gray-600 border-gray-200' }}">
-                                            Kerusakan {{ $l->kategori_kerusakan }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-gray-400">-</span>
-                                    @endif
+
+                                <!-- Fasilitas -->
+                                <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                    {{ $l->fasilitas->nama_fasilitas ?? '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-xs text-gray-600 whitespace-nowrap font-medium">
+
+                                <!-- Kategori Kerusakan -->
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                </td>
+
+                                <!-- Tanggal -->
+                                <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                     {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border {{ $statusColors[$l->status_laporan] ?? 'bg-gray-100 text-gray-700 border-gray-200' }}">
+
+                                <!-- Status -->
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border {{ $statusColors[$l->status_laporan] ?? 'bg-gray-100 text-gray-700 border-gray-200' }}">
                                         {{ $l->status_laporan }}
                                     </span>
                                 </td>
-                                <td class="px-5 py-4 text-center whitespace-nowrap">
+
+                                <!-- Aksi -->
+                                <td class="px-6 py-4 text-center whitespace-nowrap">
                                     <a href="{{ route('laporan.show', $l->id_laporan) }}" 
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#114F72] bg-[#114F72]/5 hover:bg-[#114F72]/15 rounded-lg transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                       class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#114F72] bg-[#114F72]/5 hover:bg-[#114F72]/10 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
                                         Detail
                                     </a>
                                 </td>
+
                             </tr>
                         @endforeach
                     </tbody>
@@ -200,7 +219,7 @@
             </div>
 
             <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <span class="text-xs font-medium text-gray-500">
+                <span class="text-sm text-gray-500">
                     Menampilkan {{ $laporanList->firstItem() ?? 0 }}–{{ $laporanList->lastItem() ?? 0 }} dari {{ $laporanList->total() }} laporan
                 </span>
                 <div>

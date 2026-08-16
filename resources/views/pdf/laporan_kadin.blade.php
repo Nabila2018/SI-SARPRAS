@@ -234,7 +234,7 @@
                         <strong>{{ $l->fasilitas->nama_fasilitas ?? '-' }}</strong>
                     </td>
                     <td>
-                        {{ $l->kategori_kerusakan ? 'Kerusakan ' . $l->kategori_kerusakan : '-' }}
+                        {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
                     </td>
                     <td>
                         <span class="badge {{ $badgeClass }}">{{ $l->status_laporan }}</span>

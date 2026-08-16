@@ -96,9 +96,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::get('/laporan/{id}/rab/pdf', [StaffLaporanController::class, 'exportRabPdf'])
         ->name('laporan.rab.pdf');
 
-    Route::get('/laporan/{id}/bukti-pembelian/{buktiId}/download', [StaffLaporanController::class, 'downloadBuktiPembelian'])
-        ->name('laporan.bukti.download');
-
 
     // =======================
     // LAPORAN STAFF
@@ -131,13 +128,6 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         // ===== PROGRES PERBAIKAN =====
         Route::post('/staff/laporan/{id}/progres', [StaffLaporanController::class, 'storeProgres'])
             ->name('staff.laporan.progres.store');
-
-        // ===== BUKTI PEMBELIAN =====
-        Route::post('/staff/laporan/{id}/bukti-pembelian', [StaffLaporanController::class, 'storeBuktiPembelian'])
-            ->name('staff.laporan.bukti.store');
-
-        Route::delete('/staff/laporan/{id}/bukti-pembelian/{buktiId}', [StaffLaporanController::class, 'deleteBuktiPembelian'])
-            ->name('staff.laporan.bukti.delete');
 
         // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])

@@ -7,7 +7,6 @@ use App\Models\Pasar;
 use App\Models\DetailRab;
 use App\Models\ProgresPerbaikan;
 use App\Models\FotoProgres;
-use App\Models\BuktiPembelian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -68,8 +67,8 @@ class StaffLaporanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        if ($laporan->status_laporan !== 'Menunggu') {
-            return back()->with('error', 'Evaluasi hanya dapat dilakukan saat laporan masih berstatus Menunggu.');
+        if (!in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan'])) {
+            return back()->with('error', 'Evaluasi hanya dapat dilakukan saat laporan berstatus Menunggu atau Dikembalikan.');
         }
 
         $data = $request->validate([
@@ -80,6 +79,7 @@ class StaffLaporanController extends Controller
         $laporan->update([
             'kategori_kerusakan' => $data['kategori_kerusakan'],
             'catatan_pemeriksaan' => $data['catatan_pemeriksaan'],
+            'tanggal_evaluasi'    => now(),
         ]);
 
         return redirect()
@@ -95,7 +95,7 @@ class StaffLaporanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        if ($laporan->status_laporan !== 'Menunggu') {
+        if (!in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan'])) {
             return back()->with('error', 'Laporan ini tidak dapat diteruskan karena status sudah berubah.');
         }
 
@@ -103,13 +103,19 @@ class StaffLaporanController extends Controller
             return back()->with('error', 'Evaluasi harus diisi sebelum melanjutkan ke Kabid.');
         }
 
+        $isResubmit = $laporan->status_laporan === 'Dikembalikan';
+
         $laporan->update([
             'status_laporan' => 'Diproses',
         ]);
 
+        $successMsg = $isResubmit
+            ? 'Evaluasi berhasil dikirim ulang ke Kabid.'
+            : 'Laporan berhasil diteruskan ke Kabid.';
+
         return redirect()
             ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'evaluasi'])
-            ->with('success', 'Laporan berhasil diteruskan ke Kabid.');
+            ->with('success', $successMsg);
     }
 
         /**
@@ -395,88 +401,5 @@ class StaffLaporanController extends Controller
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Unggah bukti pembelian baru (Staff).
-     */
-    public function storeBuktiPembelian(Request $request, $id)
-    {
-        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
-            abort(403, 'Akses ditolak.');
-        }
-
-        $laporan = Laporan::findOrFail($id);
-
-        if ($laporan->status_verifikasi_rab !== 'Disetujui') {
-            return back()->with('error', 'Bukti pembelian hanya dapat diunggah setelah RAB disetujui oleh Kabid.');
-        }
-
-        $validated = $request->validate([
-            'file_bukti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'nominal' => ['required', 'numeric', 'min:1'],
-            'tanggal_bukti' => ['required', 'date'],
-        ], [
-            'file_bukti.required' => 'Berkas bukti pembelian wajib diunggah.',
-            'file_bukti.mimes' => 'Format berkas harus berupa PDF, JPG, JPEG, atau PNG.',
-            'file_bukti.max' => 'Ukuran berkas maksimal 5 MB.',
-            'nominal.required' => 'Nominal transaksi wajib diisi.',
-            'tanggal_bukti.required' => 'Tanggal nota/bukti transaksi wajib diisi.',
-        ]);
-
-        $file = $request->file('file_bukti');
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $extension = $file->getClientOriginalExtension();
-        $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $originalName);
-        $filename = time() . '_' . Str::random(5) . '_' . $cleanName . '.' . $extension;
-        $path = $file->storeAs('bukti_pembelian', $filename, 'public');
-
-        BuktiPembelian::create([
-            'id_bukti' => BuktiPembelian::generateId(),
-            'id_laporan' => $laporan->id_laporan,
-            'file_bukti' => $path,
-            'nominal' => $validated['nominal'],
-            'tanggal_bukti' => $validated['tanggal_bukti'],
-        ]);
-
-        return redirect()
-            ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'bukti'])
-            ->with('success', 'Bukti pembelian berhasil diunggah.');
-    }
-
-    /**
-     * Hapus bukti pembelian (Staff).
-     */
-    public function deleteBuktiPembelian($id, $buktiId)
-    {
-        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
-            abort(403, 'Akses ditolak.');
-        }
-
-        $bukti = BuktiPembelian::where('id_laporan', $id)->findOrFail($buktiId);
-
-        if (Storage::disk('public')->exists($bukti->file_bukti)) {
-            Storage::disk('public')->delete($bukti->file_bukti);
-        }
-
-        $bukti->delete();
-
-        return redirect()
-            ->route('laporan.show', ['id' => $id, 'tab' => 'bukti'])
-            ->with('success', 'Bukti pembelian berhasil dihapus.');
-    }
-
-    /**
-     * Unduh berkas bukti pembelian (Staff, Kabid, Kadis).
-     */
-    public function downloadBuktiPembelian($id, $buktiId)
-    {
-        $bukti = BuktiPembelian::where('id_laporan', $id)->findOrFail($buktiId);
-
-        if (!Storage::disk('public')->exists($bukti->file_bukti)) {
-            return back()->with('error', 'Berkas bukti pembelian tidak ditemukan di server.');
-        }
-
-        return Storage::disk('public')->download($bukti->file_bukti);
     }
 }

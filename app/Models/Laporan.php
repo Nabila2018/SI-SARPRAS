@@ -51,12 +51,25 @@ class Laporan extends Model
     public static function generateId(): string
     {
         $prefix = 'LAP';
-        $latest = static::orderBy('id_laporan', 'desc')->first();
-        if (!$latest) {
-            return $prefix . '001';
+
+        $latest = static::where('id_laporan', 'LIKE', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(id_laporan, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+            ->first();
+
+        $number = 0;
+        if ($latest) {
+            $rawNumber = substr($latest->id_laporan, strlen($prefix));
+            if (is_numeric($rawNumber)) {
+                $number = (int) $rawNumber;
+            }
         }
-        $number = (int) substr($latest->id_laporan, strlen($prefix));
-        return $prefix . str_pad($number + 1, 3, '0', STR_PAD_LEFT);
+
+        do {
+            $number++;
+            $candidate = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+        } while (static::where('id_laporan', $candidate)->exists());
+
+        return $candidate;
     }
 
     public function lokasi()
@@ -87,11 +100,6 @@ class Laporan extends Model
     public function detailRab()
     {
         return $this->hasMany(DetailRab::class, 'id_laporan');
-    }
-
-    public function buktiPembelian()
-    {
-        return $this->hasMany(BuktiPembelian::class, 'id_laporan');
     }
 
     public function progresPerbaikan()

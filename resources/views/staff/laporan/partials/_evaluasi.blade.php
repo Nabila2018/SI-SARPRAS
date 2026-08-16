@@ -1,17 +1,38 @@
 @php
     $hasEvaluation = !is_null($laporan->kategori_kerusakan);
-    $canEvaluate = $laporan->status_laporan === 'Menunggu';
-    $canForward = $hasEvaluation && $laporan->status_laporan === 'Menunggu';
+    $isDikembalikan = $laporan->status_laporan === 'Dikembalikan';
+    $canEvaluate = in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan']);
+    $canForward = $hasEvaluation && in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan']);
 @endphp
 
 <!-- Hasil Evaluasi Staff -->
 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6">
+    
+    {{-- ALERT CATATAN REVISI EVALUASI DARI KABID (JIKA DIKEMBALIKAN) --}}
+    @if($isDikembalikan && !empty($laporan->catatan_revisi_evaluasi))
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 space-y-1.5">
+            <div class="flex items-center gap-2 text-red-800 font-bold text-sm">
+                <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>Catatan Revisi Evaluasi (dari Kepala Bidang)</span>
+            </div>
+            <p class="text-xs text-red-700 leading-relaxed whitespace-pre-line">
+                {{ $laporan->catatan_revisi_evaluasi }}
+            </p>
+        </div>
+    @endif
+
     <div class="flex items-center justify-between border-b border-gray-100 pb-4">
         <div>
             <h3 class="text-base font-bold text-gray-800">Hasil Evaluasi Staff</h3>
             <p class="text-xs text-gray-500 mt-0.5">Hasil pemeriksaan & analisis kerusakan fasilitas oleh Staff Sarpras.</p>
         </div>
-        @if($hasEvaluation)
+        @if($isDikembalikan)
+            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 border-red-200">
+                Perlu Revisi (Dikembalikan)
+            </span>
+        @elseif($hasEvaluation)
             @php
                 $evalBadge = match($laporan->kategori_kerusakan) {
                     'Ringan' => 'bg-amber-100 text-amber-700 border-amber-200',
@@ -56,16 +77,16 @@
     <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
         <button type="button"
                 onclick="openEvaluasiModal()"
-                class="px-6 py-2.5 rounded-xl font-semibold shadow-sm transition text-sm {{ $canEvaluate ? 'bg-gradient-to-r from-[#114F72] to-[#16A394] text-white hover:opacity-90' : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70' }}"
+                class="px-6 py-2.5 rounded-xl font-semibold shadow-sm transition text-sm {{ $canEvaluate ? 'bg-gradient-to-r from-[#114F72] to-[#16A394] text-white hover:opacity-90 cursor-pointer' : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70' }}"
                 {{ $canEvaluate ? '' : 'disabled' }}>
             {{ $hasEvaluation ? 'Edit Evaluasi' : 'Isi Evaluasi' }}
         </button>
 
         <button type="button"
                 onclick="openForwardModal()"
-                class="px-6 py-2.5 rounded-xl font-semibold shadow-sm transition text-sm {{ $canForward ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90' : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70' }}"
+                class="px-6 py-2.5 rounded-xl font-semibold shadow-sm transition text-sm {{ $canForward ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90 cursor-pointer' : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70' }}"
                 {{ $canForward ? '' : 'disabled' }}>
-            Teruskan ke Kabid
+            {{ $isDikembalikan ? 'Kirim Ulang ke Kabid' : 'Teruskan ke Kabid' }}
         </button>
     </div>
 </div>
@@ -115,13 +136,17 @@
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
      onclick="if(event.target === this) closeForwardModal()">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onclick="event.stopPropagation()">
-        <h3 class="text-lg font-bold text-gray-800">Teruskan Laporan ke Kabid</h3>
-        <p class="mt-2 text-sm text-gray-600">Apakah Anda yakin ingin meneruskan laporan ini beserta hasil evaluasi ke Kepala Bidang untuk disetujui?</p>
+        <h3 class="text-lg font-bold text-gray-800">{{ $isDikembalikan ? 'Kirim Ulang Evaluasi ke Kabid' : 'Teruskan Laporan ke Kabid' }}</h3>
+        <p class="mt-2 text-sm text-gray-600">
+            {{ $isDikembalikan ? 'Apakah Anda yakin ingin mengirim ulang hasil evaluasi yang telah diperbaiki ini ke Kepala Bidang untuk diverifikasi kembali?' : 'Apakah Anda yakin ingin meneruskan laporan ini beserta hasil evaluasi ke Kepala Bidang untuk disetujui?' }}
+        </p>
 
         <form action="{{ route('staff.laporan.forward', $laporan->id_laporan) }}?tab=evaluasi" method="POST" class="mt-6 flex justify-end gap-3">
             @csrf
             <button type="button" onclick="closeForwardModal()" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
-            <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Ya, Teruskan</button>
+            <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">
+                {{ $isDikembalikan ? 'Ya, Kirim Ulang' : 'Ya, Teruskan' }}
+            </button>
         </form>
     </div>
 </div>
