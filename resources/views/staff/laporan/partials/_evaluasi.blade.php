@@ -54,11 +54,23 @@
     @if($hasEvaluation)
         <div class="space-y-4 text-sm">
             <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Catatan Pemeriksaan</p>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Catatan Survey</p>
                 <p class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-line">
-                    {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan pemeriksaan.' }}
+                    {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan survey.' }}
                 </p>
             </div>
+            @if($laporan->file_lampiran_evaluasi)
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Berkas Lampiran Evaluasi</p>
+                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank"
+                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm">
+                        <svg class="w-4 h-4 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                        Lihat / Unduh Lampiran Evaluasi
+                    </a>
+                </div>
+            @endif
             @if($laporan->evaluator)
                 <div>
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Evaluator Staff</p>
@@ -101,22 +113,22 @@
 <div id="evaluasiModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
      onclick="if(event.target === this) closeEvaluasiModal()">
-    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between mb-4 border-b pb-3">
+    <div class="w-full max-w-3xl rounded-2xl bg-white p-6 sm:p-8 shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-5 border-b pb-3">
             <h3 class="text-lg font-bold text-gray-800">{{ $hasEvaluation ? 'Edit Evaluasi Laporan' : 'Isi Evaluasi Laporan' }}</h3>
-            <button type="button" onclick="closeEvaluasiModal()" class="text-gray-400 hover:text-gray-600">
+            <button type="button" onclick="closeEvaluasiModal()" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
 
-        <form action="{{ route('staff.laporan.evaluasi.store', $laporan->id_laporan) }}?tab=evaluasi" method="POST" class="space-y-4">
+        <form action="{{ route('staff.laporan.evaluasi.store', $laporan->id_laporan) }}?tab=evaluasi" method="POST" enctype="multipart/form-data" class="space-y-5">
             @csrf
 
             <div>
-                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1">Kategori Kerusakan <span class="text-red-500">*</span></label>
-                <select name="kategori_kerusakan" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-[#114F72] focus:ring-[#114F72] text-sm">
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">Kategori Kerusakan <span class="text-red-500">*</span></label>
+                <select name="kategori_kerusakan" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-[#114F72] focus:ring-[#114F72] text-sm py-3 px-4">
                     <option value="">-- Pilih Kategori Kerusakan --</option>
                     <option value="Ringan" {{ old('kategori_kerusakan', $laporan->kategori_kerusakan) === 'Ringan' ? 'selected' : '' }}>Ringan</option>
                     <option value="Sedang" {{ old('kategori_kerusakan', $laporan->kategori_kerusakan) === 'Sedang' ? 'selected' : '' }}>Sedang</option>
@@ -125,13 +137,86 @@
             </div>
 
             <div>
-                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1">Catatan Pemeriksaan <span class="text-red-500">*</span></label>
-                <textarea name="catatan_pemeriksaan" rows="4" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-[#114F72] focus:ring-[#114F72] text-sm" placeholder="Tuliskan detail hasil pemeriksaan teknis...">{{ old('catatan_pemeriksaan', $laporan->catatan_pemeriksaan) }}</textarea>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">Catatan Survey <span class="text-red-500">*</span></label>
+                <textarea name="catatan_pemeriksaan" rows="4" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-[#114F72] focus:ring-[#114F72] text-sm p-4" placeholder="Tuliskan detail hasil survey teknis...">{{ old('catatan_pemeriksaan', $laporan->catatan_pemeriksaan) }}</textarea>
             </div>
 
-            <div class="mt-6 flex justify-end gap-3 pt-3 border-t">
-                <button type="button" onclick="closeEvaluasiModal()" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
-                <button type="submit" class="rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition">Simpan Evaluasi</button>
+            <div>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">
+                    Lampiran / Berkas Dokumen Evaluasi <span class="text-gray-400 font-normal text-xs uppercase">(Opsional)</span>
+                </label>
+
+                <input type="file" name="file_lampiran_evaluasi" id="file_lampiran_evaluasi" accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="handleEvaluasiFileSelection(this)">
+                <input type="checkbox" name="hapus_lampiran_evaluasi" id="hapus_lampiran_evaluasi" value="1" class="hidden" onchange="toggleDeleteExistingLampiranState()">
+
+                <div id="evaluasi-dropzone-box" class="border-2 border-dashed border-gray-200 rounded-2xl p-4 transition-all bg-gray-50/50 hover:border-[#114F72]">
+
+                    <!-- Berkas Lama Saat Ini (Jika Ada) -->
+                    @if($laporan->file_lampiran_evaluasi)
+                        <div id="existing-lampiran-card" class="mb-3 p-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-3 shadow-sm relative overflow-hidden">
+                            <div id="existing-lampiran-overlay" class="hidden absolute inset-0 bg-rose-900/70 flex items-center justify-center backdrop-blur-[1px] z-10">
+                                <span class="text-white text-xs font-bold bg-rose-600 px-3 py-1 rounded-full shadow">Akan Dihapus</span>
+                            </div>
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-lg bg-[#114F72]/10 flex items-center justify-center text-[#114F72] flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0 text-xs">
+                                    <p class="font-semibold text-gray-800 truncate">Berkas Lampiran Ter-unggah</p>
+                                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank" class="text-[#114F72] hover:underline font-medium">
+                                        Buka Berkas Berjalan
+                                    </a>
+                                </div>
+                            </div>
+                            <button type="button" onclick="toggleDeleteExistingLampiran()" id="btn-delete-existing-lampiran"
+                                class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20"
+                                title="Hapus lampiran ini">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    @endif
+
+                    <!-- Prompt Dropzone (Saat Belum Pilih Berkas Baru) -->
+                    <div id="evaluasi-dropzone-prompt" class="py-6 text-center cursor-pointer" onclick="document.getElementById('file_lampiran_evaluasi').click()">
+                        <svg class="w-9 h-9 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-sm font-semibold text-gray-700 mb-0.5">Klik atau drag berkas baru ke sini</p>
+                        <p class="text-xs text-gray-400">Format: Foto (JPG, PNG) atau Dokumen (PDF, DOC, DOCX) - Maks. 5MB</p>
+                    </div>
+
+                    <!-- Preview Berkas Baru Terpilih -->
+                    <div id="evaluasi-file-preview" class="hidden">
+                        <div class="flex items-center justify-between gap-3 text-sm text-gray-700 bg-white border border-gray-200 p-3.5 rounded-xl shadow-sm">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 border border-emerald-100">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p id="evaluasi-filename" class="font-semibold text-gray-800 truncate text-xs sm:text-sm"></p>
+                                    <p id="evaluasi-filesize" class="text-xs text-gray-400 mt-0.5"></p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="removeEvaluasiSelectedFile()" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0" title="Hapus berkas ini">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeEvaluasiModal()" class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
+                <button type="submit" class="rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">Simpan Evaluasi</button>
             </div>
         </form>
     </div>
@@ -189,4 +274,102 @@
         modal.classList.remove('flex');
         document.body.style.overflow = '';
     }
+
+    function handleEvaluasiFileSelection(input) {
+        const promptElem = document.getElementById('evaluasi-dropzone-prompt');
+        const previewElem = document.getElementById('evaluasi-file-preview');
+        const filenameElem = document.getElementById('evaluasi-filename');
+        const filesizeElem = document.getElementById('evaluasi-filesize');
+
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
+            filenameElem.textContent = file.name;
+            filesizeElem.textContent = (file.size / 1024).toFixed(1) + ' KB';
+            promptElem.classList.add('hidden');
+            previewElem.classList.remove('hidden');
+        }
+    }
+
+    function removeEvaluasiSelectedFile() {
+        const input = document.getElementById('file_lampiran_evaluasi');
+        if (input) {
+            input.value = '';
+        }
+        const promptElem = document.getElementById('evaluasi-dropzone-prompt');
+        const previewElem = document.getElementById('evaluasi-file-preview');
+        if (promptElem && previewElem) {
+            previewElem.classList.add('hidden');
+            promptElem.classList.remove('hidden');
+        }
+    }
+
+    function toggleDeleteExistingLampiran() {
+        const checkbox = document.getElementById('hapus_lampiran_evaluasi');
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            toggleDeleteExistingLampiranState();
+        }
+    }
+
+    function toggleDeleteExistingLampiranState() {
+        const checkbox = document.getElementById('hapus_lampiran_evaluasi');
+        const overlay = document.getElementById('existing-lampiran-overlay');
+        const btn = document.getElementById('btn-delete-existing-lampiran');
+
+        if (checkbox && checkbox.checked) {
+            overlay.classList.remove('hidden');
+            btn.className = 'p-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20';
+            btn.title = 'Batal Hapus';
+            btn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                </svg>
+            `;
+        } else if (checkbox) {
+            overlay.classList.add('hidden');
+            btn.className = 'p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20';
+            btn.title = 'Hapus lampiran ini';
+            btn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            `;
+        }
+    }
+
+    // Drag & Drop event listener for evaluasi dropzone
+    document.addEventListener('DOMContentLoaded', function() {
+        const evalDropzoneBox = document.getElementById('evaluasi-dropzone-box');
+        if (evalDropzoneBox) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+                evalDropzoneBox.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(function(eventName) {
+                evalDropzoneBox.addEventListener(eventName, function() {
+                    evalDropzoneBox.classList.add('border-[#114F72]', 'bg-[#114F72]/10');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(function(eventName) {
+                evalDropzoneBox.addEventListener(eventName, function() {
+                    evalDropzoneBox.classList.remove('border-[#114F72]', 'bg-[#114F72]/10');
+                }, false);
+            });
+
+            evalDropzoneBox.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    const fileInput = document.getElementById('file_lampiran_evaluasi');
+                    if (fileInput) {
+                        fileInput.files = dt.files;
+                        handleEvaluasiFileSelection(fileInput);
+                    }
+                }
+            }, false);
+        }
+    });
 </script>

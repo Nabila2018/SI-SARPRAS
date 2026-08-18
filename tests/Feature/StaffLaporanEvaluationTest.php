@@ -124,4 +124,26 @@ class StaffLaporanEvaluationTest extends TestCase
         $response->assertStatus(200);
         $response->assertDontSee('Dievaluasi oleh:');
     }
+
+    public function test_staff_can_upload_optional_attachment_during_evaluation(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        extract($this->setupData());
+
+        $this->actingAs($staff1);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('evaluasi_dokumentasi.pdf', 1024, 'application/pdf');
+
+        $response = $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Catatan hasil analisis teknis',
+            'file_lampiran_evaluasi' => $file,
+        ]);
+
+        $response->assertRedirect();
+        $laporan->refresh();
+
+        $this->assertNotNull($laporan->file_lampiran_evaluasi);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($laporan->file_lampiran_evaluasi);
+    }
 }

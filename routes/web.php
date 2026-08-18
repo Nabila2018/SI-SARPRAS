@@ -134,6 +134,8 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         // ===== PROGRES PERBAIKAN =====
         Route::post('/staff/laporan/{id}/progres', [StaffLaporanController::class, 'storeProgres'])
             ->name('staff.laporan.progres.store');
+        Route::post('/staff/laporan/{id}/progres/{id_progres}', [StaffLaporanController::class, 'updateProgres'])
+            ->name('staff.laporan.progres.update');
 
         // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])

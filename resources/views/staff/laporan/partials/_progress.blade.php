@@ -53,12 +53,23 @@
                     <!-- Progress Card Content -->
                     <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-5 space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold {{ $progres->persentase_penyelesaian == '100' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : ($progres->persentase_penyelesaian == '50' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-amber-100 text-amber-800 border-amber-200') }}">
-                                Tahap {{ $progres->persentase_penyelesaian }}%
-                            </span>
-                            <span class="text-xs text-gray-500 font-medium">
-                                {{ \Carbon\Carbon::parse($progres->tanggal_update)->translatedFormat('d F Y H:i') }} WIB
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold {{ $progres->persentase_penyelesaian == '100' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : ($progres->persentase_penyelesaian == '50' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-amber-100 text-amber-800 border-amber-200') }}">
+                                    Tahap {{ $progres->persentase_penyelesaian }}%
+                                </span>
+                                <span class="text-xs text-gray-500 font-medium">
+                                    {{ \Carbon\Carbon::parse($progres->tanggal_update)->translatedFormat('d F Y H:i') }} WIB
+                                </span>
+                            </div>
+
+                            <button type="button"
+                                    onclick='openEditProgresModal(@json($progres->load("fotoProgres")))'
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#114F72] bg-[#114F72]/5 hover:bg-[#114F72]/10 rounded-lg transition-colors border border-[#114F72]/20">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Edit
+                            </button>
                         </div>
 
                         <div>
@@ -150,6 +161,58 @@
     </div>
 </div>
 @endif
+
+<!-- Modal Edit Progres -->
+<div id="editProgresModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
+     onclick="if(event.target === this) closeEditProgresModal()">
+    <div class="w-full max-w-2xl rounded-2xl bg-white p-6 sm:p-8 shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4 border-b pb-3">
+            <h3 id="editProgresModalTitle" class="text-lg font-bold text-gray-800">Edit Progres Perbaikan</h3>
+            <button type="button" onclick="closeEditProgresModal()" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="editProgresForm" action="" method="POST" enctype="multipart/form-data" class="space-y-5">
+            @csrf
+
+            <div>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">Keterangan Perkembangan <span class="text-red-500">*</span></label>
+                <textarea name="keterangan_perkembangan" id="edit_keterangan_perkembangan" rows="4" required class="w-full rounded-xl border-gray-300 shadow-sm focus:border-[#114F72] focus:ring-[#114F72] text-sm p-4" placeholder="Jelaskan detail pekerjaan fisik yang sudah dilakukan pada tahap ini..."></textarea>
+            </div>
+
+            <!-- Pengelolaan Foto Progres Saat Ini -->
+            <div>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">Foto Dokumentasi Saat Ini</label>
+                <div id="editProgresExistingPhotos" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2"></div>
+            </div>
+
+            <!-- Tambah Foto Progres Baru -->
+            <div>
+                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">Tambah Foto Progres Baru (Opsional)</label>
+                <input type="file" name="foto_progres[]" id="editProgresFileInput" multiple accept="image/jpeg,image/png,image/jpg" class="hidden" onchange="handleEditProgresFileSelect(this)">
+                <div id="edit-progres-dropzone-box" class="border-2 border-dashed border-gray-200 rounded-2xl p-4 transition-all bg-gray-50/50 hover:border-[#114F72]">
+                    <div id="edit-progres-dropzone-prompt" class="py-5 text-center cursor-pointer" onclick="document.getElementById('editProgresFileInput').click()">
+                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-sm font-semibold text-gray-700 mb-0.5">Klik atau drag foto baru ke sini</p>
+                        <p class="text-xs text-gray-400">Format: JPG, PNG (Maks. 4MB per foto, Maks. 5 foto baru)</p>
+                    </div>
+                    <div id="edit-progres-file-preview" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeEditProgresModal()" class="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Batal</button>
+                <button type="submit" class="rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-90 transition">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Modal Lightbox Galeri Multi Foto -->
 <div id="progresMultiFotoModal"
@@ -288,4 +351,222 @@
         activeFotoIndex = (activeFotoIndex + 1) % activeFotoList.length;
         updateMultiFotoDisplay();
     }
+
+    // Modal Edit Progres Logic
+    let editProgresSelectedFilesArray = [];
+
+    function openEditProgresModal(progres) {
+        const modal = document.getElementById('editProgresModal');
+        const form = document.getElementById('editProgresForm');
+        const title = document.getElementById('editProgresModalTitle');
+        const ketInput = document.getElementById('edit_keterangan_perkembangan');
+        const existingPhotosDiv = document.getElementById('editProgresExistingPhotos');
+
+        if (!modal || !progres) return;
+
+        title.textContent = `Edit Progres Perbaikan Tahap ${progres.persentase_penyelesaian}%`;
+        ketInput.value = progres.keterangan_perkembangan;
+        form.action = `/staff/laporan/${progres.id_laporan}/progres/${progres.id_progres}?tab=progress`;
+
+        existingPhotosDiv.innerHTML = '';
+        if (progres.foto_progres && progres.foto_progres.length > 0) {
+            progres.foto_progres.forEach(function(foto) {
+                const card = document.createElement('div');
+                card.id = `edit-card-foto-${foto.id_foto_progres}`;
+                card.className = 'relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50 transition-all shadow-sm';
+                card.innerHTML = `
+                    <input type="checkbox" name="hapus_foto[]" id="edit_hapus_foto_${foto.id_foto_progres}" value="${foto.id_foto_progres}" class="hidden" onchange="toggleEditDeleteFotoState('${foto.id_foto_progres}')">
+                    <div class="relative h-24 w-full">
+                        <img src="/storage/${foto.file_foto}" alt="Foto Progres" class="w-full h-full object-cover">
+                        <div id="edit-overlay-foto-${foto.id_foto_progres}" class="hidden absolute inset-0 bg-rose-900/60 flex items-center justify-center backdrop-blur-[1px]">
+                            <span class="text-white text-[10px] font-bold bg-rose-600 px-2 py-0.5 rounded-full shadow">Akan Dihapus</span>
+                        </div>
+                        <button type="button" onclick="toggleEditDeleteFoto('${foto.id_foto_progres}')" id="edit-btn-delete-foto-${foto.id_foto_progres}"
+                            class="absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 z-10"
+                            title="Hapus foto ini">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                existingPhotosDiv.appendChild(card);
+            });
+        }
+
+        editProgresSelectedFilesArray = [];
+        updateEditProgresFileInputAndPreview();
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditProgresModal() {
+        const modal = document.getElementById('editProgresModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    function toggleEditDeleteFoto(id) {
+        const checkbox = document.getElementById('edit_hapus_foto_' + id);
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            toggleEditDeleteFotoState(id);
+        }
+    }
+
+    function toggleEditDeleteFotoState(id) {
+        const checkbox = document.getElementById('edit_hapus_foto_' + id);
+        const card = document.getElementById('edit-card-foto-' + id);
+        const overlay = document.getElementById('edit-overlay-foto-' + id);
+        const btn = document.getElementById('edit-btn-delete-foto-' + id);
+
+        if (checkbox && checkbox.checked) {
+            card.classList.add('border-rose-500', 'ring-2', 'ring-rose-400');
+            card.classList.remove('border-gray-200');
+            overlay.classList.remove('hidden');
+            btn.className = 'absolute top-1 right-1 w-5 h-5 bg-gray-800 hover:bg-gray-900 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 z-10';
+            btn.title = 'Batal Hapus';
+            btn.innerHTML = `
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                </svg>
+            `;
+        } else if (checkbox) {
+            card.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400');
+            card.classList.add('border-gray-200');
+            overlay.classList.add('hidden');
+            btn.className = 'absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 z-10';
+            btn.title = 'Hapus foto ini';
+            btn.innerHTML = `
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            `;
+        }
+    }
+
+    function handleEditProgresFileSelect(input) {
+        if (input.files && input.files.length > 0) {
+            Array.from(input.files).forEach(function(file) {
+                const exists = editProgresSelectedFilesArray.some(function(f) {
+                    return f.name === file.name && f.size === file.size;
+                });
+                if (!exists && editProgresSelectedFilesArray.length < 5) {
+                    editProgresSelectedFilesArray.push(file);
+                }
+            });
+            updateEditProgresFileInputAndPreview();
+        }
+    }
+
+    function removeEditProgresSelectedFile(index) {
+        editProgresSelectedFilesArray.splice(index, 1);
+        updateEditProgresFileInputAndPreview();
+    }
+
+    function updateEditProgresFileInputAndPreview() {
+        const input = document.getElementById('editProgresFileInput');
+        if (!input) return;
+
+        const dt = new DataTransfer();
+        editProgresSelectedFilesArray.forEach(function(file) {
+            dt.items.add(file);
+        });
+        input.files = dt.files;
+
+        const promptElem = document.getElementById('edit-progres-dropzone-prompt');
+        const previewElem = document.getElementById('edit-progres-file-preview');
+
+        previewElem.innerHTML = '';
+
+        if (editProgresSelectedFilesArray.length === 0) {
+            promptElem.classList.remove('hidden');
+            previewElem.classList.add('hidden');
+        } else {
+            promptElem.classList.add('hidden');
+            previewElem.classList.remove('hidden');
+
+            editProgresSelectedFilesArray.forEach(function(file, index) {
+                const card = document.createElement('div');
+                card.className = 'relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm';
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    card.innerHTML = `
+                        <div class="relative h-24 w-full bg-gray-100">
+                            <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover">
+                            <button type="button" onclick="event.stopPropagation(); removeEditProgresSelectedFile(${index})"
+                                class="absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110"
+                                title="Hapus foto ini">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-1.5 text-[11px]">
+                            <p class="font-semibold text-gray-800 truncate" title="${file.name}">${file.name}</p>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+                previewElem.appendChild(card);
+            });
+
+            if (editProgresSelectedFilesArray.length < 5) {
+                const addTile = document.createElement('div');
+                addTile.className = 'border-2 border-dashed border-gray-300 rounded-xl h-[120px] flex flex-col items-center justify-center text-gray-400 hover:border-[#115f8c] hover:text-[#115f8c] transition cursor-pointer bg-white/50 hover:bg-white';
+                addTile.onclick = function(e) {
+                    e.stopPropagation();
+                    input.click();
+                };
+                addTile.innerHTML = `
+                    <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Tambah</span>
+                `;
+                previewElem.appendChild(addTile);
+            }
+        }
+    }
+
+    // Drag & Drop for edit progres dropzone
+    document.addEventListener('DOMContentLoaded', function() {
+        const editDropzoneBox = document.getElementById('edit-progres-dropzone-box');
+        if (editDropzoneBox) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+                editDropzoneBox.addEventListener(eventName, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(function(eventName) {
+                editDropzoneBox.addEventListener(eventName, function() {
+                    editDropzoneBox.classList.add('border-[#114F72]', 'bg-[#114F72]/10');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(function(eventName) {
+                editDropzoneBox.addEventListener(eventName, function() {
+                    editDropzoneBox.classList.remove('border-[#114F72]', 'bg-[#114F72]/10');
+                }, false);
+            });
+
+            editDropzoneBox.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    const fileInput = document.getElementById('editProgresFileInput');
+                    if (fileInput) {
+                        fileInput.files = dt.files;
+                        handleEditProgresFileSelect(fileInput);
+                    }
+                }
+            }, false);
+        }
+    });
 </script>

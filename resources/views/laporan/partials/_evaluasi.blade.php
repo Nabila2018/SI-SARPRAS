@@ -30,11 +30,23 @@
     @if($hasEvaluation)
         <div class="space-y-4 text-sm">
             <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Catatan Pemeriksaan</p>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Catatan Survey</p>
                 <p class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-line">
-                    {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan pemeriksaan.' }}
+                    {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan survey.' }}
                 </p>
             </div>
+            @if($laporan->file_lampiran_evaluasi)
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Berkas Lampiran Evaluasi</p>
+                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank"
+                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm">
+                        <svg class="w-4 h-4 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                        Lihat / Unduh Lampiran Evaluasi
+                    </a>
+                </div>
+            @endif
             @if($laporan->evaluator)
                 <div>
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Evaluator Staff</p>

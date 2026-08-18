@@ -74,6 +74,7 @@ class StaffLaporanController extends Controller
         $data = $request->validate([
             'kategori_kerusakan' => ['required', 'in:Ringan,Sedang,Berat'],
             'catatan_pemeriksaan' => ['nullable', 'string', 'max:2000'],
+            'file_lampiran_evaluasi' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,doc,docx', 'max:5120'],
         ]);
 
         $updateData = [
@@ -81,6 +82,20 @@ class StaffLaporanController extends Controller
             'catatan_pemeriksaan' => $data['catatan_pemeriksaan'],
             'tanggal_evaluasi'    => now(),
         ];
+
+        if ($request->boolean('hapus_lampiran_evaluasi')) {
+            if ($laporan->file_lampiran_evaluasi) {
+                Storage::disk('public')->delete($laporan->file_lampiran_evaluasi);
+            }
+            $updateData['file_lampiran_evaluasi'] = null;
+        }
+
+        if ($request->hasFile('file_lampiran_evaluasi')) {
+            if ($laporan->file_lampiran_evaluasi) {
+                Storage::disk('public')->delete($laporan->file_lampiran_evaluasi);
+            }
+            $updateData['file_lampiran_evaluasi'] = $request->file('file_lampiran_evaluasi')->store('evaluasi', 'public');
+        }
 
         if (is_null($laporan->id_evaluator)) {
             $updateData['id_evaluator'] = auth()->user()->id_user;
@@ -403,6 +418,81 @@ class StaffLaporanController extends Controller
             return redirect()
                 ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'progress'])
                 ->with('success', "Progres perbaikan Tahap {$nextStage}% berhasil disimpan.");
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function updateProgres(Request $request, $id, $id_progres)
+    {
+        $laporan = Laporan::findOrFail($id);
+
+        if (auth()->user()->role->nama_role !== 'Staff Sarana dan Prasarana') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $progres = ProgresPerbaikan::where('id_laporan', $laporan->id_laporan)
+            ->where('id_progres', $id_progres)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'keterangan_perkembangan' => ['required', 'string', 'max:2000'],
+            'hapus_foto' => ['nullable', 'array'],
+            'hapus_foto.*' => ['string'],
+            'foto_progres' => ['nullable', 'array', 'max:5'],
+            'foto_progres.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:4096'],
+        ], [
+            'keterangan_perkembangan.required' => 'Keterangan perkembangan wajib diisi.',
+            'foto_progres.max' => 'Maksimal 5 foto progres baru yang dapat diunggah sekaligus.',
+            'foto_progres.*.image' => 'File foto harus berupa gambar (jpg, jpeg, png).',
+            'foto_progres.*.max' => 'Ukuran file foto maksimal 4 MB per foto.',
+        ]);
+
+        $currentPhotos = $progres->fotoProgres;
+        $toDeleteIds = $validated['hapus_foto'] ?? [];
+        $newFilesCount = $request->hasFile('foto_progres') ? count($request->file('foto_progres')) : 0;
+        $remainingCount = ($currentPhotos->count() - count($toDeleteIds)) + $newFilesCount;
+
+        if ($remainingCount < 1) {
+            return back()->with('error', 'Minimal 1 foto dokumentasi progres harus tetap ada.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            if (!empty($toDeleteIds)) {
+                $fotosToDelete = FotoProgres::where('id_progres', $progres->id_progres)
+                    ->whereIn('id_foto_progres', $toDeleteIds)
+                    ->get();
+
+                foreach ($fotosToDelete as $foto) {
+                    Storage::disk('public')->delete($foto->file_foto);
+                    $foto->delete();
+                }
+            }
+
+            if ($request->hasFile('foto_progres')) {
+                foreach ($request->file('foto_progres') as $file) {
+                    $path = $file->store('progres', 'public');
+                    FotoProgres::create([
+                        'id_foto_progres' => FotoProgres::generateId(),
+                        'id_progres' => $progres->id_progres,
+                        'file_foto' => $path,
+                    ]);
+                }
+            }
+
+            $progres->update([
+                'keterangan_perkembangan' => $validated['keterangan_perkembangan'],
+                'tanggal_update' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'progress'])
+                ->with('success', "Progres perbaikan Tahap {$progres->persentase_penyelesaian}% berhasil diperbarui.");
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
