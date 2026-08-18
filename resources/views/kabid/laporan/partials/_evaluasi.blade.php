@@ -37,6 +37,12 @@
                     {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan pemeriksaan.' }}
                 </p>
             </div>
+            @if($laporan->evaluator)
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Evaluator Staff</p>
+                    <p class="text-gray-700 font-medium">Dievaluasi oleh: {{ $laporan->evaluator->nama_lengkap }}</p>
+                </div>
+            @endif
             @if($laporan->tanggal_evaluasi)
                 <div>
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tanggal Evaluasi</p>

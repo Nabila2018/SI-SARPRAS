@@ -48,7 +48,7 @@ class StaffLaporanController extends Controller
         $query = $this->applyFilters(Laporan::query(), $request);
 
         $laporan = $query
-            ->with(['lokasi.pasar', 'fasilitas', 'pelapor'])
+            ->with(['lokasi.pasar', 'fasilitas', 'pelapor', 'evaluator'])
             ->orderBy('tanggal_lapor', 'desc')
             ->paginate(5)
             ->appends($request->only(['search', 'pasar', 'status']));
@@ -76,11 +76,17 @@ class StaffLaporanController extends Controller
             'catatan_pemeriksaan' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $laporan->update([
+        $updateData = [
             'kategori_kerusakan' => $data['kategori_kerusakan'],
             'catatan_pemeriksaan' => $data['catatan_pemeriksaan'],
             'tanggal_evaluasi'    => now(),
-        ]);
+        ];
+
+        if (is_null($laporan->id_evaluator)) {
+            $updateData['id_evaluator'] = auth()->user()->id_user;
+        }
+
+        $laporan->update($updateData);
 
         return redirect()
             ->route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'evaluasi'])

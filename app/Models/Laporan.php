@@ -31,6 +31,7 @@ class Laporan extends Model
         'alasan_penolakan',
         'kategori_kerusakan',
         'catatan_pemeriksaan',
+        'id_evaluator',
         'catatan_revisi_evaluasi',
         'tanggal_verifikasi_evaluasi',
         'status_verifikasi_rab',
@@ -85,6 +86,11 @@ class Laporan extends Model
     public function pelapor()
     {
         return $this->belongsTo(User::class, 'id_pelapor');
+    }
+
+    public function evaluator()
+    {
+        return $this->belongsTo(User::class, 'id_evaluator', 'id_user');
     }
 
     public function spj()

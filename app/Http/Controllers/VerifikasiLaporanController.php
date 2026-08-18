@@ -16,7 +16,8 @@ class VerifikasiLaporanController extends Controller
         $query = Laporan::with([
             'lokasi.pasar',
             'fasilitas',
-            'pelapor'
+            'pelapor',
+            'evaluator'
         ]);
 
         // Filter berdasarkan status jika ada, default hanya yang 'Diproses' (Menunggu Verifikasi Evaluasi)

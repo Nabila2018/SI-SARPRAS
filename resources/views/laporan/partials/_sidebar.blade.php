@@ -35,6 +35,13 @@
             <p class="font-medium text-gray-700">{{ $laporan->pelapor->nama_lengkap ?? '-' }}</p>
         </div>
 
+        @if($laporan->evaluator)
+            <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Evaluator Staff</p>
+                <p class="font-medium text-gray-700">Dievaluasi oleh: {{ $laporan->evaluator->nama_lengkap }}</p>
+            </div>
+        @endif
+
         <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Kategori Kerusakan</p>
             <p class="font-medium text-gray-700">{{ $laporan->kategori_kerusakan ?? 'Belum dievaluasi' }}</p>

@@ -151,6 +151,7 @@ class LaporanController extends Controller
             'fasilitas',
             'fotoLaporan',
             'pelapor',
+            'evaluator',
             'detailRab',
             'progresPerbaikan.fotoProgres'
         ])->findOrFail($id);

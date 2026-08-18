@@ -16,7 +16,7 @@ class StaffLaporanEvaluationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_staff_can_save_and_edit_evaluation_without_changing_status(): void
+    private function setupData(): array
     {
         $role = Role::create(['nama_role' => 'Staff Sarana dan Prasarana']);
         $pasar = Pasar::create([
@@ -38,10 +38,19 @@ class StaffLaporanEvaluationTest extends TestCase
             'nama_fasilitas' => 'Kran Air',
         ]);
 
-        $staff = User::create([
+        $staff1 = User::create([
             'email' => 'staff1@sisarpras.test',
             'password' => Hash::make('password123'),
-            'nama_lengkap' => 'Staff Uji',
+            'nama_lengkap' => 'Staff Pertama',
+            'id_role' => $role->id_role,
+            'id_pasar' => $pasar->id_pasar,
+            'status_akun' => 'Aktif',
+        ]);
+
+        $staff2 = User::create([
+            'email' => 'staff2@sisarpras.test',
+            'password' => Hash::make('password123'),
+            'nama_lengkap' => 'Staff Kedua',
             'id_role' => $role->id_role,
             'id_pasar' => $pasar->id_pasar,
             'status_akun' => 'Aktif',
@@ -50,7 +59,7 @@ class StaffLaporanEvaluationTest extends TestCase
         $laporan = Laporan::create([
             'id_lokasi' => $lokasi->id_lokasi,
             'id_fasilitas' => $fasilitas->id_fasilitas,
-            'id_pelapor' => $staff->id_user,
+            'id_pelapor' => $staff1->id_user,
             'id_spj' => null,
             'kategori_laporan' => 'Sanitasi & Air',
             'item_kerusakan' => 'Kran bocor',
@@ -59,28 +68,60 @@ class StaffLaporanEvaluationTest extends TestCase
             'kondisi_diharapkan' => 'Kran berfungsi normal',
             'tanggal_lapor' => now(),
             'status_laporan' => 'Menunggu',
+            'id_evaluator' => null,
         ]);
 
-        $this->actingAs($staff);
+        return compact('staff1', 'staff2', 'laporan');
+    }
 
+    public function test_first_evaluator_is_saved_and_remains_unchanged_when_edited_or_forwarded_by_another_staff(): void
+    {
+        extract($this->setupData());
+
+        // 1. Staff 1 mengisi evaluasi pertama kali
+        $this->actingAs($staff1);
         $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
             'kategori_kerusakan' => 'Ringan',
-            'catatan_pemeriksaan' => 'Perlu pengecekan lanjutan',
+            'catatan_pemeriksaan' => 'Catatan awal oleh staff 1',
         ])->assertRedirect();
 
         $laporan->refresh();
         $this->assertSame('Ringan', $laporan->kategori_kerusakan);
-        $this->assertSame('Perlu pengecekan lanjutan', $laporan->catatan_pemeriksaan);
-        $this->assertSame('Menunggu', $laporan->status_laporan);
+        $this->assertSame('Catatan awal oleh staff 1', $laporan->catatan_pemeriksaan);
+        $this->assertSame($staff1->id_user, $laporan->id_evaluator);
+        $this->assertSame('Staff Pertama', $laporan->evaluator->nama_lengkap);
 
+        // 2. Staff 2 mengedit evaluasi
+        $this->actingAs($staff2);
         $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
             'kategori_kerusakan' => 'Berat',
-            'catatan_pemeriksaan' => 'Perlu penanganan segera',
+            'catatan_pemeriksaan' => 'Catatan revisi oleh staff 2',
         ])->assertRedirect();
 
         $laporan->refresh();
         $this->assertSame('Berat', $laporan->kategori_kerusakan);
-        $this->assertSame('Perlu penanganan segera', $laporan->catatan_pemeriksaan);
-        $this->assertSame('Menunggu', $laporan->status_laporan);
+        $this->assertSame('Catatan revisi oleh staff 2', $laporan->catatan_pemeriksaan);
+        // id_evaluator HARUS TETAP Staff 1 (tidak berubah ke Staff 2)
+        $this->assertSame($staff1->id_user, $laporan->id_evaluator);
+        $this->assertSame('Staff Pertama', $laporan->evaluator->nama_lengkap);
+
+        // 3. Staff 2 meneruskan laporan ke Kabid
+        $this->post(route('staff.laporan.forward', $laporan->id_laporan))->assertRedirect();
+
+        $laporan->refresh();
+        $this->assertSame('Diproses', $laporan->status_laporan);
+        // id_evaluator TETAP Staff 1
+        $this->assertSame($staff1->id_user, $laporan->id_evaluator);
+    }
+
+    public function test_legacy_laporan_with_null_evaluator_can_be_viewed_without_error(): void
+    {
+        extract($this->setupData());
+
+        $this->actingAs($staff1);
+
+        $response = $this->get(route('laporan.show', $laporan->id_laporan));
+        $response->assertStatus(200);
+        $response->assertDontSee('Dievaluasi oleh:');
     }
 }
