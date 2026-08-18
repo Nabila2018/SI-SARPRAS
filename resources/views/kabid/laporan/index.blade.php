@@ -74,7 +74,7 @@
                                 <p class="text-gray-500 text-[11px] mt-0.5">{{ $laporan->lokasi?->nama_lokasi ?? '-' }}</p>
                             </td>
                             <td class="py-3.5 px-3 font-semibold text-gray-800 text-xs">
-                                {{ $laporan->fasilitas?->nama_fasilitas ?? '-' }}
+                                {{ $laporan->nama_fasilitas_display }}
                             </td>
                             <td class="py-3.5 px-3 text-xs">
                                 @if($laporan->kategori_kerusakan)

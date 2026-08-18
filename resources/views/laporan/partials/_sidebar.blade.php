@@ -27,7 +27,17 @@
 
         <div>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Fasilitas</p>
-            <p class="font-medium text-gray-700">{{ $laporan->fasilitas->nama_fasilitas ?? '-' }}</p>
+            <p class="font-medium text-gray-700">{{ $laporan->nama_fasilitas_display }}</p>
+        </div>
+
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Kategori Laporan</p>
+            <p class="font-medium text-gray-700">{{ $laporan->kategori_laporan_display }}</p>
+        </div>
+
+        <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Item Kerusakan</p>
+            <p class="font-medium text-gray-700">{{ $laporan->item_kerusakan ?? '-' }}</p>
         </div>
 
         <div>

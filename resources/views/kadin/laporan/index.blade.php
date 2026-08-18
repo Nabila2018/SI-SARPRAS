@@ -180,12 +180,12 @@
 
                                 <!-- Fasilitas -->
                                 <td class="px-6 py-4 text-sm font-medium text-gray-800">
-                                    {{ $l->fasilitas->nama_fasilitas ?? '-' }}
+                                    {{ $l->nama_fasilitas_display }}
                                 </td>
 
                                 <!-- Kategori Kerusakan -->
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                    {{ $l->kategori_laporan_display }}
                                 </td>
 
                                 <!-- Tanggal -->

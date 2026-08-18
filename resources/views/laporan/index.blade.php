@@ -74,10 +74,10 @@
                                 <p class="text-xs text-gray-500 mt-0.5">{{ $l->lokasi->nama_lokasi ?? '-' }}</p>
                             </td>
                             <td class="px-6 py-4 text-sm font-medium text-gray-800">
-                                {{ $l->fasilitas->nama_fasilitas ?? '-' }}
+                                {{ $l->nama_fasilitas_display }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                                {{ $l->kategori_laporan_display }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($l->tanggal_lapor)->format('d M Y') }}

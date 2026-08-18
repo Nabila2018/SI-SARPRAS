@@ -19,9 +19,11 @@ class Laporan extends Model
         'id_laporan',
         'id_lokasi',
         'id_fasilitas',
+        'nama_fasilitas_lainnya',
         'id_pelapor',
         'id_spj',
         'kategori_laporan',
+        'kategori_laporan_lainnya',
         'item_kerusakan',
         'lokasi_spesifik',
         'deskripsi_kerusakan',
@@ -116,5 +118,22 @@ class Laporan extends Model
     public function notifikasi()
     {
         return $this->hasMany(Notifikasi::class, 'id_laporan');
+    }
+
+    public function getNamaFasilitasDisplayAttribute(): string
+    {
+        $namaFasilitas = $this->fasilitas->nama_fasilitas ?? '-';
+        if (!empty($this->nama_fasilitas_lainnya)) {
+            return "{$namaFasilitas} ({$this->nama_fasilitas_lainnya})";
+        }
+        return $namaFasilitas;
+    }
+
+    public function getKategoriLaporanDisplayAttribute(): string
+    {
+        if ($this->kategori_laporan === 'Lainnya' && !empty($this->kategori_laporan_lainnya)) {
+            return "Lainnya ({$this->kategori_laporan_lainnya})";
+        }
+        return $this->kategori_laporan ?? '-';
     }
 }

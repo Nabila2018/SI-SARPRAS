@@ -39,7 +39,7 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-bold text-gray-800">{{ $laporan->id_laporan }} — {{ $laporan->fasilitas->nama_fasilitas ?? 'Laporan Kerusakan' }}</h1>
+                <h1 class="text-xl font-bold text-gray-800">{{ $laporan->id_laporan }} — {{ $laporan->nama_fasilitas_display }}</h1>
                 <p class="text-xs text-gray-500 mt-1">Dibuat pada {{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->translatedFormat('d F Y') }}</p>
             </div>
         </div>

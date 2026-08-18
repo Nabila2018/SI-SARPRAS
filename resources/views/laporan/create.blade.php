@@ -44,7 +44,7 @@
             </h2>
         </div>
 
-        <form action="{{ route('laporan.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+        <form action="{{ route('laporan.store') }}" method="POST" enctype="multipart/form-data" id="form-create-laporan" class="p-8 space-y-6">
             @csrf
 
                         <!-- Row 1: Pasar & Lokasi -->
@@ -107,39 +107,65 @@
                 
                 <!-- Fasilitas -->
                 <div>
-                    <label for="id_fasilitas" class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label for="fasilitas-search" class="block text-sm font-semibold text-gray-700 mb-2">
                         Fasilitas <span class="text-red-500">*</span>
                     </label>
-                    {{-- Kondisi awal: disabled. JS akan mengisi dan mengaktifkan setelah
-                         user memilih lokasi via /api/fasilitas/{id_lokasi}.
-                         Jika old('id_fasilitas') ada (recovery setelah validation error),
-                         JS akan pre-select nilai tersebut saat fasilitas list dimuat. --}}
-                    <select name="id_fasilitas" id="id_fasilitas" required disabled
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
-                        <option value="">-- Pilih lokasi terlebih dahulu --</option>
-                    </select>
+                    <input type="hidden" name="id_fasilitas" id="id_fasilitas" value="{{ old('id_fasilitas') }}" required>
+                    <div id="fasilitas-wrapper" class="relative">
+                        <input type="text" id="fasilitas-search" placeholder="Cari atau pilih fasilitas..." autocomplete="off" disabled
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <div id="fasilitas-options" class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Pilih hanya jika pilihan yang sesuai tidak tersedia.</p>
                     @error('id_fasilitas')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
+
+                    <!-- Input Nama Ruang/Fasilitas Lainnya -->
+                    <div id="wrapper_fasilitas_lainnya" class="hidden mt-3">
+                        <label for="nama_fasilitas_lainnya" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Nama Ruang/Fasilitas Lainnya <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="nama_fasilitas_lainnya" id="nama_fasilitas_lainnya" maxlength="100"
+                            value="{{ old('nama_fasilitas_lainnya') }}"
+                            placeholder="Contoh: Gudang Alat Kebersihan"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all">
+                        @error('nama_fasilitas_lainnya')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Kategori Laporan -->
                 <div>
-                    <label for="kategori_laporan" class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label for="kategori-search" class="block text-sm font-semibold text-gray-700 mb-2">
                         Kategori Laporan <span class="text-red-500">*</span>
                     </label>
-                    <select name="kategori_laporan" id="kategori_laporan" required
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white">
-                        <option value="">-- Pilih Kategori --</option>
-                        @foreach($kategoriLaporan as $k)
-                            <option value="{{ $k }}" {{ old('kategori_laporan') == $k ? 'selected' : '' }}>
-                                {{ $k }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="kategori_laporan" id="kategori_laporan" value="{{ old('kategori_laporan') }}" required>
+                    <div id="kategori-wrapper" class="relative">
+                        <input type="text" id="kategori-search" placeholder="Cari atau pilih kategori..." autocomplete="off"
+                            value="{{ old('kategori_laporan') }}"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-white">
+                        <div id="kategori-options" class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Pilih hanya jika pilihan yang sesuai tidak tersedia.</p>
                     @error('kategori_laporan')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
+
+                    <!-- Input Kategori Sarana Lainnya -->
+                    <div id="wrapper_kategori_lainnya" class="hidden mt-3">
+                        <label for="kategori_laporan_lainnya" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Kategori Sarana Lainnya <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="kategori_laporan_lainnya" id="kategori_laporan_lainnya" maxlength="100"
+                            value="{{ old('kategori_laporan_lainnya') }}"
+                            placeholder="Contoh: Sistem Keamanan dan CCTV"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all">
+                        @error('kategori_laporan_lainnya')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
             </div>
 
@@ -240,13 +266,92 @@
                 <a href="{{ route('home') }}" class="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition">
                     Batal
                 </a>
-                <button type="submit" 
+                <button type="button" id="btn-trigger-review"
                     class="px-8 py-3 bg-gradient-to-r from-[#115f8c] to-[#16A394] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
                     Kirim Laporan
                 </button>
             </div>
 
         </form>
+    </div>
+</div>
+
+<!-- Modal Review Laporan -->
+<div id="modal-review-laporan" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+        <!-- Header Modal -->
+        <div class="bg-gradient-to-r from-[#115f8c] to-[#16A394] px-6 py-4 flex items-center justify-between text-white">
+            <div class="flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="text-lg font-bold">Review Data Laporan</h3>
+            </div>
+            <button type="button" id="btn-close-modal-x" class="text-white/80 hover:text-white transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body Modal -->
+        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-sm">
+            <p class="text-xs text-gray-500 italic mb-2">Pastikan seluruh data dan foto laporan di bawah ini sudah benar sebelum dikirimkan.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Pasar</span>
+                    <span id="rev-pasar" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Lokasi</span>
+                    <span id="rev-lokasi" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Fasilitas</span>
+                    <span id="rev-fasilitas" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Kategori Laporan</span>
+                    <span id="rev-kategori" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Item Kerusakan</span>
+                    <span id="rev-item" class="font-semibold text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Lokasi Spesifik</span>
+                    <span id="rev-lokasi-spesifik" class="font-semibold text-gray-800"></span>
+                </div>
+            </div>
+
+            <div>
+                <span class="block text-xs font-bold text-gray-400 uppercase mb-1">Deskripsi Kerusakan</span>
+                <p id="rev-deskripsi" class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-gray-700 whitespace-pre-line"></p>
+            </div>
+
+            <div>
+                <span class="block text-xs font-bold text-gray-400 uppercase mb-1">Kondisi yang Diharapkan</span>
+                <p id="rev-kondisi" class="bg-blue-50/50 p-3 rounded-xl border border-blue-100/50 text-gray-700 whitespace-pre-line"></p>
+            </div>
+
+            <div>
+                <span class="block text-xs font-bold text-gray-400 uppercase mb-2">Foto Dokumentasi Laporan</span>
+                <div id="rev-foto-preview" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            </div>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button type="button" id="btn-periksa-kembali"
+                class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition">
+                Periksa Kembali
+            </button>
+            <button type="button" id="btn-submit-laporan"
+                class="px-6 py-2.5 bg-gradient-to-r from-[#115f8c] to-[#16A394] text-white font-semibold rounded-xl shadow hover:shadow-lg transition">
+                Kirim Laporan
+            </button>
+        </div>
     </div>
 </div>
 
@@ -258,102 +363,210 @@
     const lokasiWrapper  = document.getElementById('lokasi-wrapper');
     const lokasiHidden   = document.querySelector('input[name="id_lokasi"]');
     const lokasiReadonly = document.getElementById('lokasi-readonly');
-    const fasilitasSelect = document.getElementById('id_fasilitas');
+
+    const fasilitasInput    = document.getElementById('fasilitas-search');
+    const fasilitasOptions  = document.getElementById('fasilitas-options');
+    const fasilitasWrapper  = document.getElementById('fasilitas-wrapper');
+    const fasilitasHidden   = document.getElementById('id_fasilitas');
+    const fasilitasLainnyaWrapper = document.getElementById('wrapper_fasilitas_lainnya');
+    const fasilitasLainnyaInput   = document.getElementById('nama_fasilitas_lainnya');
+
+    const kategoriInput    = document.getElementById('kategori-search');
+    const kategoriOptions  = document.getElementById('kategori-options');
+    const kategoriWrapper  = document.getElementById('kategori-wrapper');
+    const kategoriHidden   = document.getElementById('kategori_laporan');
+    const kategoriLainnyaWrapper = document.getElementById('wrapper_kategori_lainnya');
+    const kategoriLainnyaInput   = document.getElementById('kategori_laporan_lainnya');
+
     let lokasiData = [];
+    let fasilitasData = [];
+    const kategoriData = @json($kategoriLaporan ?? []);
     let fasilitasAbortController = null;
 
-    // Nilai lama dari session — digunakan untuk recovery setelah validation error.
     @php
-        $oldLokasiIdPhp    = old('id_lokasi')    ?? '';
-        $oldFasilitasIdPhp = old('id_fasilitas') ?? '';
+        $oldLokasiIdPhp     = old('id_lokasi')    ?? '';
+        $oldFasilitasIdPhp  = old('id_fasilitas') ?? '';
+        $oldKategoriValPhp  = old('kategori_laporan') ?? '';
     @endphp
-    const oldLokasiId    = @json($oldLokasiIdPhp);
-    const oldFasilitasId = @json($oldFasilitasIdPhp);
+    const oldLokasiId     = @json($oldLokasiIdPhp);
+    const oldFasilitasId  = @json($oldFasilitasIdPhp);
+    const oldKategoriVal  = @json($oldKategoriValPhp);
 
-
-    // -------------------------------------------------------
-    // Fungsi Fasilitas
-    // -------------------------------------------------------
-
-    /**
-     * Reset dropdown fasilitas ke kondisi awal: disabled, placeholder default.
-     * Dipanggil saat lokasi dikosongkan atau diganti.
-     */
     function resetFasilitas() {
         if (fasilitasAbortController) {
             fasilitasAbortController.abort();
             fasilitasAbortController = null;
         }
-        fasilitasSelect.innerHTML = '<option value="">-- Pilih lokasi terlebih dahulu --</option>';
-        fasilitasSelect.disabled = true;
+        fasilitasData = [];
+        fasilitasHidden.value = '';
+        fasilitasInput.value = '';
+        fasilitasInput.placeholder = '-- Pilih lokasi terlebih dahulu --';
+        fasilitasInput.disabled = true;
+        fasilitasInput.classList.add('bg-gray-50', 'cursor-not-allowed');
+        fasilitasInput.classList.remove('bg-white');
+        checkFasilitasLainnya('');
     }
 
-    /**
-     * Load fasilitas dari /api/fasilitas/{lokasiId}.
-     * Hanya fasilitas yang terdaftar di lokasi_fasilitas untuk lokasi tersebut
-     * yang akan ditampilkan. Tidak ada fallback ke parent lokasi.
-     *
-     * @param {string} lokasiId - id_lokasi yang dipilih user
-     */
     function loadFasilitas(lokasiId) {
         if (!lokasiId) {
             resetFasilitas();
             return;
         }
 
-        // Cancel request sebelumnya jika user cepat mengganti lokasi
         if (fasilitasAbortController) {
             fasilitasAbortController.abort();
         }
         fasilitasAbortController = new AbortController();
 
-        // Loading state
-        fasilitasSelect.disabled = true;
-        fasilitasSelect.innerHTML = '<option value="">Memuat fasilitas...</option>';
+        fasilitasInput.disabled = true;
+        fasilitasInput.value = '';
+        fasilitasInput.placeholder = 'Memuat fasilitas...';
 
         fetch('/api/fasilitas/' + lokasiId, { signal: fasilitasAbortController.signal })
             .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Response ' + response.status);
-                }
+                if (!response.ok) throw new Error('Response ' + response.status);
                 return response.json();
             })
             .then(function(data) {
-                fasilitasSelect.innerHTML = '';
-
                 if (!data || !data.length) {
-                    // Lokasi tidak memiliki fasilitas yang terdaftar
-                    fasilitasSelect.innerHTML = '<option value="">Tidak ada fasilitas tersedia untuk lokasi ini</option>';
-                    fasilitasSelect.disabled = true;
+                    fasilitasData = [];
+                    fasilitasInput.placeholder = 'Tidak ada fasilitas tersedia';
+                    fasilitasInput.disabled = true;
+                    checkFasilitasLainnya('');
                     return;
                 }
 
-                // Opsi placeholder
-                var defaultOpt = document.createElement('option');
-                defaultOpt.value = '';
-                defaultOpt.textContent = '-- Pilih Fasilitas --';
-                fasilitasSelect.appendChild(defaultOpt);
-
-                // Isi fasilitas dari API; pre-select jika ada old value
-                data.forEach(function(f) {
-                    var opt = document.createElement('option');
-                    opt.value = f.id_fasilitas;
-                    opt.textContent = f.nama_fasilitas;
-                    if (oldFasilitasId && f.id_fasilitas === oldFasilitasId) {
-                        opt.selected = true;
-                    }
-                    fasilitasSelect.appendChild(opt);
+                fasilitasData = data.map(function(f) {
+                    return { id: f.id_fasilitas, name: f.nama_fasilitas };
                 });
 
-                fasilitasSelect.disabled = false;
+                fasilitasInput.disabled = false;
+                fasilitasInput.placeholder = 'Cari atau pilih fasilitas...';
+                fasilitasInput.classList.remove('bg-gray-50', 'cursor-not-allowed');
+                fasilitasInput.classList.add('bg-white');
+
+                if (oldFasilitasId) {
+                    const oldF = fasilitasData.find(function(f) { return f.id === oldFasilitasId; });
+                    if (oldF) {
+                        fasilitasInput.value  = oldF.name;
+                        fasilitasHidden.value = oldF.id;
+                        checkFasilitasLainnya(oldF.name);
+                    }
+                }
             })
             .catch(function(error) {
-                if (error.name === 'AbortError') return; // request di-cancel — normal
+                if (error.name === 'AbortError') return;
                 console.error('Error loading fasilitas:', error);
-                fasilitasSelect.innerHTML = '<option value="">Gagal memuat fasilitas, coba lagi</option>';
-                fasilitasSelect.disabled = true;
+                fasilitasData = [];
+                fasilitasInput.placeholder = 'Gagal memuat fasilitas';
+                fasilitasInput.disabled = true;
+                checkFasilitasLainnya('');
             });
     }
+
+    function renderFasilitasOptions(query) {
+        const searchQuery = (query || '').toLowerCase();
+        const filtered = fasilitasData.filter(function(item) {
+            return (item.name || '').toLowerCase().includes(searchQuery);
+        });
+
+        if (!filtered.length) {
+            fasilitasOptions.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada fasilitas yang sesuai</div>';
+            fasilitasOptions.classList.remove('hidden');
+            return;
+        }
+
+        fasilitasOptions.innerHTML = '';
+        filtered.forEach(function(item) {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors';
+            option.textContent = item.name;
+            option.addEventListener('click', function() {
+                fasilitasInput.value  = item.name;
+                fasilitasHidden.value = item.id;
+                fasilitasOptions.classList.add('hidden');
+                checkFasilitasLainnya(item.name);
+            });
+            fasilitasOptions.appendChild(option);
+        });
+
+        fasilitasOptions.classList.remove('hidden');
+    }
+
+    function checkFasilitasLainnya(selectedName) {
+        const isRuangLainnya = selectedName === 'Ruang Lainnya';
+
+        if (isRuangLainnya) {
+            fasilitasLainnyaWrapper.classList.remove('hidden');
+            fasilitasLainnyaInput.required = true;
+        } else {
+            fasilitasLainnyaWrapper.classList.add('hidden');
+            if (document.activeElement !== fasilitasLainnyaInput) {
+                fasilitasLainnyaInput.value = '';
+            }
+            fasilitasLainnyaInput.required = false;
+        }
+    }
+
+    function renderKategoriOptions(query) {
+        const searchQuery = (query || '').toLowerCase();
+        const filtered = kategoriData.filter(function(item) {
+            return (item || '').toLowerCase().includes(searchQuery);
+        });
+
+        if (!filtered.length) {
+            kategoriOptions.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada kategori yang sesuai</div>';
+            kategoriOptions.classList.remove('hidden');
+            return;
+        }
+
+        kategoriOptions.innerHTML = '';
+        filtered.forEach(function(item) {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors';
+            option.textContent = item;
+            option.addEventListener('click', function() {
+                kategoriInput.value  = item;
+                kategoriHidden.value = item;
+                kategoriOptions.classList.add('hidden');
+                checkKategoriLainnya(item);
+            });
+            kategoriOptions.appendChild(option);
+        });
+
+        kategoriOptions.classList.remove('hidden');
+    }
+
+    function checkKategoriLainnya(selectedVal) {
+        if (selectedVal === 'Lainnya') {
+            kategoriLainnyaWrapper.classList.remove('hidden');
+            kategoriLainnyaInput.required = true;
+        } else {
+            kategoriLainnyaWrapper.classList.add('hidden');
+            if (document.activeElement !== kategoriLainnyaInput) {
+                kategoriLainnyaInput.value = '';
+            }
+            kategoriLainnyaInput.required = false;
+        }
+    }
+
+    fasilitasInput.addEventListener('focus', function() {
+        if (fasilitasData.length) renderFasilitasOptions(this.value);
+    });
+
+    fasilitasInput.addEventListener('input', function() {
+        if (fasilitasData.length) renderFasilitasOptions(this.value);
+    });
+
+    kategoriInput.addEventListener('focus', function() {
+        renderKategoriOptions(this.value);
+    });
+
+    kategoriInput.addEventListener('input', function() {
+        renderKategoriOptions(this.value);
+    });
 
     // -------------------------------------------------------
     // Fungsi Lokasi (dipertahankan dan diperluas)
@@ -520,10 +733,22 @@
         if (lokasiWrapper && !lokasiWrapper.contains(event.target)) {
             closeLokasiOptions();
         }
+        if (fasilitasWrapper && !fasilitasWrapper.contains(event.target)) {
+            fasilitasOptions.classList.add('hidden');
+        }
+        if (kategoriWrapper && !kategoriWrapper.contains(event.target)) {
+            kategoriOptions.classList.add('hidden');
+        }
     });
 
-    // Auto-load lokasi saat halaman dimuat (untuk UPTD)
+    // Auto-load lokasi saat halaman dimuat (untuk UPTD) dan recovery old value kategori
     document.addEventListener('DOMContentLoaded', function() {
+        if (oldKategoriVal) {
+            kategoriInput.value = oldKategoriVal;
+            kategoriHidden.value = oldKategoriVal;
+            checkKategoriLainnya(oldKategoriVal);
+        }
+
         @if(auth()->user()->role->nama_role === 'Petugas UPTD' && $pasarTerpilih)
             loadLokasi(@json($pasarTerpilih));
         @endif
@@ -548,6 +773,98 @@
                 preview.appendChild(div);
             }
         }
+    }
+
+    // Modal Review Logic
+    const formLaporan = document.getElementById('form-create-laporan');
+    const modalReview = document.getElementById('modal-review-laporan');
+    const btnTriggerReview = document.getElementById('btn-trigger-review');
+    const btnPeriksaKembali = document.getElementById('btn-periksa-kembali');
+    const btnCloseModalX = document.getElementById('btn-close-modal-x');
+    const btnSubmitLaporan = document.getElementById('btn-submit-laporan');
+
+    if (btnTriggerReview) {
+        btnTriggerReview.addEventListener('click', function() {
+            if (!formLaporan.checkValidity()) {
+                formLaporan.reportValidity();
+                return;
+            }
+
+            if (!document.getElementById('id_lokasi').value) {
+                alert('Silakan pilih lokasi terlebih dahulu.');
+                return;
+            }
+            if (!document.getElementById('id_fasilitas').value) {
+                alert('Silakan pilih fasilitas terlebih dahulu.');
+                return;
+            }
+            if (!document.getElementById('kategori_laporan').value) {
+                alert('Silakan pilih kategori laporan terlebih dahulu.');
+                return;
+            }
+
+            const fileInput = document.getElementById('foto_laporan');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Minimal 1 foto dokumentasi laporan harus diunggah.');
+                return;
+            }
+
+            const pasarSelectElem = document.getElementById('id_pasar');
+            const pasarText = pasarSelectElem ? (pasarSelectElem.options[pasarSelectElem.selectedIndex]?.textContent || '-') : '-';
+            document.getElementById('rev-pasar').textContent = pasarText.trim();
+            document.getElementById('rev-lokasi').textContent = lokasiInput.value || '-';
+
+            let fasilitasText = fasilitasInput.value;
+            if (fasilitasText === 'Ruang Lainnya' && fasilitasLainnyaInput.value) {
+                fasilitasText += ' (' + fasilitasLainnyaInput.value + ')';
+            }
+            document.getElementById('rev-fasilitas').textContent = fasilitasText || '-';
+
+            let kategoriText = kategoriInput.value;
+            if (kategoriText === 'Lainnya' && kategoriLainnyaInput.value) {
+                kategoriText += ' (' + kategoriLainnyaInput.value + ')';
+            }
+            document.getElementById('rev-kategori').textContent = kategoriText || '-';
+
+            document.getElementById('rev-item').textContent = document.getElementById('item_kerusakan').value || '-';
+            document.getElementById('rev-lokasi-spesifik').textContent = document.getElementById('lokasi_spesifik').value || '-';
+            document.getElementById('rev-deskripsi').textContent = document.getElementById('deskripsi_kerusakan').value || '-';
+            document.getElementById('rev-kondisi').textContent = document.getElementById('kondisi_diharapkan').value || '-';
+
+            const fotoContainer = document.getElementById('rev-foto-preview');
+            fotoContainer.innerHTML = '';
+            Array.from(fileInput.files).forEach(function(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-full h-24 object-cover rounded-xl border border-gray-200 shadow-sm';
+                    fotoContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            modalReview.classList.remove('hidden');
+        });
+    }
+
+    if (btnPeriksaKembali) {
+        btnPeriksaKembali.addEventListener('click', function() {
+            modalReview.classList.add('hidden');
+        });
+    }
+    if (btnCloseModalX) {
+        btnCloseModalX.addEventListener('click', function() {
+            modalReview.classList.add('hidden');
+        });
+    }
+
+    if (btnSubmitLaporan) {
+        btnSubmitLaporan.addEventListener('click', function() {
+            btnSubmitLaporan.disabled = true;
+            btnSubmitLaporan.textContent = 'Mengirim...';
+            formLaporan.submit();
+        });
     }
 </script>
 @endsection

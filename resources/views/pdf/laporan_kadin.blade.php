@@ -231,10 +231,10 @@
                         <span style="color: #4b5563;">{{ $l->lokasi->nama_lokasi ?? '-' }}</span>
                     </td>
                     <td>
-                        <strong>{{ $l->fasilitas->nama_fasilitas ?? '-' }}</strong>
+                        <strong>{{ $l->nama_fasilitas_display }}</strong>
                     </td>
                     <td>
-                        {{ $l->kategori_laporan ?? ($l->kategori_kerusakan ?? '-') }}
+                        {{ $l->kategori_laporan_display }}
                     </td>
                     <td>
                         <span class="badge {{ $badgeClass }}">{{ $l->status_laporan }}</span>

@@ -88,6 +88,12 @@ Route::middleware(['auth', 'account.active'])->group(function () {
 
         Route::get('/laporan', [LaporanController::class, 'index'])
             ->name('laporan.index');
+
+        Route::get('/laporan/{id}/edit', [LaporanController::class, 'edit'])
+            ->name('laporan.edit');
+
+        Route::put('/laporan/{id}', [LaporanController::class, 'update'])
+            ->name('laporan.update');
     });
 
     Route::get('/laporan/{id}', [LaporanController::class, 'show'])
@@ -276,6 +282,12 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         $fasilitas = \App\Models\Fasilitas::whereHas('lokasiFasilitas', function ($q) use ($lokasiId) {
             $q->where('id_lokasi', $lokasiId);
         })->orderBy('nama_fasilitas')->get(['id_fasilitas', 'nama_fasilitas']);
+
+        // Pastikan 'Ruang Lainnya' selalu tersedia sebagai opsi fallback di semua lokasi
+        $ruangLainnya = \App\Models\Fasilitas::where('nama_fasilitas', 'Ruang Lainnya')->first(['id_fasilitas', 'nama_fasilitas']);
+        if ($ruangLainnya && !$fasilitas->contains('id_fasilitas', $ruangLainnya->id_fasilitas)) {
+            $fasilitas->push($ruangLainnya);
+        }
 
         return response()->json($fasilitas);
     })->name('api.fasilitas');
