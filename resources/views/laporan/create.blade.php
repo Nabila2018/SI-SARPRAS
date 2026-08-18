@@ -85,7 +85,7 @@
                     <label for="id_lokasi" class="block text-sm font-semibold text-gray-700 mb-2">
                         Lokasi <span class="text-red-500">*</span>
                     </label>
-                    <input type="hidden" name="id_lokasi" value="">
+                    <input type="hidden" name="id_lokasi" id="id_lokasi" value="">
                     <div id="lokasi-wrapper" class="relative">
                         <input type="text" id="lokasi-search" placeholder="Cari atau pilih lokasi..." autocomplete="off" disabled
                             @if(auth()->user()->role->nama_role === 'Petugas UPTD')
@@ -110,7 +110,7 @@
                     <label for="fasilitas-search" class="block text-sm font-semibold text-gray-700 mb-2">
                         Fasilitas <span class="text-red-500">*</span>
                     </label>
-                    <input type="hidden" name="id_fasilitas" id="id_fasilitas" value="{{ old('id_fasilitas') }}" required>
+                    <input type="hidden" name="id_fasilitas" id="id_fasilitas" value="{{ old('id_fasilitas') }}">
                     <div id="fasilitas-wrapper" class="relative">
                         <input type="text" id="fasilitas-search" placeholder="Cari atau pilih fasilitas..." autocomplete="off" disabled
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#115f8c] focus:border-[#115f8c] transition-all bg-gray-50 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
@@ -141,7 +141,7 @@
                     <label for="kategori-search" class="block text-sm font-semibold text-gray-700 mb-2">
                         Kategori Laporan <span class="text-red-500">*</span>
                     </label>
-                    <input type="hidden" name="kategori_laporan" id="kategori_laporan" value="{{ old('kategori_laporan') }}" required>
+                    <input type="hidden" name="kategori_laporan" id="kategori_laporan" value="{{ old('kategori_laporan') }}">
                     <div id="kategori-wrapper" class="relative">
                         <input type="text" id="kategori-search" placeholder="Cari atau pilih kategori..." autocomplete="off"
                             value="{{ old('kategori_laporan') }}"
@@ -239,22 +239,22 @@
                     Foto Laporan <span class="text-red-500">*</span>
                 </label>
                 
-                <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-[#115f8c] transition-colors cursor-pointer" 
-                     onclick="document.getElementById('foto_laporan').click()">
-                    
-                    <svg class="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    
-                    <p class="text-sm text-gray-600 mb-1">Klik atau drag foto ke sini</p>
-                    <p class="text-xs text-gray-400">Format: JPG, PNG (Maks. 2MB per foto)</p>
-                    
-                    <input type="file" name="foto_laporan[]" id="foto_laporan" multiple accept="image/*" class="hidden"
-                        onchange="showFileNames(this)">
+                <input type="file" name="foto_laporan[]" id="foto_laporan" multiple accept="image/*" class="hidden"
+                    onchange="handleFileSelection(this)">
+
+                <div id="dropzone-box" class="border-2 border-dashed border-gray-200 rounded-2xl p-4 transition-all bg-gray-50/50 hover:border-[#115f8c]">
+                    <!-- Prompt saat foto belum dipilih -->
+                    <div id="dropzone-prompt" class="py-8 text-center cursor-pointer" onclick="document.getElementById('foto_laporan').click()">
+                        <svg class="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-sm font-medium text-gray-700 mb-1">Klik atau drag foto ke sini</p>
+                        <p class="text-xs text-gray-400">Format: JPG, PNG (Maks. 2MB per foto)</p>
+                    </div>
+
+                    <!-- Grid Preview Foto INSIDE Dropzone Box -->
+                    <div id="file-preview" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
                 </div>
-                
-                <!-- Preview file names -->
-                <div id="file-preview" class="mt-3 space-y-2"></div>
                 
                 @error('foto_laporan.*')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -754,25 +754,120 @@
         @endif
     });
 
-    // Show selected file names
-    function showFileNames(input) {
-        const preview = document.getElementById('file-preview');
-        preview.innerHTML = '';
+    // Show and manage selected files with delete option
+    let selectedFilesArray = [];
 
+    function handleFileSelection(input) {
         if (input.files && input.files.length > 0) {
-            for (let i = 0; i < input.files.length; i++) {
-                const file = input.files[i];
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg';
-                div.innerHTML = `
-                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    ${file.name} (${(file.size / 1024).toFixed(1)} KB)
-                `;
-                preview.appendChild(div);
-            }
+            Array.from(input.files).forEach(function(file) {
+                const exists = selectedFilesArray.some(function(f) {
+                    return f.name === file.name && f.size === file.size && f.lastModified === file.lastModified;
+                });
+                if (!exists) {
+                    selectedFilesArray.push(file);
+                }
+            });
+            updateFileInputAndPreview();
         }
+    }
+
+    function removeSelectedFile(index) {
+        selectedFilesArray.splice(index, 1);
+        updateFileInputAndPreview();
+    }
+
+    function updateFileInputAndPreview() {
+        const input = document.getElementById('foto_laporan');
+        const dt = new DataTransfer();
+        selectedFilesArray.forEach(function(file) {
+            dt.items.add(file);
+        });
+        input.files = dt.files;
+
+        const promptElem = document.getElementById('dropzone-prompt');
+        const previewElem = document.getElementById('file-preview');
+
+        previewElem.innerHTML = '';
+
+        if (selectedFilesArray.length === 0) {
+            promptElem.classList.remove('hidden');
+            previewElem.classList.add('hidden');
+        } else {
+            promptElem.classList.add('hidden');
+            previewElem.classList.remove('hidden');
+
+            selectedFilesArray.forEach(function(file, index) {
+                const card = document.createElement('div');
+                card.className = 'relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm';
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    card.innerHTML = `
+                        <div class="relative h-28 w-full bg-gray-100">
+                            <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover">
+                            <button type="button" onclick="event.stopPropagation(); removeSelectedFile(${index})"
+                                class="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110"
+                                title="Hapus foto ini">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-2 text-xs">
+                            <p class="font-semibold text-gray-800 truncate" title="${file.name}">${file.name}</p>
+                            <p class="text-gray-400 mt-0.5">${(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+                previewElem.appendChild(card);
+            });
+
+            // Card "+ Tambah Foto" inside dropzone grid
+            const addTile = document.createElement('div');
+            addTile.className = 'border-2 border-dashed border-gray-300 rounded-xl h-[152px] flex flex-col items-center justify-center text-gray-400 hover:border-[#115f8c] hover:text-[#115f8c] transition cursor-pointer bg-white/50 hover:bg-white';
+            addTile.onclick = function(e) {
+                e.stopPropagation();
+                input.click();
+            };
+            addTile.innerHTML = `
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span class="text-xs font-semibold">Tambah Foto</span>
+            `;
+            previewElem.appendChild(addTile);
+        }
+    }
+
+    // Drag & Drop event handling for dropzone
+    const dropzoneBox = document.getElementById('dropzone-box');
+    if (dropzoneBox) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+            dropzoneBox.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            dropzoneBox.addEventListener(eventName, function() {
+                dropzoneBox.classList.add('border-[#115f8c]', 'bg-[#115f8c]/10');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            dropzoneBox.addEventListener(eventName, function() {
+                dropzoneBox.classList.remove('border-[#115f8c]', 'bg-[#115f8c]/10');
+            }, false);
+        });
+
+        dropzoneBox.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files.length > 0) {
+                handleFileSelection({ files: dt.files });
+            }
+        }, false);
     }
 
     // Modal Review Logic
@@ -790,15 +885,15 @@
                 return;
             }
 
-            if (!document.getElementById('id_lokasi').value) {
+            if (!lokasiHidden || !lokasiHidden.value) {
                 alert('Silakan pilih lokasi terlebih dahulu.');
                 return;
             }
-            if (!document.getElementById('id_fasilitas').value) {
+            if (!fasilitasHidden || !fasilitasHidden.value) {
                 alert('Silakan pilih fasilitas terlebih dahulu.');
                 return;
             }
-            if (!document.getElementById('kategori_laporan').value) {
+            if (!kategoriHidden || !kategoriHidden.value) {
                 alert('Silakan pilih kategori laporan terlebih dahulu.');
                 return;
             }
@@ -810,7 +905,14 @@
             }
 
             const pasarSelectElem = document.getElementById('id_pasar');
-            const pasarText = pasarSelectElem ? (pasarSelectElem.options[pasarSelectElem.selectedIndex]?.textContent || '-') : '-';
+            let pasarText = '-';
+            if (pasarSelectElem) {
+                if (pasarSelectElem.tagName === 'SELECT' && pasarSelectElem.options && pasarSelectElem.options.length > 0) {
+                    pasarText = pasarSelectElem.options[pasarSelectElem.selectedIndex]?.textContent || '-';
+                } else if (pasarSelectElem.nextElementSibling) {
+                    pasarText = pasarSelectElem.nextElementSibling.textContent || '-';
+                }
+            }
             document.getElementById('rev-pasar').textContent = pasarText.trim();
             document.getElementById('rev-lokasi').textContent = lokasiInput.value || '-';
 

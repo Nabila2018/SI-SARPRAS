@@ -33,6 +33,7 @@ class Laporan extends Model
         'alasan_penolakan',
         'kategori_kerusakan',
         'catatan_pemeriksaan',
+        'file_lampiran_evaluasi',
         'id_evaluator',
         'catatan_revisi_evaluasi',
         'tanggal_verifikasi_evaluasi',

@@ -136,7 +136,7 @@ class LaporanController extends Controller
     }
 
     // Riwayat laporan (UPTD)
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -151,6 +151,26 @@ class LaporanController extends Controller
             $query->whereHas('lokasi', function ($q) use ($user) {
                 $q->where('id_pasar', $user->id_pasar);
             });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id_laporan', 'like', "%{$search}%")
+                  ->orWhere('item_kerusakan', 'like', "%{$search}%")
+                  ->orWhere('deskripsi_kerusakan', 'like', "%{$search}%")
+                  ->orWhere('kategori_laporan', 'like', "%{$search}%")
+                  ->orWhereHas('lokasi', function ($lq) use ($search) {
+                      $lq->where('nama_lokasi', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('fasilitas', function ($fq) use ($search) {
+                      $fq->where('nama_fasilitas', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('status_laporan')) {
+            $query->where('status_laporan', $request->status_laporan);
         }
 
         $laporan = $query->orderBy('tanggal_lapor', 'desc')
