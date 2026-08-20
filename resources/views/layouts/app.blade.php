@@ -76,6 +76,13 @@
                     <span class="font-medium">Daftar Laporan Masuk</span>
                 </a>
 
+                <a href="{{ route('staff.proyek.index') }}" class="menu-item {{ request()->is('staff/proyek*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0H9m4 0h2m-6 4h6"/>
+                    </svg>
+                    <span class="font-medium">Proyek Perbaikan</span>
+                </a>
+
                 <a href="{{ route('staff.spj.index') }}" class="menu-item {{ request()->is('staff/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>

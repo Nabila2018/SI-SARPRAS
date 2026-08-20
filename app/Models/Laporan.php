@@ -22,6 +22,7 @@ class Laporan extends Model
         'nama_fasilitas_lainnya',
         'id_pelapor',
         'id_spj',
+        'id_proyek',
         'kategori_laporan',
         'kategori_laporan_lainnya',
         'item_kerusakan',
@@ -99,6 +100,11 @@ class Laporan extends Model
     public function spj()
     {
         return $this->belongsTo(Spj::class, 'id_spj', 'id_spj');
+    }
+
+    public function proyek()
+    {
+        return $this->belongsTo(Proyek::class, 'id_proyek', 'id_proyek');
     }
 
     public function fotoLaporan()

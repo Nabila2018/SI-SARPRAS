@@ -12,6 +12,7 @@ use App\Http\Controllers\KabidRabController;
 use App\Http\Controllers\SpjController;
 use App\Http\Controllers\LaporanRealisasiTahunanController;
 use App\Http\Controllers\KadinLaporanController;
+use App\Http\Controllers\StaffProyekController;
 use App\Http\Controllers\HomeController;
 
 // =======================
@@ -136,6 +137,16 @@ Route::middleware(['auth', 'account.active'])->group(function () {
             ->name('staff.laporan.progres.store');
         Route::post('/staff/laporan/{id}/progres/{id_progres}', [StaffLaporanController::class, 'updateProgres'])
             ->name('staff.laporan.progres.update');
+
+        // ===== PROYEK PERBAIKAN =====
+        Route::get('/staff/proyek', [StaffProyekController::class, 'index'])
+            ->name('staff.proyek.index');
+        Route::get('/staff/proyek/create', [StaffProyekController::class, 'create'])
+            ->name('staff.proyek.create');
+        Route::post('/staff/proyek', [StaffProyekController::class, 'store'])
+            ->name('staff.proyek.store');
+        Route::get('/staff/proyek/{id}', [StaffProyekController::class, 'show'])
+            ->name('staff.proyek.show');
 
         // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])
