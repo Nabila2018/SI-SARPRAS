@@ -1,81 +1,91 @@
 @php
-    $existingDetails = $laporan->detailRab;
-    $hasExisting = $existingDetails && $existingDetails->count() > 0;
+    $rab = $laporan->rab;
+    $statusRab = $rab ? $rab->status_verifikasi_rab : 'Belum Dibuat';
 
-    $statusBadge = match($laporan->status_verifikasi_rab) {
-        'Menunggu' => 'bg-amber-100 text-amber-700 border-amber-200',
-        'Disetujui' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        'Dikembalikan' => 'bg-red-100 text-red-700 border-red-200',
-        default => 'bg-gray-100 text-gray-600 border-gray-200',
+    $statusBadge = match($statusRab) {
+        'Menunggu' => 'bg-amber-50 text-amber-700 border-amber-200',
+        'Disetujui' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'Dikembalikan' => 'bg-rose-50 text-rose-700 border-rose-200',
+        'Draft' => 'bg-blue-50 text-blue-700 border-blue-200',
+        default => 'bg-gray-50 text-gray-600 border-gray-200',
     };
-    $statusText = $laporan->status_verifikasi_rab ?? 'Belum Dibuat';
 @endphp
 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-6">
+    <!-- Header Kartu -->
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
         <div>
-            <h3 class="text-base font-bold text-gray-800">Detail Rencana Anggaran Biaya (RAB)</h3>
-            <p class="text-xs text-gray-500 mt-0.5">Rincian estimasi biaya perbaikan fasilitas.</p>
+            <h3 class="text-base font-bold text-gray-800">Informasi Rencana Anggaran Biaya (RAB)</h3>
+            <p class="text-xs text-gray-500 mt-0.5">Ringkasan status penyusunan RAB untuk perbaikan laporan ini.</p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $statusBadge }}">
-                {{ $statusText }}
-            </span>
-
-            @if($hasExisting)
-                <a href="{{ route('laporan.rab.pdf', $laporan->id_laporan) }}"
-                   class="inline-flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-[#114F72] transition">
-                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Download PDF
-                </a>
-            @endif
-        </div>
+        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold {{ $statusBadge }}">
+            Status RAB: {{ $statusRab }}
+        </span>
     </div>
 
-    @if($hasExisting)
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="text-left py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium">No</th>
-                        <th class="text-left py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium w-2/5">Rincian Kebutuhan</th>
-                        <th class="text-center py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium">Volume</th>
-                        <th class="text-center py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium">Satuan</th>
-                        <th class="text-right py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium">Harga Satuan (Rp)</th>
-                        <th class="text-right py-3 px-2 text-gray-500 text-xs uppercase tracking-wider font-medium">Subtotal (Rp)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php $totalRab = 0; @endphp
-                    @foreach($existingDetails as $index => $detail)
-                        @php
-                            $subtotal = $detail->volume * $detail->harga_satuan;
-                            $totalRab += $subtotal;
-                        @endphp
-                        <tr class="border-b border-gray-100">
-                            <td class="py-3 px-2 text-gray-600">{{ $index + 1 }}</td>
-                            <td class="py-3 px-2 font-medium text-gray-800">{{ $detail->rincian_kebutuhan }}</td>
-                            <td class="py-3 px-2 text-center text-gray-700">{{ number_format($detail->volume, 2, ',', '.') }}</td>
-                            <td class="py-3 px-2 text-center text-gray-700">{{ $detail->satuan }}</td>
-                            <td class="py-3 px-2 text-right text-gray-700">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
-                            <td class="py-3 px-2 text-right font-bold text-gray-800">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr class="border-t-2 border-gray-200">
-                        <td colspan="5" class="py-4 px-2 text-right font-bold text-gray-800">Total RAB</td>
-                        <td class="py-4 px-2 text-right font-bold text-[#114F72] text-lg">Rp {{ number_format($totalRab, 0, ',', '.') }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+    @if(!$rab)
+        <!-- KONDISI 1: LAPORAN BELUM MASUK RAB -->
+        <div class="rounded-xl bg-amber-50/60 border border-amber-200/60 p-6 text-center text-xs text-amber-800 space-y-3">
+            <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 font-bold text-base">
+                !
+            </div>
+            <div>
+                <p class="font-bold text-sm">Laporan Belum Terikat ke RAB</p>
+                <p class="text-amber-700 mt-1 max-w-md mx-auto">
+                    Laporan ini belum dimasukkan ke dalam Rencana Anggaran Biaya. Penyusunan dan pengelolaan RAB dilakukan secara terpusat melalui menu **Rencana Anggaran Biaya (RAB)**.
+                </p>
+            </div>
+            @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana' && in_array($laporan->status_laporan, ['Disetujui', 'Diproses']) && in_array($laporan->kategori_kerusakan, ['Ringan', 'Sedang']))
+                <div class="pt-2">
+                    <a href="{{ route('staff.rab.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#114F72] text-white text-xs font-bold rounded-xl shadow-sm hover:bg-[#114F72]/90 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Buat RAB Baru di Menu RAB
+                    </a>
+                </div>
+            @endif
         </div>
     @else
-        <div class="rounded-xl bg-gray-50 border border-gray-100 p-8 text-center text-sm text-gray-500">
-            Belum ada Rencana Anggaran Biaya (RAB) yang dibuat untuk laporan ini.
+        <!-- KONDISI 2: LAPORAN SUDAH TERIKAT RAB (SUMMARY INFO) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <p class="text-gray-400 font-semibold uppercase tracking-wider mb-1">ID / Kode RAB</p>
+                <p class="text-sm font-bold text-[#114F72]">{{ $rab->id_rab }}</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <p class="text-gray-400 font-semibold uppercase tracking-wider mb-1">Total Anggaran RAB</p>
+                <p class="text-sm font-bold text-gray-800">Rp {{ number_format($rab->total_biaya, 0, ',', '.') }}</p>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <p class="text-gray-400 font-semibold uppercase tracking-wider mb-1">Jumlah Laporan Tergabung</p>
+                <p class="text-sm font-bold text-gray-800">{{ $rab->laporan->count() }} Laporan</p>
+            </div>
+        </div>
+
+        @if($rab->status_verifikasi_rab === 'Dikembalikan' && $rab->catatan_revisi_rab)
+            <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs space-y-1">
+                <p class="uppercase font-bold text-rose-800">Catatan Revisi Kabid:</p>
+                <p class="text-rose-900 leading-relaxed">{{ $rab->catatan_revisi_rab }}</p>
+            </div>
+        @endif
+
+        <div class="pt-2 flex items-center justify-between border-t border-gray-100">
+            <p class="text-xs text-gray-500">
+                Detail rincian kebutuhan material, volume, dan harga dapat dilihat pada menu utama RAB.
+            </p>
+            @if(auth()->user()->role->nama_role === 'Staff Sarana dan Prasarana')
+                <a href="{{ route('staff.rab.show', $rab->id_rab) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#114F72] hover:bg-[#114F72]/90 text-white text-xs font-bold rounded-xl shadow-sm transition">
+                    Lihat Detail RAB di Menu RAB &rarr;
+                </a>
+            @else
+                <a href="{{ route('kabid.rab.show', $rab->id_rab) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#114F72] hover:bg-[#114F72]/90 text-white text-xs font-bold rounded-xl shadow-sm transition">
+                    Verifikasi RAB di Menu RAB &rarr;
+                </a>
+            @endif
         </div>
     @endif
 </div>

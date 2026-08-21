@@ -144,6 +144,10 @@
                         </th>
 
                         <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            ID RAB & Lokasi
+                        </th>
+
+                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                             Nama Pekerjaan
                         </th>
 
@@ -167,6 +171,19 @@
 
                             <td class="px-6 py-4 text-sm text-gray-700">
                                 {{ $spjList->firstItem() + $index }}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                @if($spj->rab)
+                                    <a href="{{ route('staff.rab.show', $spj->rab->id_rab) }}" class="font-bold text-[#114F72] text-xs hover:underline">
+                                        {{ $spj->rab->id_rab }}
+                                    </a>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $spj->rab->nama_pasar }}
+                                    </div>
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
+                                @endif
                             </td>
 
                             <td class="px-6 py-4">

@@ -16,6 +16,7 @@ class Spj extends Model
 
     protected $fillable = [
         'id_spj',
+        'id_rab',
         'nama_pekerjaan',
         'periode_mulai',
         'periode_selesai',
@@ -50,8 +51,8 @@ class Spj extends Model
         return $this->belongsTo(User::class, 'uploaded_by', 'id_user');
     }
 
-    public function laporan()
+    public function rab()
     {
-        return $this->hasMany(Laporan::class, 'id_spj', 'id_spj');
+        return $this->belongsTo(Rab::class, 'id_rab', 'id_rab');
     }
 }

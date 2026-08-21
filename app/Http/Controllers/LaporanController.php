@@ -20,16 +20,15 @@ class LaporanController extends Controller
 
         // UPTD hanya bisa lihat pasar miliknya
         if ($user->role->nama_role === 'Petugas UPTD') {
-            $pasar = Pasar::where('id_pasar', $user->id_pasar)->get();
+            $pasar = Pasar::where('id_pasar', $user->id_pasar)->where('status_aktif', 'Aktif')->get();
             $pasarTerpilih = $user->id_pasar;
         } else {
-            $pasar = Pasar::all();
+            $pasar = Pasar::where('status_aktif', 'Aktif')->get();
             $pasarTerpilih = null;
         }
 
-        // Dropdown fasilitas diisi secara dinamis via /api/fasilitas/{id_lokasi}
-        // setelah user memilih lokasi. Fasilitas::all() tidak lagi digunakan di sini.
-        $kategoriLaporan = [
+        $dbKategori = \App\Models\KategoriLaporan::where('status_aktif', 'Aktif')->pluck('nama_kategori')->toArray();
+        $kategoriLaporan = !empty($dbKategori) ? $dbKategori : [
             'Sanitasi & Air',
             'Instalasi Listrik',
             'Prasarana Bangunan',
@@ -79,7 +78,7 @@ class LaporanController extends Controller
             'deskripsi_kerusakan' => 'required|string',
             'kondisi_diharapkan' => 'required|string',
             'foto_laporan'       => 'required|array|min:1',
-            'foto_laporan.*'     => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_laporan.*'     => 'required|file|mimes:jpg,jpeg,png|max:2048',
         ], [
             'nama_fasilitas_lainnya.required' => 'Nama Ruang/Fasilitas Lainnya wajib diisi.',
             'kategori_laporan_lainnya.required' => 'Kategori Sarana Lainnya wajib diisi.',
@@ -111,7 +110,8 @@ class LaporanController extends Controller
 
             // Simpan foto
             if ($request->hasFile('foto_laporan')) {
-                foreach ($request->file('foto_laporan') as $foto) {
+                $files = is_array($request->file('foto_laporan')) ? $request->file('foto_laporan') : [$request->file('foto_laporan')];
+                foreach ($files as $foto) {
                     $path = $foto->store('laporan', 'public');
 
                     FotoLaporan::create([
@@ -121,6 +121,15 @@ class LaporanController extends Controller
                     ]);
                 }
             }
+
+            // Event 1: UPTD kirim laporan -> Staff
+            \App\Services\NotificationService::sendToRole(
+                'Staff Sarana dan Prasarana',
+                'Laporan Masuk Baru',
+                "UPTD " . auth()->user()->nama_lengkap . " mengirim laporan kerusakan baru: {$laporan->item_kerusakan} ({$laporan->id_laporan})",
+                route('laporan.show', $laporan->id_laporan),
+                $laporan->id_laporan
+            );
 
             DB::commit();
 
@@ -188,6 +197,7 @@ class LaporanController extends Controller
             'fotoLaporan',
             'pelapor',
             'evaluator',
+            'rab',
             'detailRab',
             'progresPerbaikan.fotoProgres'
         ])->findOrFail($id);

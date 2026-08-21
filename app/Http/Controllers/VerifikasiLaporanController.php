@@ -66,6 +66,15 @@ class VerifikasiLaporanController extends Controller
             'tanggal_verifikasi_evaluasi' => now(),
         ]);
 
+        // Event 3: Kabid setujui evaluasi -> Staff
+        \App\Services\NotificationService::sendToRole(
+            'Staff Sarana dan Prasarana',
+            'Evaluasi Laporan Disetujui',
+            "Kabid menyetujui evaluasi laporan {$laporan->id_laporan} ({$laporan->item_kerusakan}).",
+            route('laporan.show', $laporan->id_laporan),
+            $laporan->id_laporan
+        );
+
         return redirect()
             ->route('kabid.laporan.index')
             ->with('success', 'Hasil evaluasi laporan berhasil disetujui.');
@@ -90,6 +99,15 @@ class VerifikasiLaporanController extends Controller
             'catatan_revisi_evaluasi' => $validated['catatan_revisi_evaluasi'],
             'tanggal_verifikasi_evaluasi' => now(),
         ]);
+
+        // Event 3: Kabid kembalikan evaluasi -> Staff
+        \App\Services\NotificationService::sendToRole(
+            'Staff Sarana dan Prasarana',
+            'Evaluasi Laporan Dikembalikan',
+            "Kabid mengembalikan evaluasi laporan {$laporan->id_laporan} untuk revisi.",
+            route('laporan.show', $laporan->id_laporan),
+            $laporan->id_laporan
+        );
 
         return redirect()
             ->route('kabid.laporan.index')

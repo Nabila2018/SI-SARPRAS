@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Rab;
 use App\Models\Spj;
-use App\Models\Laporan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SpjController extends Controller
@@ -26,18 +26,22 @@ class SpjController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Spj::with(['uploader', 'laporan']);
+        $query = Spj::with(['uploader', 'rab.laporan.lokasi.pasar']);
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_pekerjaan', 'like', "%{$search}%")
-                  ->orWhere('keterangan', 'like', "%{$search}%");
+                  ->orWhere('keterangan', 'like', "%{$search}%")
+                  ->orWhere('id_rab', 'like', "%{$search}%")
+                  ->orWhereHas('rab.laporan.lokasi.pasar', function ($qp) use ($search) {
+                      $qp->where('nama_pasar', 'like', "%{$search}%");
+                  });
             });
         }
 
         $spjList = $query->orderBy('tanggal_upload', 'desc')
-            ->paginate(5)
+            ->paginate(10)
             ->appends($request->only('search'));
 
         return view('staff.spj.index', compact('spjList'));
@@ -50,14 +54,24 @@ class SpjController extends Controller
     {
         $this->authorizeStaff();
 
-        // Ambil laporan yang statusnya 'Selesai' dan belum memiliki SPJ
-        $laporanList = Laporan::where('status_laporan', 'Selesai')
-            ->whereNull('id_spj')
-            ->with(['lokasi.pasar', 'fasilitas'])
-            ->orderBy('tanggal_lapor', 'desc')
-            ->get();
+        // Ambil RAB yang belum memiliki SPJ, berstatus Disetujui, dan seluruh laporannya sudah 100% selesai
+        $rabList = Rab::whereDoesntHave('spj')
+            ->where('status_verifikasi_rab', 'Disetujui')
+            ->with(['laporan.lokasi.pasar', 'laporan.fasilitas', 'laporan.progresPerbaikan'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->filter(function ($rab) {
+                if ($rab->laporan->isEmpty()) {
+                    return false;
+                }
+                // Pastikan seluruh laporan dalam RAB 100% selesai
+                return $rab->laporan->every(function ($laporan) {
+                    return $laporan->status_laporan === 'Selesai' || $laporan->latest_progress_percentage === 100;
+                });
+            })
+            ->values();
 
-        return view('staff.spj.create', compact('laporanList'));
+        return view('staff.spj.create', compact('rabList'));
     }
 
     /**
@@ -68,14 +82,15 @@ class SpjController extends Controller
         $this->authorizeStaff();
 
         $request->validate([
+            'id_rab' => 'required|exists:rab,id_rab',
             'nama_pekerjaan' => 'required|string|max:255',
             'periode_mulai' => 'required|date',
             'periode_selesai' => 'required|date|after_or_equal:periode_mulai',
             'keterangan' => 'nullable|string',
             'file_spj' => 'required|mimes:pdf|max:5120',
-            'laporan' => 'required|array|min:1',
-            'laporan.*' => 'required|exists:laporan,id_laporan',
         ], [
+            'id_rab.required' => 'Pilihan RAB wajib diisi.',
+            'id_rab.exists' => 'RAB yang dipilih tidak ditemukan.',
             'nama_pekerjaan.required' => 'Nama pekerjaan wajib diisi.',
             'periode_mulai.required' => 'Periode mulai wajib diisi.',
             'periode_selesai.required' => 'Periode selesai wajib diisi.',
@@ -83,34 +98,32 @@ class SpjController extends Controller
             'file_spj.required' => 'File SPJ wajib diunggah.',
             'file_spj.mimes' => 'File SPJ harus berformat PDF.',
             'file_spj.max' => 'Ukuran file SPJ maksimal 5 MB.',
-            'laporan.required' => 'Pilih minimal satu laporan.',
-            'laporan.min' => 'Pilih minimal satu laporan.',
-            'laporan.*.exists' => 'Laporan yang dipilih tidak valid.',
         ]);
 
-        // Validasi Business Rule: Seluruh laporan yang dipilih harus berstatus 'Selesai' dan id_spj masih NULL
-        $validLaporanCount = Laporan::whereIn('id_laporan', $request->laporan)
-            ->where('status_laporan', 'Selesai')
-            ->whereNull('id_spj')
-            ->count();
+        $rab = Rab::with(['laporan.progresPerbaikan', 'spj'])->findOrFail($request->id_rab);
 
-        if ($validLaporanCount !== count($request->laporan)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Beberapa laporan yang dipilih tidak valid, belum berstatus Selesai, atau sudah terhubung dengan SPJ lain.');
+        if ($rab->spj) {
+            return back()->withInput()->with('error', 'RAB ini sudah memiliki dokumen SPJ.');
+        }
+
+        $allDone = $rab->laporan->isNotEmpty() && $rab->laporan->every(function ($laporan) {
+            return $laporan->status_laporan === 'Selesai' || $laporan->latest_progress_percentage === 100;
+        });
+
+        if (!$allDone) {
+            return back()->withInput()->with('error', 'RAB belum dapat dibuatkan SPJ karena masih ada laporan yang belum selesai 100%.');
         }
 
         DB::beginTransaction();
 
         try {
-            // Simpan file SPJ ke storage/app/public/spj dengan nama asli file
             $file = $request->file('file_spj');
             $fileName = $file->getClientOriginalName();
             $filePath = $file->storeAs('spj', $fileName, 'public');
 
-            // Simpan data SPJ baru
             $spj = Spj::create([
                 'id_spj' => Spj::generateId(),
+                'id_rab' => $rab->id_rab,
                 'nama_pekerjaan' => $request->nama_pekerjaan,
                 'periode_mulai' => $request->periode_mulai,
                 'periode_selesai' => $request->periode_selesai,
@@ -120,15 +133,11 @@ class SpjController extends Controller
                 'tanggal_upload' => now(),
             ]);
 
-            // Update laporan terkait dengan id_spj yang baru dibuat
-            Laporan::whereIn('id_laporan', $request->laporan)
-                ->update(['id_spj' => $spj->id_spj]);
-
             DB::commit();
 
             return redirect()
                 ->route('staff.spj.index')
-                ->with('success', 'Dokumen SPJ berhasil disimpan.');
+                ->with('success', "Dokumen SPJ '{$spj->nama_pekerjaan}' ({$spj->id_spj}) berhasil disimpan.");
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -149,9 +158,11 @@ class SpjController extends Controller
     {
         $spj = Spj::with([
             'uploader',
-            'laporan',
-            'laporan.lokasi.pasar',
-            'laporan.fasilitas',
+            'rab.laporan.lokasi.pasar',
+            'rab.laporan.fasilitas',
+            'rab.laporan.pelapor',
+            'rab.laporan.progresPerbaikan',
+            'rab.detailRab',
         ])->findOrFail($id);
 
         return view('staff.spj.show', compact('spj'));
@@ -164,18 +175,14 @@ class SpjController extends Controller
     {
         $this->authorizeStaff();
 
-        $spj = Spj::with(['uploader', 'laporan'])->findOrFail($id);
+        $spj = Spj::with([
+            'uploader',
+            'rab.laporan.lokasi.pasar',
+            'rab.laporan.fasilitas',
+            'rab.laporan.progresPerbaikan',
+        ])->findOrFail($id);
 
-        $laporanList = Laporan::where('status_laporan', 'Selesai')
-            ->where(function ($query) use ($spj) {
-                $query->whereNull('id_spj')
-                      ->orWhere('id_spj', $spj->id_spj);
-            })
-            ->with(['lokasi.pasar', 'fasilitas'])
-            ->orderBy('tanggal_lapor', 'desc')
-            ->get();
-
-        return view('staff.spj.edit', compact('spj', 'laporanList'));
+        return view('staff.spj.edit', compact('spj'));
     }
 
     /**
@@ -193,8 +200,6 @@ class SpjController extends Controller
             'periode_selesai' => 'required|date|after_or_equal:periode_mulai',
             'keterangan' => 'nullable|string',
             'file_spj' => 'nullable|mimes:pdf|max:5120',
-            'laporan' => 'required|array|min:1',
-            'laporan.*' => 'required|distinct|exists:laporan,id_laporan',
         ], [
             'nama_pekerjaan.required' => 'Nama pekerjaan wajib diisi.',
             'periode_mulai.required' => 'Periode mulai wajib diisi.',
@@ -202,26 +207,7 @@ class SpjController extends Controller
             'periode_selesai.after_or_equal' => 'Periode selesai harus setelah atau sama dengan periode mulai.',
             'file_spj.mimes' => 'File SPJ harus berformat PDF.',
             'file_spj.max' => 'Ukuran file SPJ maksimal 5 MB.',
-            'laporan.required' => 'Pilih minimal satu laporan.',
-            'laporan.min' => 'Pilih minimal satu laporan.',
-            'laporan.*.distinct' => 'Pilihan laporan tidak boleh duplikat.',
-            'laporan.*.exists' => 'Laporan yang dipilih tidak valid.',
         ]);
-
-        // Validasi Business Rule: Seluruh laporan harus berstatus 'Selesai' dan (id_spj NULL atau milik SPJ ini)
-        $validLaporanCount = Laporan::whereIn('id_laporan', $request->laporan)
-            ->where('status_laporan', 'Selesai')
-            ->where(function ($q) use ($spj) {
-                $q->whereNull('id_spj')
-                  ->orWhere('id_spj', $spj->id_spj);
-            })
-            ->count();
-
-        if ($validLaporanCount !== count($request->laporan)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Beberapa laporan yang dipilih tidak valid, belum berstatus Selesai, atau sudah terhubung dengan SPJ lain.');
-        }
 
         DB::beginTransaction();
 
@@ -242,18 +228,8 @@ class SpjController extends Controller
             $spj->keterangan = $request->keterangan;
             $spj->save();
 
-            // 1. Lepas id_spj dari laporan yang sebelumnya terikat tapi sekarang tidak dipilih lagi
-            Laporan::where('id_spj', $spj->id_spj)
-                ->whereNotIn('id_laporan', $request->laporan)
-                ->update(['id_spj' => null]);
-
-            // 2. Hubungkan id_spj ke laporan yang dipilih saat ini
-            Laporan::whereIn('id_laporan', $request->laporan)
-                ->update(['id_spj' => $spj->id_spj]);
-
             DB::commit();
 
-            // Hapus file lama dari storage jika file baru berhasil disimpan
             if ($newFilePath && $oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
                 Storage::disk('public')->delete($oldFilePath);
             }
@@ -287,17 +263,10 @@ class SpjController extends Controller
 
         try {
             $filePath = $spj->file_spj;
-
-            // 1. Lepas keterikatan seluruh laporan terkait (set id_spj = NULL)
-            Laporan::where('id_spj', $spj->id_spj)
-                ->update(['id_spj' => null]);
-
-            // 2. Hapus record SPJ dari database
             $spj->delete();
 
             DB::commit();
 
-            // 3. Hapus file fisik PDF dari storage publik setelah transaksi DB sukses
             if ($filePath && Storage::disk('public')->exists($filePath)) {
                 Storage::disk('public')->delete($filePath);
             }

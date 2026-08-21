@@ -76,11 +76,11 @@
                     <span class="font-medium">Daftar Laporan Masuk</span>
                 </a>
 
-                <a href="{{ route('staff.proyek.index') }}" class="menu-item {{ request()->is('staff/proyek*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                <a href="{{ route('staff.rab.index') }}" class="menu-item {{ request()->is('staff/rab*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0H9m4 0h2m-6 4h6"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                     </svg>
-                    <span class="font-medium">Proyek Perbaikan</span>
+                    <span class="font-medium">Rencana Anggaran Biaya (RAB)</span>
                 </a>
 
                 <a href="{{ route('staff.spj.index') }}" class="menu-item {{ request()->is('staff/spj*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
@@ -89,6 +89,14 @@
                     </svg>
                     <span class="font-medium">Dokumen Pertanggungjawaban</span>
                 </a>
+
+                <a href="{{ route('staff.master.index') }}" class="menu-item {{ request()->is('staff/master*') || request()->is('staff/sab*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                    </svg>
+                    <span class="font-medium">Master Data</span>
+                </a>
+
                 <a href="{{ route('staff.akun.index') }}"
                    class="menu-item {{ request()->is('staff/akun*') ? 'active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg transition-all">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,13 +206,30 @@
                 </div>
 
                 <!-- Notifikasi -->
-                <div class="flex items-center gap-4">
-                    <button class="relative p-2 text-gray-500 hover:text-[#003366] transition">
+                <div class="relative flex items-center gap-4">
+                    <button id="notifBellBtn" onclick="toggleNotifDropdown()" class="relative p-2 text-gray-500 hover:text-[#003366] transition focus:outline-none">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        <span id="notifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
                     </button>
+
+                    <!-- Dropdown Popover -->
+                    <div id="notifDropdown" class="hidden absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-extrabold text-gray-800">Notifikasi</h4>
+                                <span id="notifHeaderCount" class="px-2 py-0.5 bg-sky-100 text-sky-800 rounded-full text-[10px] font-bold">0 Baru</span>
+                            </div>
+                            <form id="formMarkAllRead" action="{{ route('notifikasi.mark-all-read') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-[11px] font-bold text-[#114F72] hover:underline">Tandai Semua Dibaca</button>
+                            </form>
+                        </div>
+                        <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-gray-100 text-xs">
+                            <div class="p-6 text-center text-gray-400">Memuat notifikasi...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -222,6 +247,74 @@
         </footer>
     </div>
 
+    <script>
+        function toggleNotifDropdown() {
+            const dropdown = document.getElementById('notifDropdown');
+            dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains('hidden')) {
+                fetchNotifications();
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const btn = document.getElementById('notifBellBtn');
+            const dropdown = document.getElementById('notifDropdown');
+            if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function fetchNotifications() {
+            fetch("{{ route('notifikasi.api') }}")
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('notifBadge');
+                    const headerCount = document.getElementById('notifHeaderCount');
+                    const container = document.getElementById('notifListContainer');
+
+                    if (data.unread_count > 0) {
+                        badge.innerText = data.unread_count > 99 ? '99+' : data.unread_count;
+                        badge.classList.remove('hidden');
+                        headerCount.innerText = data.unread_count + ' Baru';
+                    } else {
+                        badge.classList.add('hidden');
+                        headerCount.innerText = '0 Baru';
+                    }
+
+                    if (!data.notifications || data.notifications.length === 0) {
+                        container.innerHTML = '<div class="p-6 text-center text-gray-400">Belum ada notifikasi.</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.notifications.forEach(n => {
+                        const isUnread = n.is_read === 0;
+                        const bgClass = isUnread ? 'bg-sky-50/50 font-medium' : 'bg-white';
+                        const dotClass = isUnread ? '<span class="w-2 h-2 rounded-full bg-[#114F72] shrink-0"></span>' : '';
+                        
+                        html += `
+                            <a href="/notifikasi/${n.id_notifikasi}/read" class="block p-3.5 hover:bg-gray-50 transition ${bgClass}">
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <span class="font-bold text-gray-800 text-xs">${n.judul_notifikasi}</span>
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <span class="text-[10px] text-gray-400">${n.time_ago}</span>
+                                        ${dotClass}
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-gray-600 leading-snug line-clamp-2">${n.pesan_notifikasi}</p>
+                            </a>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                })
+                .catch(() => {});
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchNotifications);
+    </script>
+
     @yield('scripts')
+    @include('partials._photo_lightbox')
 </body>
 </html>

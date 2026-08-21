@@ -83,7 +83,7 @@
 
         $isReportActive = !in_array($laporan->status_laporan, ['Menunggu', 'Dikembalikan', 'Ditolak']);
         $evaluasiDone = !is_null($laporan->kategori_kerusakan) && $isReportActive;
-        $rabApproved = $laporan->status_verifikasi_rab === 'Disetujui' && $isReportActive;
+        $rabApproved = $laporan->rab && (!is_null($laporan->rab->tanggal_persetujuan_awal) || $laporan->rab->status_verifikasi_rab === 'Disetujui') && $isReportActive;
 
         $tabEnabled = [
             'informasi' => true,

@@ -13,6 +13,10 @@ use App\Http\Controllers\SpjController;
 use App\Http\Controllers\LaporanRealisasiTahunanController;
 use App\Http\Controllers\KadinLaporanController;
 use App\Http\Controllers\StaffProyekController;
+use App\Http\Controllers\StaffRabController;
+use App\Http\Controllers\StaffSabController;
+use App\Http\Controllers\StaffMasterController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\HomeController;
 
 // =======================
@@ -45,6 +49,13 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'
 // =======================
 
 Route::middleware(['auth', 'account.active'])->group(function () {
+    // =======================
+    // NOTIFIKASI IN-APP
+    // =======================
+    Route::get('/notifikasi/api', [NotifikasiController::class, 'getNotifications'])->name('notifikasi.api');
+    Route::get('/notifikasi/{id}/read', [NotifikasiController::class, 'read'])->name('notifikasi.read');
+    Route::post('/notifikasi/mark-all-read', [NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.mark-all-read');
+
     // =======================
     // AUTH
     // =======================
@@ -118,35 +129,63 @@ Route::middleware(['auth', 'account.active'])->group(function () {
         Route::post('/staff/laporan/{id}/forward', [StaffLaporanController::class, 'forwardToKabid'])
             ->name('staff.laporan.forward');
 
-                // ===== RAB =====
-        Route::get('/staff/laporan/{id}/rab', [StaffLaporanController::class, 'showRab'])
-            ->name('staff.laporan.rab.show');
-
-        Route::post('/staff/laporan/{id}/rab', [StaffLaporanController::class, 'storeRab'])
-            ->name('staff.laporan.rab.store');
-
-        Route::post('/staff/laporan/{id}/rab/forward', [StaffLaporanController::class, 'forwardRab'])
-            ->name('staff.laporan.rab.forward');
-
-                // ===== DAFTAR RAB =====
-        Route::get('/staff/rab', [StaffLaporanController::class, 'indexRab'])
-            ->name('staff.rab.index');
-
         // ===== PROGRES PERBAIKAN =====
         Route::post('/staff/laporan/{id}/progres', [StaffLaporanController::class, 'storeProgres'])
             ->name('staff.laporan.progres.store');
         Route::post('/staff/laporan/{id}/progres/{id_progres}', [StaffLaporanController::class, 'updateProgres'])
             ->name('staff.laporan.progres.update');
 
-        // ===== PROYEK PERBAIKAN =====
-        Route::get('/staff/proyek', [StaffProyekController::class, 'index'])
-            ->name('staff.proyek.index');
-        Route::get('/staff/proyek/create', [StaffProyekController::class, 'create'])
-            ->name('staff.proyek.create');
-        Route::post('/staff/proyek', [StaffProyekController::class, 'store'])
-            ->name('staff.proyek.store');
-        Route::get('/staff/proyek/{id}', [StaffProyekController::class, 'show'])
-            ->name('staff.proyek.show');
+        // ===== RENCANA ANGGARAN BIAYA (RAB) =====
+        Route::get('/staff/rab', [StaffRabController::class, 'index'])
+            ->name('staff.rab.index');
+        Route::get('/staff/rab/create', [StaffRabController::class, 'create'])
+            ->name('staff.rab.create');
+        Route::post('/staff/rab', [StaffRabController::class, 'store'])
+            ->name('staff.rab.store');
+        Route::get('/staff/rab/{id}', [StaffRabController::class, 'show'])
+            ->name('staff.rab.show');
+        Route::get('/staff/rab/{id}/edit', [StaffRabController::class, 'edit'])
+            ->name('staff.rab.edit');
+        Route::put('/staff/rab/{id}', [StaffRabController::class, 'update'])
+            ->name('staff.rab.update');
+
+        // ===== MASTER DATA TERPUSAT =====
+        Route::get('/staff/master', [StaffMasterController::class, 'index'])->name('staff.master.index');
+        
+        // Pasar
+        Route::post('/staff/master/pasar', [StaffMasterController::class, 'storePasar'])->name('staff.master.pasar.store');
+        Route::put('/staff/master/pasar/{id}', [StaffMasterController::class, 'updatePasar'])->name('staff.master.pasar.update');
+        Route::patch('/staff/master/pasar/{id}/status', [StaffMasterController::class, 'toggleStatusPasar'])->name('staff.master.pasar.toggle-status');
+
+        // Lokasi
+        Route::post('/staff/master/lokasi', [StaffMasterController::class, 'storeLokasi'])->name('staff.master.lokasi.store');
+        Route::put('/staff/master/lokasi/{id}', [StaffMasterController::class, 'updateLokasi'])->name('staff.master.lokasi.update');
+        Route::patch('/staff/master/lokasi/{id}/status', [StaffMasterController::class, 'toggleStatusLokasi'])->name('staff.master.lokasi.toggle-status');
+
+        // Fasilitas
+        Route::post('/staff/master/fasilitas', [StaffMasterController::class, 'storeFasilitas'])->name('staff.master.fasilitas.store');
+        Route::put('/staff/master/fasilitas/{id}', [StaffMasterController::class, 'updateFasilitas'])->name('staff.master.fasilitas.update');
+        Route::patch('/staff/master/fasilitas/{id}/status', [StaffMasterController::class, 'toggleStatusFasilitas'])->name('staff.master.fasilitas.toggle-status');
+
+        // Kategori
+        Route::post('/staff/master/kategori', [StaffMasterController::class, 'storeKategori'])->name('staff.master.kategori.store');
+        Route::put('/staff/master/kategori/{id}', [StaffMasterController::class, 'updateKategori'])->name('staff.master.kategori.update');
+        Route::patch('/staff/master/kategori/{id}/status', [StaffMasterController::class, 'toggleStatusKategori'])->name('staff.master.kategori.toggle-status');
+
+        // SAB
+        Route::post('/staff/master/sab', [StaffMasterController::class, 'storeSab'])->name('staff.master.sab.store');
+        Route::put('/staff/master/sab/{id}', [StaffMasterController::class, 'updateSab'])->name('staff.master.sab.update');
+        Route::patch('/staff/master/sab/{id}/status', [StaffMasterController::class, 'toggleStatusSab'])->name('staff.master.sab.toggle-status');
+
+        // ===== MASTER SAB (REDIRECT) =====
+        Route::get('/staff/sab', [StaffSabController::class, 'index'])
+            ->name('staff.sab.index');
+        Route::post('/staff/sab', [StaffSabController::class, 'store'])
+            ->name('staff.sab.store');
+        Route::put('/staff/sab/{id}', [StaffSabController::class, 'update'])
+            ->name('staff.sab.update');
+        Route::patch('/staff/sab/{id}/status', [StaffSabController::class, 'toggleStatus'])
+            ->name('staff.sab.toggle-status');
 
         // PENGELOLAAN AKUN
         Route::get('/staff/akun', [PengelolaanAkunController::class, 'index'])
@@ -233,6 +272,7 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::get('/api/lokasi/{pasar}', function ($pasarId) {
 
         $lokasi = \App\Models\Lokasi::where('id_pasar', $pasarId)
+            ->where('status_aktif', 'Aktif')
             ->orderBy('id_induk')
             ->orderBy('nama_lokasi')
             ->get([
@@ -294,10 +334,10 @@ Route::middleware(['auth', 'account.active'])->group(function () {
 
         $fasilitas = \App\Models\Fasilitas::whereHas('lokasiFasilitas', function ($q) use ($lokasiId) {
             $q->where('id_lokasi', $lokasiId);
-        })->orderBy('nama_fasilitas')->get(['id_fasilitas', 'nama_fasilitas']);
+        })->where('status_aktif', 'Aktif')->orderBy('nama_fasilitas')->get(['id_fasilitas', 'nama_fasilitas']);
 
         // Pastikan 'Ruang Lainnya' selalu tersedia sebagai opsi fallback di semua lokasi
-        $ruangLainnya = \App\Models\Fasilitas::where('nama_fasilitas', 'Ruang Lainnya')->first(['id_fasilitas', 'nama_fasilitas']);
+        $ruangLainnya = \App\Models\Fasilitas::where('nama_fasilitas', 'Ruang Lainnya')->where('status_aktif', 'Aktif')->first(['id_fasilitas', 'nama_fasilitas']);
         if ($ruangLainnya && !$fasilitas->contains('id_fasilitas', $ruangLainnya->id_fasilitas)) {
             $fasilitas->push($ruangLainnya);
         }

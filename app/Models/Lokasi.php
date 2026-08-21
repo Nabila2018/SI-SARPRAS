@@ -25,6 +25,7 @@ class Lokasi extends Model
         'luas_tanah',
         'luas_bangunan',
         'keterangan',
+        'status_aktif',
     ];
 
     protected static function booted()

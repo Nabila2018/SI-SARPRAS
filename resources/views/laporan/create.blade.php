@@ -235,9 +235,22 @@
 
             <!-- Foto Laporan -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    Foto Laporan <span class="text-red-500">*</span>
-                </label>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                    <label class="block text-sm font-semibold text-gray-700">
+                        Foto Laporan <span class="text-red-500">*</span>
+                    </label>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openLaporanCamera()"
+                            title="Ambil Foto Kamera"
+                            class="inline-flex items-center justify-center p-2 bg-gradient-to-r from-[#115f8c] to-[#16A394] text-white rounded-xl shadow-sm hover:opacity-90 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 
                 <input type="file" name="foto_laporan[]" id="foto_laporan" multiple accept="image/*" class="hidden"
                     onchange="handleFileSelection(this)">
@@ -798,15 +811,18 @@
 
             selectedFilesArray.forEach(function(file, index) {
                 const card = document.createElement('div');
-                card.className = 'relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm';
+                card.className = 'relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm cursor-pointer hover:border-[#16A394] transition-all';
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    card.onclick = function() {
+                        openSiSarprasPhotoLightbox(e.target.result, file.name);
+                    };
                     card.innerHTML = `
                         <div class="relative h-28 w-full bg-gray-100">
-                            <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover">
+                            <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             <button type="button" onclick="event.stopPropagation(); removeSelectedFile(${index})"
-                                class="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110"
+                                class="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110 z-10"
                                 title="Hapus foto ini">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
@@ -961,6 +977,22 @@
         });
     }
 
+    function openLaporanCamera() {
+        openSiSarprasCamera(function(capturedFile) {
+            if (capturedFile.size > 2 * 1024 * 1024) {
+                alert(`Ukuran foto kamera (${(capturedFile.size / (1024*1024)).toFixed(1)}MB) melebihi batas maksimal 2MB.`);
+                return;
+            }
+            const exists = selectedFilesArray.some(function(f) {
+                return f.name === capturedFile.name && f.size === capturedFile.size;
+            });
+            if (!exists) {
+                selectedFilesArray.push(capturedFile);
+                updateFileInputAndPreview();
+            }
+        });
+    }
+
     if (btnSubmitLaporan) {
         btnSubmitLaporan.addEventListener('click', function() {
             btnSubmitLaporan.disabled = true;
@@ -969,6 +1001,8 @@
         });
     }
 </script>
+
+@include('partials._camera_modal')
 @endsection
 @endsection
 

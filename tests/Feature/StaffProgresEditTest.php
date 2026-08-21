@@ -8,6 +8,7 @@ use App\Models\Laporan;
 use App\Models\Lokasi;
 use App\Models\Pasar;
 use App\Models\ProgresPerbaikan;
+use App\Models\Rab;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,6 +47,12 @@ class StaffProgresEditTest extends TestCase
             'status_akun' => 'Aktif',
         ]);
 
+        $rab = Rab::create([
+            'id_rab' => Rab::generateId(),
+            'status_verifikasi_rab' => 'Disetujui',
+            'tanggal_persetujuan_awal' => now(),
+        ]);
+
         $laporan = Laporan::create([
             'id_lokasi' => $lokasi->id_lokasi,
             'id_fasilitas' => $fasilitas->id_fasilitas,
@@ -57,7 +64,7 @@ class StaffProgresEditTest extends TestCase
             'kondisi_diharapkan' => 'Atap diperbaiki',
             'tanggal_lapor' => now(),
             'status_laporan' => 'Diproses',
-            'status_verifikasi_rab' => 'Disetujui',
+            'id_rab' => $rab->id_rab,
         ]);
 
         $progres = ProgresPerbaikan::create([

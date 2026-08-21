@@ -12,6 +12,7 @@ class LokasiFasilitas extends Model
     protected $table = 'lokasi_fasilitas';
     protected $primaryKey = null;
     public $incrementing = false;
+    public $timestamps = false;
 
     protected $fillable = [
         'id_lokasi',

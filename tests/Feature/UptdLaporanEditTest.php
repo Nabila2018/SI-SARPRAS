@@ -111,7 +111,6 @@ class UptdLaporanEditTest extends TestCase
             'id_fasilitas' => $fasilitasKios->id_fasilitas,
             'nama_fasilitas_lainnya' => null,
             'id_pelapor' => $uptdUser1->id_user,
-            'id_spj' => null,
             'kategori_laporan' => 'Sanitasi & Air',
             'kategori_laporan_lainnya' => null,
             'item_kerusakan' => 'Kran Air Mampet',

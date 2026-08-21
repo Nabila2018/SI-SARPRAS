@@ -58,6 +58,16 @@ class Proyek extends Model
         return $this->hasMany(Laporan::class, 'id_proyek');
     }
 
+    public function rab()
+    {
+        return $this->hasOne(Rab::class, 'id_proyek');
+    }
+
+    public function spj()
+    {
+        return $this->hasOne(Spj::class, 'id_proyek');
+    }
+
     public function pasar()
     {
         return $this->belongsTo(Pasar::class, 'id_pasar');
@@ -66,5 +76,33 @@ class Proyek extends Model
     public function pembuat()
     {
         return $this->belongsTo(User::class, 'id_pembuat', 'id_user');
+    }
+
+    public function getJumlahLaporanAttribute(): int
+    {
+        return $this->laporan->count();
+    }
+
+    public function getJumlahSelesaiAttribute(): int
+    {
+        return $this->laporan->filter(fn($l) => $l->latest_progress_percentage === 100)->count();
+    }
+
+    public function getJumlahBelumSelesaiAttribute(): int
+    {
+        return $this->laporan->filter(fn($l) => $l->latest_progress_percentage < 100)->count();
+    }
+
+    public function getIsSeluruhPekerjaanSelesaiAttribute(): bool
+    {
+        return $this->jumlah_laporan > 0 && $this->jumlah_selesai === $this->jumlah_laporan;
+    }
+
+    public function getPersentaseProgressAttribute(): int
+    {
+        if ($this->jumlah_laporan === 0) {
+            return 0;
+        }
+        return (int) round($this->laporan->avg(fn($l) => $l->latest_progress_percentage));
     }
 }

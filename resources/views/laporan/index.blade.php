@@ -192,75 +192,7 @@
                     Menampilkan {{ $paginator->firstItem() }}-{{ $paginator->lastItem() }} dari {{ $paginator->total() }} laporan
                 </div>
 
-                @if($paginator->hasPages())
-                    <nav class="flex flex-wrap items-center justify-end gap-2" aria-label="Pagination">
-                        @if($paginator->onFirstPage())
-                            <span class="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                </svg>
-                                Sebelumnya
-                            </span>
-                        @else
-                            <a href="{{ $paginator->previousPageUrl() }}" class="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-[#114F72] bg-white border border-gray-200 rounded-lg hover:bg-[#114F72]/5 hover:border-[#114F72]/20 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                </svg>
-                                Sebelumnya
-                            </a>
-                        @endif
-
-                        @php
-                            $window = 2;
-                            $start = max(1, $paginator->currentPage() - $window);
-                            $end = min($paginator->lastPage(), $paginator->currentPage() + $window);
-                        @endphp
-
-                        @if($start > 1)
-                            <a href="{{ $paginator->url(1) }}" class="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">1</a>
-                            @if($start > 2)
-                                <span class="px-2 text-sm text-gray-400">...</span>
-                            @endif
-                        @endif
-
-                        @for($page = $start; $page <= $end; $page++)
-                            @if($page == $paginator->currentPage())
-                                <span class="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#114F72] to-[#16A394] border border-transparent rounded-lg shadow-sm">
-                                    {{ $page }}
-                                </span>
-                            @else
-                                <a href="{{ $paginator->url($page) }}" class="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                    {{ $page }}
-                                </a>
-                            @endif
-                        @endfor
-
-                        @if($end < $paginator->lastPage())
-                            @if($end < $paginator->lastPage() - 1)
-                                <span class="px-2 text-sm text-gray-400">...</span>
-                            @endif
-                            <a href="{{ $paginator->url($paginator->lastPage()) }}" class="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                {{ $paginator->lastPage() }}
-                            </a>
-                        @endif
-
-                        @if($paginator->hasMorePages())
-                            <a href="{{ $paginator->nextPageUrl() }}" class="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-[#114F72] bg-white border border-gray-200 rounded-lg hover:bg-[#114F72]/5 hover:border-[#114F72]/20 transition-colors">
-                                Berikutnya
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </a>
-                        @else
-                            <span class="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
-                                Berikutnya
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </span>
-                        @endif
-                    </nav>
-                @endif
+                {{ $paginator->links() }}
             </div>
         @else
             <!-- Empty State -->

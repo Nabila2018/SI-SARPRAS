@@ -1,138 +1,179 @@
 @extends('layouts.app')
 
-@section('title', 'Verifikasi RAB - Kepala Bidang')
+@section('title', 'Verifikasi RAB - Kabid SI-SARPRAS')
+
+@section('breadcrumb')
+    <span class="text-gray-600">Verifikasi RAB</span>
+@endsection
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header Halaman -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="space-y-6 pb-12">
+    <!-- Header Page -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Verifikasi Rencana Anggaran Biaya (RAB)</h1>
-            <p class="text-sm text-gray-500 mt-1">Daftar RAB perbaikan fasilitas pasar yang diajukan oleh Staff Sarana dan Prasarana untuk diverifikasi.</p>
+            <p class="text-xs text-gray-500 mt-1">Daftar pengajuan RAB perbaikan sarana pasar yang memerlukan verifikasi Kepala Bidang.</p>
         </div>
     </div>
 
-    <!-- Card Tabel Queue -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
-        <!-- Filter & Search -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2 border-b border-gray-100">
-            <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
-                <a href="{{ route('kabid.rab.index') }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {{ !request('status') || request('status') === 'Menunggu' ? 'bg-[#114F72] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                    Menunggu Verifikasi
-                </a>
-                <a href="{{ route('kabid.rab.index', ['status' => 'Disetujui']) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {{ request('status') === 'Disetujui' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                    Disetujui
-                </a>
-                <a href="{{ route('kabid.rab.index', ['status' => 'Dikembalikan']) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {{ request('status') === 'Dikembalikan' ? 'bg-rose-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                    Dikembalikan
-                </a>
+    @if(session('success'))
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>{{ session('success') }}</span>
             </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">&times;</button>
+        </div>
+    @endif
 
-            <form method="GET" action="{{ route('kabid.rab.index') }}" class="w-full sm:w-64">
-                @if(request('status'))
-                    <input type="hidden" name="status" value="{{ request('status') }}">
-                @endif
-                <div class="relative">
-                    <input type="text"
-                           name="search"
-                           value="{{ request('search') }}"
-                           placeholder="Cari ID, pasar, fasilitas..."
-                           class="w-full rounded-xl border border-gray-300 pl-9 pr-4 py-1.5 text-xs text-gray-700 focus:border-[#114F72] focus:ring-1 focus:ring-[#114F72]">
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </div>
-            </form>
+    @if(session('error'))
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700">&times;</button>
+        </div>
+    @endif
+
+    <!-- Card Stats Overview -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-[11px] font-semibold uppercase text-gray-400">Menunggu Verifikasi</p>
+                <p class="text-lg font-extrabold text-amber-700">{{ $rabList->where('status_verifikasi_rab', 'Menunggu')->count() }}</p>
+            </div>
         </div>
 
-        <!-- Table Queue -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-[11px] font-semibold uppercase text-gray-400">Disetujui</p>
+                <p class="text-lg font-extrabold text-emerald-700">{{ $rabList->where('status_verifikasi_rab', 'Disetujui')->count() }}</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-sm shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-[11px] font-semibold uppercase text-gray-400">Dikembalikan</p>
+                <p class="text-lg font-extrabold text-rose-700">{{ $rabList->where('status_verifikasi_rab', 'Dikembalikan')->count() }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <form method="GET" action="{{ route('kabid.rab.index') }}" class="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="relative w-full md:w-80">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID RAB, pasar, rincian..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#114F72]/20 focus:border-[#114F72] focus:bg-white outline-none transition">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <select name="status" onchange="this.form.submit()" class="w-full md:w-48 py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 focus:ring-2 focus:ring-[#114F72]/20 outline-none">
+                    <option value="">Semua Status</option>
+                    @foreach($statusList as $st)
+                        <option value="{{ $st }}" {{ request('status') === $st ? 'selected' : '' }}>{{ $st }}</option>
+                    @endforeach
+                </select>
+
+                <button type="submit" class="px-4 py-2.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-xl shadow-sm transition">
+                    Filter
+                </button>
+                @if(request('search') || request('status'))
+                    <a href="{{ route('kabid.rab.index') }}" class="px-3 py-2.5 text-xs text-gray-500 hover:text-gray-700 font-semibold">Reset</a>
+                @endif
+            </div>
+        </form>
+    </div>
+
+    <!-- Table List RAB -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-gray-200 bg-gray-50/50">
-                        <th class="py-3 px-3 text-left text-xs uppercase tracking-wider font-semibold text-gray-500 w-12">No</th>
-                        <th class="py-3 px-3 text-left text-xs uppercase tracking-wider font-semibold text-gray-500">Pasar & Lokasi</th>
-                        <th class="py-3 px-3 text-left text-xs uppercase tracking-wider font-semibold text-gray-500">Fasilitas / Item</th>
-                        <th class="py-3 px-3 text-left text-xs uppercase tracking-wider font-semibold text-gray-500">Staff Sarpras</th>
-                        <th class="py-3 px-3 text-left text-xs uppercase tracking-wider font-semibold text-gray-500">Tanggal Dikirim</th>
-                        <th class="py-3 px-3 text-right text-xs uppercase tracking-wider font-semibold text-gray-500">Total RAB (Rp)</th>
-                        <th class="py-3 px-3 text-center text-xs uppercase tracking-wider font-semibold text-gray-500">Status Verifikasi</th>
-                        <th class="py-3 px-3 text-center text-xs uppercase tracking-wider font-semibold text-gray-500 w-28">Aksi</th>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50/80 border-b border-gray-100 text-gray-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-4">ID RAB</th>
+                        <th class="py-3.5 px-4">Lokasi Pasar</th>
+                        <th class="py-3.5 px-4 text-center">Jumlah Laporan</th>
+                        <th class="py-3.5 px-4 text-right">Total Anggaran</th>
+                        <th class="py-3.5 px-4 text-center">Status</th>
+                        <th class="py-3.5 px-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse($rabList as $index => $laporan)
-                        @php
-                            $totalNominalRab = $laporan->detailRab ? $laporan->detailRab->sum(function($item) {
-                                return ($item->volume ?? 0) * ($item->harga_satuan ?? 0);
-                            }) : 0;
-                        @endphp
-                        <tr class="hover:bg-gray-50/80 transition">
-                            <td class="py-3.5 px-3 text-gray-500 text-xs font-medium">
-                                {{ $rabList->firstItem() + $index }}
+                    @forelse($rabList as $rab)
+                        <tr class="hover:bg-gray-50/60 transition">
+                            <td class="py-4 px-4 font-bold text-[#114F72]">
+                                <a href="{{ route('kabid.rab.show', $rab->id_rab) }}" class="hover:underline">
+                                    {{ $rab->id_rab }}
+                                </a>
                             </td>
-                            <td class="py-3.5 px-3 text-xs">
-                                <p class="font-bold text-gray-900">{{ $laporan->lokasi?->pasar?->nama_pasar ?? '-' }}</p>
-                                <p class="text-gray-500 text-[11px] mt-0.5">{{ $laporan->lokasi?->nama_lokasi ?? '-' }}</p>
+                            <td class="py-4 px-4 font-semibold text-gray-800">
+                                {{ $rab->nama_pasar }}
                             </td>
-                            <td class="py-3.5 px-3 text-xs">
-                                <p class="font-semibold text-gray-800">{{ $laporan->fasilitas?->nama_fasilitas ?? '-' }}</p>
-                                @if($laporan->item_kerusakan)
-                                    <p class="text-gray-500 text-[11px] mt-0.5">{{ $laporan->item_kerusakan }}</p>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-3 text-gray-700 text-xs">
-                                Staff Sarana dan Prasarana
-                            </td>
-                            <td class="py-3.5 px-3 text-gray-600 text-xs whitespace-nowrap">
-                                {{ $laporan->tanggal_input_rab ? \Carbon\Carbon::parse($laporan->tanggal_input_rab)->translatedFormat('d M Y H:i') : '-' }}
-                            </td>
-                            <td class="py-3.5 px-3 text-right font-bold text-gray-800 text-xs whitespace-nowrap">
-                                Rp {{ number_format($totalNominalRab, 0, ',', '.') }}
-                            </td>
-                            <td class="py-3.5 px-3 text-center">
-                                @php
-                                    $statusBadge = match($laporan->status_verifikasi_rab) {
-                                        'Menunggu' => 'bg-amber-100 text-amber-800 border-amber-200',
-                                        'Disetujui' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                                        'Dikembalikan' => 'bg-rose-100 text-rose-800 border-rose-200',
-                                        default => 'bg-gray-100 text-gray-600 border-gray-200',
-                                    };
-                                    $statusLabel = match($laporan->status_verifikasi_rab) {
-                                        'Menunggu' => 'Menunggu Verifikasi',
-                                        default => $laporan->status_verifikasi_rab ?? 'Draft',
-                                    };
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $statusBadge }}">
-                                    {{ $statusLabel }}
+                            <td class="py-4 px-4 text-center font-bold text-gray-700">
+                                <span class="px-2.5 py-1 bg-gray-100 rounded-lg text-gray-800 text-[11px]">
+                                    {{ $rab->laporan->count() }} Laporan
                                 </span>
                             </td>
-                            <td class="py-3.5 px-3 text-center">
-                                <a href="{{ route('laporan.show', ['id' => $laporan->id_laporan, 'tab' => 'rab']) }}"
-                                   class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#114F72] to-[#16A394] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 transition">
+                            <td class="py-4 px-4 text-right font-extrabold text-gray-800">
+                                Rp {{ number_format($rab->total_biaya, 0, ',', '.') }}
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                @php
+                                    $badge = match($rab->status_verifikasi_rab) {
+                                        'Disetujui' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'Menunggu' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                        'Dikembalikan' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                        default => 'bg-gray-50 text-gray-600 border-gray-200',
+                                    };
+                                @endphp
+                                <span class="px-3 py-1 rounded-full text-[11px] font-extrabold border {{ $badge }}">
+                                    {{ $rab->status_verifikasi_rab }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <a href="{{ route('kabid.rab.show', $rab->id_rab) }}" class="px-3.5 py-1.5 bg-[#114F72] hover:bg-[#114F72]/90 text-white rounded-lg text-[11px] font-bold transition shadow-sm inline-flex items-center gap-1">
+                                    <span>Verifikasi</span>
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
-                                    Verifikasi
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-8 text-center text-sm text-gray-400">
-                                Tidak ada RAB yang membutuhkan verifikasi saat ini.
+                            <td colspan="6" class="py-12 text-center text-gray-400">
+                                Tidak ada data pengajuan RAB yang ditemukan.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
         @if($rabList->hasPages())
-            <div class="pt-4 border-t border-gray-100">
+            <div class="p-4 border-t border-gray-100">
                 {{ $rabList->links() }}
             </div>
         @endif

@@ -17,6 +17,7 @@ class Fasilitas extends Model
     protected $fillable = [
         'id_fasilitas',
         'nama_fasilitas',
+        'status_aktif',
     ];
 
     protected static function booted()

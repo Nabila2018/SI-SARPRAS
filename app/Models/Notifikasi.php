@@ -13,6 +13,7 @@ class Notifikasi extends Model
     protected $primaryKey = 'id_notifikasi';
     public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_notifikasi',
@@ -20,6 +21,7 @@ class Notifikasi extends Model
         'id_laporan',
         'judul_notifikasi',
         'pesan_notifikasi',
+        'link_target',
         'is_read',
         'created_at',
     ];
@@ -29,6 +31,9 @@ class Notifikasi extends Model
         static::creating(function ($model) {
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = static::generateId();
+            }
+            if (empty($model->created_at)) {
+                $model->created_at = now();
             }
         });
     }

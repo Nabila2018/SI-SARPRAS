@@ -21,8 +21,7 @@ class Laporan extends Model
         'id_fasilitas',
         'nama_fasilitas_lainnya',
         'id_pelapor',
-        'id_spj',
-        'id_proyek',
+        'id_rab',
         'kategori_laporan',
         'kategori_laporan_lainnya',
         'item_kerusakan',
@@ -97,14 +96,9 @@ class Laporan extends Model
         return $this->belongsTo(User::class, 'id_evaluator', 'id_user');
     }
 
-    public function spj()
+    public function rab()
     {
-        return $this->belongsTo(Spj::class, 'id_spj', 'id_spj');
-    }
-
-    public function proyek()
-    {
-        return $this->belongsTo(Proyek::class, 'id_proyek', 'id_proyek');
+        return $this->belongsTo(Rab::class, 'id_rab', 'id_rab');
     }
 
     public function fotoLaporan()
@@ -120,6 +114,12 @@ class Laporan extends Model
     public function progresPerbaikan()
     {
         return $this->hasMany(ProgresPerbaikan::class, 'id_laporan');
+    }
+
+    public function getLatestProgressPercentageAttribute(): int
+    {
+        $latest = $this->progresPerbaikan->sortByDesc('tanggal_update')->first();
+        return $latest ? (int)$latest->persentase_penyelesaian : 0;
     }
 
     public function notifikasi()
@@ -142,5 +142,21 @@ class Laporan extends Model
             return "Lainnya ({$this->kategori_laporan_lainnya})";
         }
         return $this->kategori_laporan ?? '-';
+    }
+
+    public function getStatusVerifikasiRabAttribute()
+    {
+        if ($this->rab) {
+            return $this->rab->status_verifikasi_rab;
+        }
+        return $this->attributes['status_verifikasi_rab'] ?? null;
+    }
+
+    public function getCatatanRevisiRabAttribute()
+    {
+        if ($this->rab) {
+            return $this->rab->catatan_revisi_rab;
+        }
+        return $this->attributes['catatan_revisi_rab'] ?? null;
     }
 }

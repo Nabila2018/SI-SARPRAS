@@ -60,7 +60,6 @@ class StaffLaporanEvaluationTest extends TestCase
             'id_lokasi' => $lokasi->id_lokasi,
             'id_fasilitas' => $fasilitas->id_fasilitas,
             'id_pelapor' => $staff1->id_user,
-            'id_spj' => null,
             'kategori_laporan' => 'Sanitasi & Air',
             'item_kerusakan' => 'Kran bocor',
             'lokasi_spesifik' => 'Depan kios 2',

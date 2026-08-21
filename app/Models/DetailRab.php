@@ -18,6 +18,8 @@ class DetailRab extends Model
 
     protected $fillable = [
         'id_detail_rab',
+        'id_rab',
+        'id_sab',
         'id_laporan',
         'rincian_kebutuhan',
         'volume',
@@ -48,5 +50,15 @@ class DetailRab extends Model
     public function laporan()
     {
         return $this->belongsTo(Laporan::class, 'id_laporan');
+    }
+
+    public function rab()
+    {
+        return $this->belongsTo(Rab::class, 'id_rab');
+    }
+
+    public function sab()
+    {
+        return $this->belongsTo(Sab::class, 'id_sab');
     }
 }

@@ -18,6 +18,7 @@ class Pasar extends Model
         'id_pasar',
         'nama_pasar',
         'alamat',
+        'status_aktif',
     ];
 
     protected static function booted()
