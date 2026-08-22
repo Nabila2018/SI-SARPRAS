@@ -17,6 +17,10 @@
         <!-- Filter & Search -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2 border-b border-gray-100">
             <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+                <a href="{{ route('kabid.laporan.index', ['status' => 'semua']) }}"
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {{ request('status') === 'semua' ? 'bg-[#114F72] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                    Semua
+                </a>
                 <a href="{{ route('kabid.laporan.index') }}"
                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {{ !request('status') || request('status') === 'Diproses' ? 'bg-[#114F72] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                     Menunggu Verifikasi

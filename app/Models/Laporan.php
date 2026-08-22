@@ -159,4 +159,18 @@ class Laporan extends Model
         }
         return $this->attributes['catatan_revisi_rab'] ?? null;
     }
+
+    public function getLampiranEvaluasiListAttribute(): array
+    {
+        if (empty($this->file_lampiran_evaluasi)) {
+            return [];
+        }
+
+        $decoded = json_decode($this->file_lampiran_evaluasi, true);
+        if (is_array($decoded)) {
+            return array_values($decoded);
+        }
+
+        return [$this->file_lampiran_evaluasi];
+    }
 }

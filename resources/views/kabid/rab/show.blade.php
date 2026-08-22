@@ -45,7 +45,7 @@
         </div>
         <div>
             <p class="text-xs text-white/70 font-semibold uppercase tracking-wider">Jumlah Laporan Tergabung</p>
-            <p class="text-lg font-bold mt-0.5">{{ $rab->laporan->count() }} Laporan Perbaikan</p>
+            <p class="text-lg font-bold mt-0.5">{{ $rab->laporan->count() }} Laporan Kerusakan</p>
         </div>
         <div>
             <p class="text-xs text-white/70 font-semibold uppercase tracking-wider">Total Anggaran RAB</p>
@@ -53,12 +53,7 @@
         </div>
     </div>
 
-    <!-- Alert Messages -->
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold shadow-sm">
-            {{ session('error') }}
-        </div>
-    @endif
+
 
     <!-- SECTION 1: DAFTAR LAPORAN DALAM RAB -->
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">

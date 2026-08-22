@@ -16,29 +16,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">&times;</button>
-        </div>
-    @endif
 
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
-            <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700">&times;</button>
-        </div>
-    @endif
 
     <!-- Card Stats Overview -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -89,19 +67,42 @@
                 </svg>
             </div>
 
-            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                <select name="status" onchange="this.form.submit()" class="w-full md:w-48 py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 focus:ring-2 focus:ring-[#114F72]/20 outline-none">
-                    <option value="">Semua Status</option>
-                    @foreach($statusList as $st)
-                        <option value="{{ $st }}" {{ request('status') === $st ? 'selected' : '' }}>{{ $st }}</option>
-                    @endforeach
-                </select>
+            <div class="flex items-center gap-2">
+                <!-- Tombol Filter Icon Only -->
+                <div class="relative">
+                    <button type="button"
+                            id="filterToggleKabid"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-[#114F72] transition-colors relative"
+                            aria-label="Filter">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V20a1 1 0 01-1.447.894l-2-1A1 1 0 0110 19v-5.586L3.293 6.707A1 1 0 013 6V4z"/>
+                        </svg>
+                        @if(request('status'))
+                            <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#114F72] rounded-full ring-2 ring-white"></span>
+                        @endif
+                    </button>
 
-                <button type="submit" class="px-4 py-2.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-xl shadow-sm transition">
-                    Filter
-                </button>
+                    <div id="filterPopoverKabid" class="absolute right-0 top-11 z-10 hidden w-52 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl">
+                        <p class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">Filter Status RAB</p>
+                        <div class="space-y-2">
+                            <select name="status"
+                                    onchange="this.form.submit()"
+                                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-50 focus:border-[#114F72] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#114F72]/20 cursor-pointer">
+                                <option value="">Semua Status</option>
+                                @foreach($statusList as $st)
+                                    <option value="{{ $st }}" {{ request('status') === $st ? 'selected' : '' }}>
+                                        {{ $st }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 @if(request('search') || request('status'))
-                    <a href="{{ route('kabid.rab.index') }}" class="px-3 py-2.5 text-xs text-gray-500 hover:text-gray-700 font-semibold">Reset</a>
+                    <a href="{{ route('kabid.rab.index') }}" class="px-2 py-1 text-xs text-rose-600 hover:underline font-semibold flex-shrink-0">
+                        Reset
+                    </a>
                 @endif
             </div>
         </form>
@@ -179,4 +180,24 @@
         @endif
     </div>
 </div>
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('filterToggleKabid');
+        const popover = document.getElementById('filterPopoverKabid');
+        if (toggle && popover) {
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                popover.classList.toggle('hidden');
+            });
+            document.addEventListener('click', function(e) {
+                if (!popover.contains(e.target) && !toggle.contains(e.target)) {
+                    popover.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
+@endsection
 @endsection

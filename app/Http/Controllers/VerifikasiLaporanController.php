@@ -20,11 +20,13 @@ class VerifikasiLaporanController extends Controller
             'evaluator'
         ]);
 
-        // Filter berdasarkan status jika ada, default hanya yang 'Diproses' (Menunggu Verifikasi Evaluasi)
-        if ($request->filled('status')) {
-            $query->where('status_laporan', $request->status);
+        $status = $request->input('status', 'Diproses');
+
+        if (in_array(strtolower($status), ['semua', 'all'])) {
+            $query->whereIn('status_laporan', ['Diproses', 'Disetujui', 'Dikembalikan', 'Selesai']);
+            $query->orderByRaw("CASE WHEN status_laporan = 'Diproses' THEN 0 ELSE 1 END");
         } else {
-            $query->where('status_laporan', 'Diproses');
+            $query->where('status_laporan', $status);
         }
 
         // Search query

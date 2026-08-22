@@ -145,4 +145,95 @@ class StaffLaporanEvaluationTest extends TestCase
         $this->assertNotNull($laporan->file_lampiran_evaluasi);
         \Illuminate\Support\Facades\Storage::disk('public')->assertExists($laporan->file_lampiran_evaluasi);
     }
+
+    public function test_staff_can_upload_multiple_attachments_during_evaluation(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        extract($this->setupData());
+
+        $this->actingAs($staff1);
+
+        $filePdf = \Illuminate\Http\UploadedFile::fake()->create('evaluasi_dokumentasi.pdf', 1024, 'application/pdf');
+        $fileImg = \Illuminate\Http\UploadedFile::fake()->create('evaluasi_foto.jpg', 600, 'image/jpeg');
+
+        $response = $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Catatan hasil analisis teknis dengan 2 lampiran (PDF dan Foto)',
+            'file_lampiran_evaluasi' => [$filePdf, $fileImg],
+        ]);
+
+        $response->assertRedirect();
+        $laporan->refresh();
+
+        $this->assertCount(2, $laporan->lampiran_evaluasi_list);
+        foreach ($laporan->lampiran_evaluasi_list as $savedPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->assertExists($savedPath);
+        }
+    }
+
+    public function test_editing_evaluasi_appends_new_attachments_without_replacing_existing(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        extract($this->setupData());
+
+        $this->actingAs($staff1);
+
+        $file1 = \Illuminate\Http\UploadedFile::fake()->create('dokumen1.pdf', 1024, 'application/pdf');
+        $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Catatan awal',
+            'file_lampiran_evaluasi' => [$file1],
+        ]);
+
+        $laporan->refresh();
+        $this->assertCount(1, $laporan->lampiran_evaluasi_list);
+
+        $file2 = \Illuminate\Http\UploadedFile::fake()->create('foto2.jpg', 600, 'image/jpeg');
+        $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Catatan setelah edit',
+            'file_lampiran_evaluasi' => [$file2],
+        ]);
+
+        $laporan->refresh();
+        $this->assertCount(2, $laporan->lampiran_evaluasi_list);
+        foreach ($laporan->lampiran_evaluasi_list as $savedPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->assertExists($savedPath);
+        }
+    }
+
+    public function test_staff_can_delete_individual_attachment_item_during_evaluation_edit(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        extract($this->setupData());
+
+        $this->actingAs($staff1);
+
+        $file1 = \Illuminate\Http\UploadedFile::fake()->create('dokumen1.pdf', 1024, 'application/pdf');
+        $file2 = \Illuminate\Http\UploadedFile::fake()->create('foto2.jpg', 600, 'image/jpeg');
+
+        $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Catatan awal 2 lampiran',
+            'file_lampiran_evaluasi' => [$file1, $file2],
+        ]);
+
+        $laporan->refresh();
+        $this->assertCount(2, $laporan->lampiran_evaluasi_list);
+
+        $pathToDelete = $laporan->lampiran_evaluasi_list[0];
+        $pathToKeep = $laporan->lampiran_evaluasi_list[1];
+
+        $this->post(route('staff.laporan.evaluasi.store', $laporan->id_laporan), [
+            'kategori_kerusakan' => 'Sedang',
+            'catatan_pemeriksaan' => 'Hapus lampiran 1 saja',
+            'hapus_lampiran_items' => [$pathToDelete],
+        ]);
+
+        $laporan->refresh();
+        $this->assertCount(1, $laporan->lampiran_evaluasi_list);
+        $this->assertEquals($pathToKeep, $laporan->lampiran_evaluasi_list[0]);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($pathToDelete);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($pathToKeep);
+    }
 }

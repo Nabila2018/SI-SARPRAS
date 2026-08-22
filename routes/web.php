@@ -148,6 +148,10 @@ Route::middleware(['auth', 'account.active'])->group(function () {
             ->name('staff.rab.edit');
         Route::put('/staff/rab/{id}', [StaffRabController::class, 'update'])
             ->name('staff.rab.update');
+        Route::post('/staff/rab/{id}/submit', [StaffRabController::class, 'submitToKabid'])
+            ->name('staff.rab.submit');
+        Route::get('/staff/rab/{id}/pdf', [StaffRabController::class, 'exportPdf'])
+            ->name('staff.rab.pdf');
 
         // ===== MASTER DATA TERPUSAT =====
         Route::get('/staff/master', [StaffMasterController::class, 'index'])->name('staff.master.index');

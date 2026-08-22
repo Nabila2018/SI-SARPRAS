@@ -39,14 +39,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-semibold flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            {{ session('success') }}
-        </div>
-    @endif
+
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -101,7 +94,7 @@
                 <div class="flex items-center justify-between border-b pb-3">
                     <div>
                         <h3 class="text-base font-bold text-gray-800">Daftar Laporan Terhubung Dalam RAB</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">Seluruh laporan perbaikan yang terikat dalam dokumen SPJ ini.</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Seluruh laporan kerusakan yang terikat dalam dokumen SPJ ini.</p>
                     </div>
                 </div>
 

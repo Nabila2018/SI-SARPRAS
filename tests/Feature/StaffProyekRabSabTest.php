@@ -134,4 +134,56 @@ class StaffProyekRabSabTest extends TestCase
         $this->assertSame('Semen Portland Standard', $detail->rincian_kebutuhan);
         $this->assertEquals(75000, $detail->harga_satuan);
     }
+
+    public function test_staff_can_submit_draft_rab_to_kabid_from_detail_page(): void
+    {
+        extract($this->setupData());
+
+        $this->actingAs($staff);
+
+        // 1. Simpan RAB sebagai Draft
+        $this->post(route('staff.rab.store'), [
+            'laporan_ids' => [$laporan->id_laporan],
+            'action' => 'draft',
+            'id_sab' => [$sab1->id_sab],
+            'rincian_kebutuhan' => [$sab1->nama_kebutuhan],
+            'volume' => [5],
+            'satuan' => [$sab1->satuan],
+            'harga_satuan' => [$sab1->harga_standar],
+        ]);
+
+        $rab = Rab::first();
+        $this->assertSame('Draft', $rab->status_verifikasi_rab);
+
+        // 2. Kirim ke Kabid dari halaman detail
+        $response = $this->post(route('staff.rab.submit', $rab->id_rab));
+        $response->assertRedirect(route('staff.rab.show', $rab->id_rab));
+        $response->assertSessionHas('success');
+
+        // 3. Pastikan status berubah menjadi Menunggu
+        $this->assertSame('Menunggu', $rab->fresh()->status_verifikasi_rab);
+    }
+
+    public function test_staff_can_preview_and_download_rab_pdf(): void
+    {
+        extract($this->setupData());
+
+        $this->actingAs($staff);
+
+        $this->post(route('staff.rab.store'), [
+            'laporan_ids' => [$laporan->id_laporan],
+            'action' => 'submit',
+            'id_sab' => [$sab1->id_sab],
+            'rincian_kebutuhan' => [$sab1->nama_kebutuhan],
+            'volume' => [5],
+            'satuan' => [$sab1->satuan],
+            'harga_satuan' => [$sab1->harga_standar],
+        ]);
+
+        $rab = Rab::first();
+
+        $response = $this->get(route('staff.rab.pdf', $rab->id_rab));
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/pdf');
+    }
 }

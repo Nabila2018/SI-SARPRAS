@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,9 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('laporan', function (Blueprint $table) {
-            $table->text('file_lampiran_evaluasi')->nullable()->after('catatan_pemeriksaan');
-        });
+        DB::statement('ALTER TABLE laporan MODIFY COLUMN file_lampiran_evaluasi TEXT NULL');
     }
 
     /**
@@ -21,8 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('laporan', function (Blueprint $table) {
-            $table->dropColumn('file_lampiran_evaluasi');
-        });
+        DB::statement('ALTER TABLE laporan MODIFY COLUMN file_lampiran_evaluasi VARCHAR(255) NULL');
     }
 };

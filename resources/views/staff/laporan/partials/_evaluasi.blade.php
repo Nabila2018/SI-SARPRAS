@@ -59,16 +59,43 @@
                     {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan survey.' }}
                 </p>
             </div>
-            @if($laporan->file_lampiran_evaluasi)
+            @if(count($laporan->lampiran_evaluasi_list) > 0)
                 <div>
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Berkas Lampiran Evaluasi</p>
-                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank"
-                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm">
-                        <svg class="w-4 h-4 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                        </svg>
-                        Lihat / Unduh Lampiran Evaluasi
-                    </a>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Berkas Lampiran Evaluasi</p>
+                    <div class="flex flex-wrap gap-2.5">
+                        @foreach($laporan->lampiran_evaluasi_list as $index => $filePath)
+                            @php
+                                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                                $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                $fileUrl = asset('storage/' . $filePath);
+                                $rawName = basename($filePath);
+                                
+                                if (preg_match('/^[a-f0-9]{32,40}\.' . $ext . '$/i', $rawName)) {
+                                    $displayName = $isImage ? 'Foto Lampiran Evaluasi.' . $ext : 'Dokumen Lampiran Evaluasi.' . $ext;
+                                } else {
+                                    $displayName = preg_replace('/^\d+_[a-f0-9]+_/', '', $rawName);
+                                    $displayName = preg_replace('/^\d+_/', '', $displayName);
+                                }
+                            @endphp
+
+                            @if($isImage)
+                                <button type="button"
+                                        onclick="openEvaluasiFotoModal('{{ $fileUrl }}', '{{ e($displayName) }}')"
+                                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm cursor-pointer max-w-xs truncate"
+                                        title="{{ $displayName }}">
+                                    <i class="ph ph-image text-base text-[#114F72] flex-shrink-0"></i>
+                                    <span class="truncate">{{ $displayName }}</span>
+                                </button>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank"
+                                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm max-w-xs truncate"
+                                   title="{{ $displayName }}">
+                                    <i class="ph ph-file-pdf text-base text-[#114F72] flex-shrink-0"></i>
+                                    <span class="truncate">{{ $displayName }}</span>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             @endif
             @if($laporan->evaluator)
@@ -143,40 +170,67 @@
 
             <div>
                 <label class="block text-xs uppercase tracking-wider font-semibold text-gray-600 mb-1.5">
-                    Lampiran / Berkas Dokumen Evaluasi <span class="text-gray-400 font-normal text-xs uppercase">(Opsional)</span>
+                    Lampiran / Berkas Dokumen Evaluasi <span class="text-gray-400 font-normal text-xs uppercase">(Bisa Unggah Lebih Dari 1 Berkas / Foto)</span>
                 </label>
 
-                <input type="file" name="file_lampiran_evaluasi" id="file_lampiran_evaluasi" accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="handleEvaluasiFileSelection(this)">
-                <input type="checkbox" name="hapus_lampiran_evaluasi" id="hapus_lampiran_evaluasi" value="1" class="hidden" onchange="toggleDeleteExistingLampiranState()">
+                <input type="file" name="file_lampiran_evaluasi[]" id="file_lampiran_evaluasi" accept="image/*,.pdf,.doc,.docx" multiple class="hidden" onchange="handleEvaluasiFileSelection(this)">
 
                 <div id="evaluasi-dropzone-box" class="border-2 border-dashed border-gray-200 rounded-2xl p-4 transition-all bg-gray-50/50 hover:border-[#114F72]">
 
                     <!-- Berkas Lama Saat Ini (Jika Ada) -->
-                    @if($laporan->file_lampiran_evaluasi)
-                        <div id="existing-lampiran-card" class="mb-3 p-3.5 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-3 shadow-sm relative overflow-hidden">
-                            <div id="existing-lampiran-overlay" class="hidden absolute inset-0 bg-rose-900/70 flex items-center justify-center backdrop-blur-[1px] z-10">
-                                <span class="text-white text-xs font-bold bg-rose-600 px-3 py-1 rounded-full shadow">Akan Dihapus</span>
+                    @if(count($laporan->lampiran_evaluasi_list) > 0)
+                        <div id="existing-lampiran-card" class="mb-3 p-3.5 bg-white border border-slate-200 rounded-2xl space-y-2 shadow-sm">
+                            <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-700">Lampiran Ter-unggah saat ini ({{ count($laporan->lampiran_evaluasi_list) }} berkas)</span>
                             </div>
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-9 h-9 rounded-lg bg-[#114F72]/10 flex items-center justify-center text-[#114F72] flex-shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                </div>
-                                <div class="min-w-0 text-xs">
-                                    <p class="font-semibold text-gray-800 truncate">Berkas Lampiran Ter-unggah</p>
-                                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank" class="text-[#114F72] hover:underline font-medium">
-                                        Buka Berkas Berjalan
-                                    </a>
-                                </div>
+                            <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                @foreach($laporan->lampiran_evaluasi_list as $idx => $fPath)
+                                    @php
+                                        $fExt = strtolower(pathinfo($fPath, PATHINFO_EXTENSION));
+                                        $fIsImg = in_array($fExt, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                        $fUrl = asset('storage/' . $fPath);
+                                        $fRaw = basename($fPath);
+                                        if (preg_match('/^[a-f0-9]{32,40}\.' . $fExt . '$/i', $fRaw)) {
+                                            $fName = $fIsImg ? 'Foto Lampiran Evaluasi.' . $fExt : 'Dokumen Lampiran Evaluasi.' . $fExt;
+                                        } else {
+                                            $fName = preg_replace('/^\d+_[a-f0-9]+_/', '', $fRaw);
+                                            $fName = preg_replace('/^\d+_/', '', $fName);
+                                        }
+                                    @endphp
+                                    <div id="existing-item-row-{{ $idx }}" class="flex items-center justify-between gap-2.5 p-2 bg-slate-50 border border-slate-200/80 rounded-xl hover:bg-slate-100/80 hover:border-slate-300 transition-all group relative overflow-hidden">
+                                        <div id="existing-item-overlay-{{ $idx }}" class="hidden absolute inset-0 bg-rose-950/85 backdrop-blur-[1px] flex items-center justify-between px-3 text-white z-10">
+                                            <span class="text-[11px] font-semibold flex items-center gap-1 text-rose-200">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                                Akan Dihapus
+                                            </span>
+                                            <button type="button" onclick="undoDeleteExistingItem({{ $idx }})" class="text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-md transition cursor-pointer">
+                                                Batal
+                                            </button>
+                                        </div>
+                                        <input type="checkbox" name="hapus_lampiran_items[]" id="hapus_item_cb_{{ $idx }}" value="{{ $fPath }}" class="hidden">
+                                        
+                                        @if($fIsImg)
+                                            <button type="button" onclick="openEvaluasiFotoModal('{{ $fUrl }}', '{{ e($fName) }}')" class="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer outline-none">
+                                                <i class="ph ph-image text-lg text-amber-600 flex-shrink-0 group-hover:scale-110 transition-transform"></i>
+                                                <span class="font-medium text-xs text-slate-800 group-hover:text-[#114F72] truncate" title="{{ $fName }}">{{ $fName }}</span>
+                                            </button>
+                                        @else
+                                            <a href="{{ $fUrl }}" target="_blank" class="flex items-center gap-2.5 min-w-0 flex-1 text-left outline-none">
+                                                <i class="ph ph-file-pdf text-lg text-blue-600 flex-shrink-0 group-hover:scale-110 transition-transform"></i>
+                                                <span class="font-medium text-xs text-slate-800 group-hover:text-[#114F72] truncate" title="{{ $fName }}">{{ $fName }}</span>
+                                            </a>
+                                        @endif
+
+                                        <button type="button" onclick="markDeleteExistingItem({{ $idx }})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0 cursor-pointer" title="Hapus berkas ini">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endforeach
                             </div>
-                            <button type="button" onclick="toggleDeleteExistingLampiran()" id="btn-delete-existing-lampiran"
-                                class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20"
-                                title="Hapus lampiran ini">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
                         </div>
                     @endif
 
@@ -186,29 +240,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
                         <p class="text-sm font-semibold text-gray-700 mb-0.5">Klik atau drag berkas baru ke sini</p>
-                        <p class="text-xs text-gray-400">Format: Foto (JPG, PNG) atau Dokumen (PDF, DOC, DOCX) - Maks. 5MB</p>
+                        <p class="text-xs text-gray-400">Dapat memilih sekaligus beberapa Foto (JPG, PNG) atau Dokumen (PDF, DOC) - Maks 5MB/file</p>
                     </div>
 
                     <!-- Preview Berkas Baru Terpilih -->
                     <div id="evaluasi-file-preview" class="hidden">
-                        <div class="flex items-center justify-between gap-3 text-sm text-gray-700 bg-white border border-gray-200 p-3.5 rounded-xl shadow-sm">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 border border-emerald-100">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                                <div class="min-w-0">
-                                    <p id="evaluasi-filename" class="font-semibold text-gray-800 truncate text-xs sm:text-sm"></p>
-                                    <p id="evaluasi-filesize" class="text-xs text-gray-400 mt-0.5"></p>
-                                </div>
-                            </div>
-                            <button type="button" onclick="removeEvaluasiSelectedFile()" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0" title="Hapus berkas ini">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
+                        <div class="pb-2 mb-2 border-b border-gray-200">
+                            <span id="evaluasi-preview-count" class="text-xs font-bold text-emerald-700"></span>
                         </div>
+                        <div id="evaluasi-file-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
                     </div>
 
                 </div>
@@ -242,7 +282,41 @@
     </div>
 </div>
 
+<!-- Modal Lightbox Preview Foto Evaluasi (In-Page Preview) -->
+<div id="evaluasiFotoModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" onclick="closeEvaluasiFotoModal()">
+    <div class="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeEvaluasiFotoModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 p-2 text-sm font-bold flex items-center gap-1 bg-white/10 rounded-lg backdrop-blur-md cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Tutup
+        </button>
+        <img id="evaluasiFotoModalImg" src="" alt="Preview Lampiran Evaluasi" class="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl border border-white/20">
+        <p id="evaluasiFotoModalTitle" class="mt-3 text-xs text-white/80 font-medium text-center"></p>
+    </div>
+</div>
+
 <script>
+    function openEvaluasiFotoModal(url, title = '') {
+        const modal = document.getElementById('evaluasiFotoModal');
+        const img = document.getElementById('evaluasiFotoModalImg');
+        const titleEl = document.getElementById('evaluasiFotoModalTitle');
+        if (!modal || !img) return;
+        img.src = url;
+        if (titleEl) titleEl.innerText = title;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEvaluasiFotoModal() {
+        const modal = document.getElementById('evaluasiFotoModal');
+        if (!modal) return;
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
     function openEvaluasiModal() {
         const modal = document.getElementById('evaluasiModal');
         if (!modal) return;
@@ -278,62 +352,63 @@
     function handleEvaluasiFileSelection(input) {
         const promptElem = document.getElementById('evaluasi-dropzone-prompt');
         const previewElem = document.getElementById('evaluasi-file-preview');
-        const filenameElem = document.getElementById('evaluasi-filename');
-        const filesizeElem = document.getElementById('evaluasi-filesize');
+        const countElem = document.getElementById('evaluasi-preview-count');
+        const fileListDiv = document.getElementById('evaluasi-file-list');
 
-        if (input.files && input.files.length > 0) {
-            const file = input.files[0];
-            filenameElem.textContent = file.name;
-            filesizeElem.textContent = (file.size / 1024).toFixed(1) + ' KB';
-            promptElem.classList.add('hidden');
-            previewElem.classList.remove('hidden');
+        if (!input.files || input.files.length === 0) {
+            if (promptElem) promptElem.classList.remove('hidden');
+            if (previewElem) previewElem.classList.add('hidden');
+            return;
+        }
+
+        if (promptElem) promptElem.classList.add('hidden');
+        if (previewElem) previewElem.classList.remove('hidden');
+
+        if (countElem) {
+            countElem.textContent = input.files.length + ' Berkas Baru Terpilih';
+        }
+
+        if (fileListDiv) {
+            fileListDiv.innerHTML = '';
+            Array.from(input.files).forEach((file, index) => {
+                const isImg = file.type.startsWith('image/');
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between gap-3 text-xs text-gray-700 bg-white border border-gray-200 p-2.5 rounded-xl shadow-sm';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-lg ${isImg ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-blue-50 text-blue-600 border border-blue-100'} flex items-center justify-center flex-shrink-0">
+                            ${isImg ? '<i class="ph ph-image text-base"></i>' : '<i class="ph ph-file-pdf text-base"></i>'}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-gray-800 truncate text-xs">${file.name}</p>
+                            <p class="text-[10px] text-gray-400">${sizeMb} MB</p>
+                        </div>
+                    </div>
+                `;
+                fileListDiv.appendChild(item);
+            });
         }
     }
 
-    function removeEvaluasiSelectedFile() {
-        const input = document.getElementById('file_lampiran_evaluasi');
-        if (input) {
-            input.value = '';
-        }
-        const promptElem = document.getElementById('evaluasi-dropzone-prompt');
-        const previewElem = document.getElementById('evaluasi-file-preview');
-        if (promptElem && previewElem) {
-            previewElem.classList.add('hidden');
-            promptElem.classList.remove('hidden');
-        }
-    }
-
-    function toggleDeleteExistingLampiran() {
-        const checkbox = document.getElementById('hapus_lampiran_evaluasi');
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-            toggleDeleteExistingLampiranState();
-        }
-    }
-
-    function toggleDeleteExistingLampiranState() {
-        const checkbox = document.getElementById('hapus_lampiran_evaluasi');
-        const overlay = document.getElementById('existing-lampiran-overlay');
-        const btn = document.getElementById('btn-delete-existing-lampiran');
-
-        if (checkbox && checkbox.checked) {
+    function markDeleteExistingItem(idx) {
+        const cb = document.getElementById('hapus_item_cb_' + idx);
+        const overlay = document.getElementById('existing-item-overlay-' + idx);
+        if (cb) cb.checked = true;
+        if (overlay) {
             overlay.classList.remove('hidden');
-            btn.className = 'p-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20';
-            btn.title = 'Batal Hapus';
-            btn.innerHTML = `
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                </svg>
-            `;
-        } else if (checkbox) {
+            overlay.classList.add('flex');
+        }
+    }
+
+    function undoDeleteExistingItem(idx) {
+        const cb = document.getElementById('hapus_item_cb_' + idx);
+        const overlay = document.getElementById('existing-item-overlay-' + idx);
+        if (cb) cb.checked = false;
+        if (overlay) {
+            overlay.classList.remove('flex');
             overlay.classList.add('hidden');
-            btn.className = 'p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow transition-transform transform hover:scale-110 flex-shrink-0 z-20';
-            btn.title = 'Hapus lampiran ini';
-            btn.innerHTML = `
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            `;
         }
     }
 

@@ -20,26 +20,13 @@ class StaffLaporanController extends Controller
      */
     public function exportRabPdf($id)
     {
-        $laporan = Laporan::with(['lokasi.pasar', 'fasilitas', 'pelapor', 'detailRab'])->findOrFail($id);
+        $laporan = Laporan::findOrFail($id);
 
-        if ($laporan->detailRab->isEmpty()) {
-            return back()->with('error', 'RAB belum memiliki rincian kebutuhan.');
+        if (!$laporan->id_rab) {
+            return back()->with('error', 'Laporan ini belum terhubung dengan RAB.');
         }
 
-        $logoBase64 = '';
-        if (extension_loaded('gd')) {
-            $logoPath = public_path('images/Logo Dinas Perdagangan Kota Padang.png');
-            if (file_exists($logoPath)) {
-                $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-                $data = file_get_contents($logoPath);
-                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-            }
-        }
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rab', compact('laporan', 'logoBase64'));
-        $pdf->setPaper('a4', 'portrait');
-
-        return $pdf->download("RAB_{$laporan->id_laporan}.pdf");
+        return redirect()->route('staff.rab.pdf', $laporan->id_rab);
     }
 
     // Daftar semua laporan masuk (Staff)
@@ -74,7 +61,8 @@ class StaffLaporanController extends Controller
         $data = $request->validate([
             'kategori_kerusakan' => ['required', 'in:Ringan,Sedang,Berat'],
             'catatan_pemeriksaan' => ['nullable', 'string', 'max:2000'],
-            'file_lampiran_evaluasi' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,doc,docx', 'max:5120'],
+            'file_lampiran_evaluasi' => ['nullable'],
+            'file_lampiran_evaluasi.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx', 'max:5120'],
         ]);
 
         $updateData = [
@@ -83,18 +71,44 @@ class StaffLaporanController extends Controller
             'tanggal_evaluasi'    => now(),
         ];
 
-        if ($request->boolean('hapus_lampiran_evaluasi')) {
-            if ($laporan->file_lampiran_evaluasi) {
-                Storage::disk('public')->delete($laporan->file_lampiran_evaluasi);
+        $existingPaths = $laporan->lampiran_evaluasi_list;
+
+        if ($request->has('hapus_lampiran_items') && is_array($request->hapus_lampiran_items)) {
+            foreach ($request->hapus_lampiran_items as $pathToDelete) {
+                if (($key = array_search($pathToDelete, $existingPaths)) !== false) {
+                    Storage::disk('public')->delete($pathToDelete);
+                    unset($existingPaths[$key]);
+                }
             }
-            $updateData['file_lampiran_evaluasi'] = null;
+            $existingPaths = array_values($existingPaths);
+        }
+
+        if ($request->boolean('hapus_lampiran_evaluasi')) {
+            foreach ($existingPaths as $existingFile) {
+                Storage::disk('public')->delete($existingFile);
+            }
+            $existingPaths = [];
         }
 
         if ($request->hasFile('file_lampiran_evaluasi')) {
-            if ($laporan->file_lampiran_evaluasi) {
-                Storage::disk('public')->delete($laporan->file_lampiran_evaluasi);
+            $uploadedFiles = $request->file('file_lampiran_evaluasi');
+            if (!is_array($uploadedFiles)) {
+                $uploadedFiles = [$uploadedFiles];
             }
-            $updateData['file_lampiran_evaluasi'] = $request->file('file_lampiran_evaluasi')->store('evaluasi', 'public');
+
+            foreach ($uploadedFiles as $file) {
+                $cleanOriginalName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+                $filename = time() . '_' . uniqid() . '_' . $cleanOriginalName;
+                $existingPaths[] = $file->storeAs('evaluasi', $filename, 'public');
+            }
+        }
+
+        if (empty($existingPaths)) {
+            $updateData['file_lampiran_evaluasi'] = null;
+        } elseif (count($existingPaths) === 1) {
+            $updateData['file_lampiran_evaluasi'] = $existingPaths[0];
+        } else {
+            $updateData['file_lampiran_evaluasi'] = json_encode(array_values($existingPaths));
         }
 
         if (is_null($laporan->id_evaluator)) {

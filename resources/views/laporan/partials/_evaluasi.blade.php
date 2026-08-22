@@ -35,16 +35,43 @@
                     {{ $laporan->catatan_pemeriksaan ?: 'Tidak ada catatan survey.' }}
                 </p>
             </div>
-            @if($laporan->file_lampiran_evaluasi)
+            @if(count($laporan->lampiran_evaluasi_list) > 0)
                 <div>
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Berkas Lampiran Evaluasi</p>
-                    <a href="{{ asset('storage/' . $laporan->file_lampiran_evaluasi) }}" target="_blank"
-                       class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm">
-                        <svg class="w-4 h-4 text-[#114F72]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                        </svg>
-                        Lihat / Unduh Lampiran Evaluasi
-                    </a>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Berkas Lampiran Evaluasi</p>
+                    <div class="flex flex-wrap gap-2.5">
+                        @foreach($laporan->lampiran_evaluasi_list as $index => $filePath)
+                            @php
+                                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                                $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                $fileUrl = asset('storage/' . $filePath);
+                                $rawName = basename($filePath);
+                                
+                                if (preg_match('/^[a-f0-9]{32,40}\.' . $ext . '$/i', $rawName)) {
+                                    $displayName = $isImage ? 'Foto Lampiran Evaluasi.' . $ext : 'Dokumen Lampiran Evaluasi.' . $ext;
+                                } else {
+                                    $displayName = preg_replace('/^\d+_[a-f0-9]+_/', '', $rawName);
+                                    $displayName = preg_replace('/^\d+_/', '', $displayName);
+                                }
+                            @endphp
+
+                            @if($isImage)
+                                <button type="button"
+                                        onclick="openEvaluasiFotoModal('{{ $fileUrl }}', '{{ e($displayName) }}')"
+                                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm cursor-pointer max-w-xs truncate"
+                                        title="{{ $displayName }}">
+                                    <i class="ph ph-image text-base text-[#114F72] flex-shrink-0"></i>
+                                    <span class="truncate">{{ $displayName }}</span>
+                                </button>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank"
+                                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-50 border border-gray-200 text-[#114F72] font-semibold text-xs rounded-xl hover:bg-gray-100 transition shadow-sm max-w-xs truncate"
+                                   title="{{ $displayName }}">
+                                    <i class="ph ph-file-pdf text-base text-[#114F72] flex-shrink-0"></i>
+                                    <span class="truncate">{{ $displayName }}</span>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             @endif
             @if($laporan->evaluator)
@@ -66,3 +93,39 @@
         </div>
     @endif
 </div>
+
+<!-- Modal Lightbox Preview Foto Evaluasi (In-Page Preview) -->
+<div id="evaluasiFotoModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" onclick="closeEvaluasiFotoModal()">
+    <div class="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeEvaluasiFotoModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 p-2 text-sm font-bold flex items-center gap-1 bg-white/10 rounded-lg backdrop-blur-md cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Tutup
+        </button>
+        <img id="evaluasiFotoModalImg" src="" alt="Preview Lampiran Evaluasi" class="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl border border-white/20">
+        <p id="evaluasiFotoModalTitle" class="mt-3 text-xs text-white/80 font-medium text-center"></p>
+    </div>
+</div>
+
+<script>
+    function openEvaluasiFotoModal(url, title = '') {
+        const modal = document.getElementById('evaluasiFotoModal');
+        const img = document.getElementById('evaluasiFotoModalImg');
+        const titleEl = document.getElementById('evaluasiFotoModalTitle');
+        if (!modal || !img) return;
+        img.src = url;
+        if (titleEl) titleEl.innerText = title;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEvaluasiFotoModal() {
+        const modal = document.getElementById('evaluasiFotoModal');
+        if (!modal) return;
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+</script>

@@ -342,4 +342,70 @@ class StaffRabController extends Controller
             return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Kirim RAB (Draft / Dikembalikan) langsung ke Kabid dari halaman Detail.
+     */
+    public function submitToKabid($id)
+    {
+        $this->authorizeStaff();
+
+        $rab = Rab::with(['laporan', 'detailRab'])->where('id_rab', $id)->firstOrFail();
+
+        if (!in_array($rab->status_verifikasi_rab, ['Draft', 'Dikembalikan'])) {
+            return back()->with('error', 'Hanya RAB berstatus Draft atau Dikembalikan yang dapat dikirim ke Kabid.');
+        }
+
+        if ($rab->detailRab->isEmpty()) {
+            return back()->with('error', 'RAB belum memiliki rincian kebutuhan material.');
+        }
+
+        $rab->update([
+            'status_verifikasi_rab' => 'Menunggu',
+            'catatan_revisi_rab' => null,
+        ]);
+
+        $firstLap = $rab->laporan()->first()?->id_laporan;
+        \App\Services\NotificationService::sendToRole(
+            'Kepala Bidang',
+            'Pengajuan RAB Baru',
+            "Staff mengajukan RAB {$rab->id_rab} untuk diverifikasi Kabid.",
+            route('kabid.rab.show', $rab->id_rab),
+            $firstLap
+        );
+
+        return redirect()->route('staff.rab.show', $rab->id_rab)
+            ->with('success', 'RAB ' . $rab->id_rab . ' berhasil dikirim ke Kepala Bidang untuk diverifikasi.');
+    }
+
+    /**
+     * Preview / Unduh PDF RAB.
+     */
+    public function exportPdf($id)
+    {
+        $this->authorizeStaff();
+
+        $rab = Rab::with(['laporan.lokasi.pasar', 'laporan.fasilitas', 'detailRab'])
+            ->where('id_rab', $id)
+            ->firstOrFail();
+
+        if ($rab->detailRab->isEmpty()) {
+            return back()->with('error', 'RAB belum memiliki rincian kebutuhan material.');
+        }
+
+        $logoBase64 = '';
+        if (extension_loaded('gd')) {
+            $logoPath = public_path('images/Logo Dinas Perdagangan Kota Padang.png');
+            if (file_exists($logoPath)) {
+                $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+                $data = file_get_contents($logoPath);
+                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.rab', compact('rab', 'logoBase64'));
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream("RAB_{$rab->id_rab}.pdf");
+    }
 }

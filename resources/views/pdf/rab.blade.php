@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>RAB_{{ $laporan->id_laporan }}</title>
+    <title>RAB_{{ $rab->id_rab }}</title>
     <style>
         @page {
             margin: 20px 30px;
@@ -90,6 +90,13 @@
             width: 30%;
             color: #111827;
         }
+        .section-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #114F72;
+            margin: 12px 0 6px 0;
+            text-transform: uppercase;
+        }
         .rab-table {
             width: 100%;
             border-collapse: collapse;
@@ -157,38 +164,55 @@
         Rencana Anggaran Biaya (RAB)
     </div>
 
-    <!-- Informasi Laporan -->
+    <!-- Informasi Meta RAB -->
     <table class="meta-table">
         <tr>
-            <td class="meta-label">ID Laporan</td>
+            <td class="meta-label">ID RAB</td>
             <td class="meta-colon">:</td>
-            <td class="meta-value"><strong>{{ $laporan->id_laporan }}</strong></td>
+            <td class="meta-value"><strong>{{ $rab->id_rab }}</strong></td>
             
-            <td class="meta-label">Nama Pasar</td>
+            <td class="meta-label">Lokasi Pasar</td>
             <td class="meta-colon">:</td>
-            <td class="meta-value">{{ $laporan->lokasi->pasar->nama_pasar ?? '-' }}</td>
+            <td class="meta-value"><strong>{{ $rab->nama_pasar }}</strong></td>
         </tr>
         <tr>
-            <td class="meta-label">Tanggal Lapor</td>
+            <td class="meta-label">Status RAB</td>
             <td class="meta-colon">:</td>
-            <td class="meta-value">{{ \Carbon\Carbon::parse($laporan->tanggal_lapor)->translatedFormat('d F Y') }}</td>
+            <td class="meta-value"><strong>{{ $rab->status_verifikasi_rab }}</strong></td>
             
-            <td class="meta-label">Lokasi</td>
+            <td class="meta-label">Tanggal Dibuat</td>
             <td class="meta-colon">:</td>
-            <td class="meta-value">{{ $laporan->lokasi->nama_lokasi ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="meta-label">Pelapor</td>
-            <td class="meta-colon">:</td>
-            <td class="meta-value">{{ $laporan->pelapor->nama_lengkap ?? '-' }}</td>
-            
-            <td class="meta-label">Fasilitas</td>
-            <td class="meta-colon">:</td>
-            <td class="meta-value">{{ $laporan->fasilitas->nama_fasilitas ?? '-' }}</td>
+            <td class="meta-value">{{ \Carbon\Carbon::parse($rab->created_at)->translatedFormat('d F Y') }}</td>
         </tr>
     </table>
 
+    <!-- Daftar Laporan Kerusakan yang Dicakup -->
+    <div class="section-title">Daftar Laporan Kerusakan Terkait ({{ $rab->laporan->count() }} Laporan)</div>
+    <table class="rab-table">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 5%;">No</th>
+                <th style="width: 20%;">ID Laporan</th>
+                <th style="width: 25%;">Fasilitas</th>
+                <th style="width: 30%;">Item Kerusakan</th>
+                <th class="text-center" style="width: 20%;">Kategori Kerusakan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($rab->laporan as $idx => $lap)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td class="font-bold">{{ $lap->id_laporan }}</td>
+                    <td>{{ $lap->nama_fasilitas_display }}</td>
+                    <td>{{ $lap->item_kerusakan }} ({{ $lap->lokasi_spesifik ?? '-' }})</td>
+                    <td class="text-center font-bold">{{ $lap->kategori_kerusakan }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
     <!-- Tabel Rincian RAB -->
+    <div class="section-title">Rincian Kebutuhan & Biaya RAB</div>
     <table class="rab-table">
         <thead>
             <tr>
@@ -202,7 +226,7 @@
         </thead>
         <tbody>
             @php $totalRab = 0; @endphp
-            @foreach($laporan->detailRab as $index => $detail)
+            @foreach($rab->detailRab as $index => $detail)
                 @php
                     $subtotal = $detail->volume * $detail->harga_satuan;
                     $totalRab += $subtotal;
@@ -225,7 +249,7 @@
         </tfoot>
     </table>
 
-    <!-- Catatan & Footer -->
+    <!-- Footer Note -->
     <div class="footer-note">
         <p style="margin: 0 0 2px 0;">* Dokumen Rencana Anggaran Biaya (RAB) ini diterbitkan secara otomatis oleh Sistem Informasi SI-SARPRAS Dinas Perdagangan Kota Padang pada {{ now()->translatedFormat('d F Y H:i') }} WIB.</p>
         <p style="margin: 0;">* Dokumen sah tanpa tanda tangan basah apabila telah diverifikasi dan disetujui dalam sistem.</p>

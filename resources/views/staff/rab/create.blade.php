@@ -12,21 +12,13 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6 pb-12">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl font-bold text-gray-800">Form Penyusunan RAB Baru</h1>
-            <p class="text-xs text-gray-500 mt-1">Pilih lokasi pasar terlebih dahulu untuk menampilkan dan memilih laporan perbaikan.</p>
-        </div>
-        <a href="{{ route('staff.rab.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition">
-            Kembali
-        </a>
+    <!-- Header Page (Tanpa Tombol Kembali) -->
+    <div>
+        <h1 class="text-xl font-bold text-gray-800">Form Penyusunan RAB Baru</h1>
+        <p class="text-xs text-gray-500 mt-1">Pilih lokasi pasar terlebih dahulu untuk menampilkan dan memilih laporan kerusakan.</p>
     </div>
 
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold">
-            {{ session('error') }}
-        </div>
-    @endif
+
 
     <form action="{{ route('staff.rab.store') }}" method="POST" id="formRab">
         @csrf
@@ -35,8 +27,8 @@
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
             <div class="border-b pb-3">
                 <h2 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-[#114F72] text-white flex items-center justify-center text-xs">1</span>
-                    Pilih Lokasi Pasar & Laporan Perbaikan
+                    <span class="w-6 h-6 rounded-full bg-[#114F72] text-white flex items-center justify-center text-xs font-semibold">1</span>
+                    Pilih Lokasi Pasar & Laporan Kerusakan
                 </h2>
             </div>
 
@@ -51,26 +43,14 @@
                         <option value="{{ $pasar->id_pasar }}">{{ $pasar->nama_pasar }} ({{ $pasar->alamat ?? '' }})</option>
                     @endforeach
                 </select>
+                <!-- Helper text kecil saat pasar belum dipilih -->
+                <p id="emptyPasarNotice" class="text-xs text-gray-500 mt-1.5 font-medium">
+                    Pilih pasar untuk menampilkan laporan yang tersedia.
+                </p>
             </div>
-
-            <!-- NOTIFIKASI KOSONG JIKA BELUM PILIH PASAR -->
-            <div id="emptyPasarNotice" class="p-6 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-center text-xs text-gray-500 space-y-1">
-                <svg class="w-8 h-8 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0H9m4 0h2m-6 4h6"/>
-                </svg>
-                <p class="font-bold text-gray-700">Daftar laporan masih kosong.</p>
-                <p>Silakan pilih <span class="font-semibold text-[#114F72]">Lokasi Pasar</span> di atas untuk menampilkan daftar laporan perbaikan yang tersedia.</p>
-            </div>
-
-            @if($laporanEligible->isEmpty())
-                <div id="noReportNotice" class="hidden p-6 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs text-amber-800">
-                    <p class="font-bold">Tidak ada laporan eligible yang tersedia.</p>
-                    <p class="mt-1">Laporan yang dapat disusunkan RAB adalah laporan kategori Ringan/Sedang yang hasil evaluasinya telah disetujui Kabid.</p>
-                </div>
-            @endif
 
             <!-- CONTAINER DAFTAR LAPORAN TERFILTER -->
-            <div id="laporanListContainer" class="hidden space-y-2 max-h-64 overflow-y-auto pr-1">
+            <div id="laporanListContainer" class="hidden space-y-2 max-h-64 overflow-y-auto pr-1 mt-3">
                 @foreach($laporanEligible as $lap)
                     @php
                         $idPasar = $lap->lokasi->id_pasar ?? 'NO_PASAR';
@@ -90,74 +70,117 @@
                         </div>
                     </label>
                 @endforeach
+
+                <!-- Empty state saat pasar terpilih tidak memiliki laporan -->
                 <div id="noReportForPasar" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs text-amber-800 font-semibold">
-                    Tidak ada laporan perbaikan yang eligible (Disetujui & belum masuk RAB) untuk pasar ini.
+                    Tidak ada laporan yang tersedia.
                 </div>
             </div>
             @error('laporan_ids')
-                <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p>
+                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
             @enderror
         </div>
 
-        <!-- STEP 2: DETAIL KEBUTUHAN RAB (SAB INTEGRATION) -->
+        <!-- STEP 2: DETAIL KEBUTUHAN RAB (SEARCHABLE AUTOCOMPLETE SAB) -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4 mt-6">
             <div class="flex items-center justify-between border-b pb-3">
                 <h2 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-[#114F72] text-white flex items-center justify-center text-xs">2</span>
-                    Rincian Kebutuhan RAB (Master SAB / Manual)
+                    <span class="w-6 h-6 rounded-full bg-[#114F72] text-white flex items-center justify-center text-xs font-semibold">2</span>
+                    Rincian Kebutuhan RAB
                 </h2>
-                <button type="button" onclick="addRow()" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold transition">
-                    + Tambah Baris
+                <button type="button" onclick="addRow()" class="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Baris
                 </button>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs" id="tableDetailRab">
-                    <thead class="bg-gray-50 text-gray-500 uppercase font-semibold">
+                    <thead class="bg-gray-50 text-gray-500 uppercase font-semibold border-b border-gray-100">
                         <tr>
-                            <th class="py-2.5 px-3 w-1/3">Pilih Kebutuhan SAB / Rincian</th>
-                            <th class="py-2.5 px-3 w-28">Volume</th>
-                            <th class="py-2.5 px-3 w-28">Satuan</th>
-                            <th class="py-2.5 px-3 w-36">Harga Satuan (Rp)</th>
-                            <th class="py-2.5 px-3 w-36 text-right">Subtotal (Rp)</th>
-                            <th class="py-2.5 px-3 w-12 text-center">Hapus</th>
+                            <th class="py-2.5 px-3 w-12 text-center">No.</th>
+                            <th class="py-2.5 px-3">Kebutuhan</th>
+                            <th class="py-2.5 px-3 w-28 text-center">Volume</th>
+                            <th class="py-2.5 px-3 w-24 text-center">Satuan</th>
+                            <th class="py-2.5 px-3 w-36 text-right">Harga Satuan</th>
+                            <th class="py-2.5 px-3 w-36 text-right">Subtotal</th>
+                            <th class="py-2.5 px-3 w-10 text-center"></th>
                         </tr>
                     </thead>
                     <tbody id="rabContainer" class="divide-y divide-gray-100">
                         <tr class="rab-row">
+                            <!-- Kolom No. (Otomatis & Read-Only) -->
+                            <td class="py-2.5 px-3 text-center font-bold text-gray-500 text-xs row-number">
+                                1
+                            </td>
+
+                            <!-- Kolom Kebutuhan (Searchable Autocomplete) -->
                             <td class="py-2.5 px-3">
-                                <select onchange="onSabSelect(this)" class="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#114F72] mb-1">
-                                    <option value="">-- Pilih dari Master SAB --</option>
-                                    @foreach($sabList as $sab)
-                                        <option value="{{ $sab->id_sab }}" data-nama="{{ $sab->nama_kebutuhan }}" data-satuan="{{ $sab->satuan }}" data-harga="{{ $sab->harga_standar }}">
-                                            {{ $sab->nama_kebutuhan }} (Rp {{ number_format($sab->harga_standar, 0, ',', '.') }}/{{ $sab->satuan }})
-                                        </option>
-                                    @endforeach
-                                </select>
                                 <input type="hidden" name="id_sab[]" class="sab-id-input">
-                                <input type="text" name="rincian_kebutuhan[]" placeholder="Rincian kebutuhan..." required class="rincian-input w-full p-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#114F72]">
+                                <input type="hidden" name="rincian_kebutuhan[]" class="rincian-input" required>
+                                
+                                <div class="relative autocomplete-container">
+                                    <input type="text"
+                                           placeholder="Ketik nama kebutuhan (misal: Semen)..."
+                                           autocomplete="off"
+                                           class="sab-autocomplete-input w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:border-[#114F72] focus:ring-2 focus:ring-[#114F72]/20 transition"
+                                           oninput="handleSabSearch(this)"
+                                           onfocus="handleSabSearch(this)"
+                                           onkeydown="handleSabKeydown(event, this)">
+                                    
+                                    <div class="sab-suggestions-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl p-1 space-y-0.5"></div>
+                                </div>
                             </td>
+
+                            <!-- Kolom Volume -->
                             <td class="py-2.5 px-3">
-                                <input type="number" step="0.001" min="0.001" name="volume[]" oninput="calculateSubtotal(this)" required placeholder="0" class="volume-input w-full p-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#114F72]">
+                                <input type="number"
+                                       step="0.001"
+                                       min="0.001"
+                                       name="volume[]"
+                                       oninput="calculateSubtotal(this)"
+                                       required
+                                       placeholder="0"
+                                       class="volume-input w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs text-center font-bold text-gray-800 outline-none focus:border-[#114F72] focus:ring-2 focus:ring-[#114F72]/20 transition">
                             </td>
-                            <td class="py-2.5 px-3">
-                                <input type="text" name="satuan[]" required placeholder="sak/m2/kg..." class="satuan-input w-full p-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#114F72]">
+
+                            <!-- Kolom Satuan (Read-Only Info Badge) -->
+                            <td class="py-2.5 px-3 text-center">
+                                <input type="hidden" name="satuan[]" class="satuan-input" required>
+                                <span class="satuan-display inline-block w-full text-center px-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600">
+                                    -
+                                </span>
                             </td>
-                            <td class="py-2.5 px-3">
-                                <input type="number" min="1" name="harga_satuan[]" oninput="calculateSubtotal(this)" required placeholder="0" class="harga-input w-full p-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#114F72]">
+
+                            <!-- Kolom Harga Satuan (Read-Only Info Badge) -->
+                            <td class="py-2.5 px-3 text-right">
+                                <input type="hidden" name="harga_satuan[]" class="harga-input" required>
+                                <span class="harga-display inline-block w-full text-right px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700">
+                                    Rp 0
+                                </span>
                             </td>
-                            <td class="py-2.5 px-3 text-right font-bold text-gray-800 subtotal-display">
+
+                            <!-- Kolom Subtotal -->
+                            <td class="py-2.5 px-3 text-right font-extrabold text-[#114F72] text-xs subtotal-display">
                                 Rp 0
                             </td>
+
+                            <!-- Kolom Action Hapus (Ikon Trash Kecil Tanpa Header) -->
                             <td class="py-2.5 px-3 text-center">
-                                <button type="button" onclick="removeRow(this)" class="text-rose-500 hover:text-rose-700 font-bold">&times;</button>
+                                <button type="button" onclick="removeRow(this)" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer" title="Hapus baris ini">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </td>
                         </tr>
                     </tbody>
                     <tfoot class="border-t bg-gray-50/50">
                         <tr>
-                            <td colspan="4" class="py-3 px-3 font-bold text-gray-700 text-right">Total Anggaran RAB:</td>
-                            <td class="py-3 px-3 font-bold text-[#114F72] text-right text-sm" id="grandTotalDisplay">Rp 0</td>
+                            <td colspan="5" class="py-3.5 px-3 font-bold text-gray-700 text-right">Total Anggaran RAB:</td>
+                            <td class="py-3.5 px-3 font-extrabold text-[#114F72] text-right text-sm" id="grandTotalDisplay">Rp 0</td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -178,6 +201,16 @@
 </div>
 
 <script>
+// Data Master SAB Aktif untuk Autocomplete
+const rawSabData = @json($sabList);
+const masterSabList = Array.isArray(rawSabData) ? rawSabData.map(item => ({
+    id: item.id_sab,
+    nama: item.nama_kebutuhan,
+    satuan: item.satuan,
+    harga: parseFloat(item.harga_standar) || 0,
+    harga_formatted: 'Rp ' + Number(item.harga_standar || 0).toLocaleString('id-ID')
+})) : [];
+
 function filterLaporanByPasar(selectedPasarId) {
     const emptyNotice = document.getElementById('emptyPasarNotice');
     const container = document.getElementById('laporanListContainer');
@@ -186,16 +219,17 @@ function filterLaporanByPasar(selectedPasarId) {
     const allCheckboxes = document.querySelectorAll('.laporan-checkbox');
 
     if (!selectedPasarId) {
-        emptyNotice.classList.remove('hidden');
-        container.classList.add('hidden');
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (container) container.classList.add('hidden');
+        if (noReportMsg) noReportMsg.classList.add('hidden');
         allCheckboxes.forEach(cb => {
             cb.checked = false;
         });
         return;
     }
 
-    emptyNotice.classList.add('hidden');
-    container.classList.remove('hidden');
+    if (emptyNotice) emptyNotice.classList.add('hidden');
+    if (container) container.classList.remove('hidden');
 
     let visibleCount = 0;
     allItems.forEach(item => {
@@ -210,9 +244,9 @@ function filterLaporanByPasar(selectedPasarId) {
     });
 
     if (visibleCount === 0) {
-        noReportMsg.classList.remove('hidden');
+        if (noReportMsg) noReportMsg.classList.remove('hidden');
     } else {
-        noReportMsg.classList.add('hidden');
+        if (noReportMsg) noReportMsg.classList.add('hidden');
     }
 }
 
@@ -221,24 +255,147 @@ document.addEventListener('DOMContentLoaded', function() {
     if (select && select.value) {
         filterLaporanByPasar(select.value);
     }
+    updateRowNumbers();
 });
 
-function onSabSelect(selectEl) {
-    const row = selectEl.closest('.rab-row');
-    const selected = selectEl.options[selectEl.selectedIndex];
-
-    if (selectEl.value) {
-        row.querySelector('.sab-id-input').value = selectEl.value;
-        row.querySelector('.rincian-input').value = selected.dataset.nama || '';
-        row.querySelector('.satuan-input').value = selected.dataset.satuan || '';
-        row.querySelector('.harga-input').value = selected.dataset.harga || '';
-    } else {
-        row.querySelector('.sab-id-input').value = '';
-    }
-    calculateSubtotal(selectEl);
+function updateRowNumbers() {
+    document.querySelectorAll('#rabContainer .rab-row').forEach((row, index) => {
+        const numTd = row.querySelector('.row-number');
+        if (numTd) {
+            numTd.textContent = index + 1;
+        }
+    });
 }
 
+// AUTOCOMPLETE SAB LOGIC
+function handleSabSearch(inputEl) {
+    const container = inputEl.closest('.autocomplete-container');
+    const dropdown = container.querySelector('.sab-suggestions-dropdown');
+    const row = inputEl.closest('.rab-row');
+    const q = inputEl.value.trim().toLowerCase();
+
+    // Sync rincian_kebutuhan hidden input
+    row.querySelector('.rincian-input').value = inputEl.value;
+
+    if (!q) {
+        dropdown.innerHTML = '';
+        dropdown.classList.add('hidden');
+        resetSabData(row);
+        return;
+    }
+
+    const filtered = masterSabList.filter(item => item.nama.toLowerCase().includes(q));
+
+    if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="p-2.5 text-xs text-gray-400 text-center font-medium">Tidak ada hasil dari Master SAB</div>';
+        dropdown.classList.remove('hidden');
+        return;
+    }
+
+    let html = '';
+    filtered.forEach((item, index) => {
+        const regex = new RegExp('(' + escapeRegExp(q) + ')', 'gi');
+        const highlightedName = item.nama.replace(regex, '<mark class="bg-amber-200 text-gray-900 rounded-sm px-0.5">$1</mark>');
+
+        html += `
+            <div class="sab-option-item cursor-pointer px-3 py-2 hover:bg-[#114F72]/10 hover:text-[#114F72] rounded-lg flex items-center justify-between transition text-xs ${index === 0 ? 'bg-gray-50' : ''}"
+                 data-id="${item.id}"
+                 data-nama="${item.nama}"
+                 data-satuan="${item.satuan}"
+                 data-harga="${item.harga}"
+                 data-harga-formatted="${item.harga_formatted}"
+                 onclick="selectSabOption(this)">
+                <span class="font-semibold text-gray-800">${highlightedName}</span>
+                <span class="text-[11px] font-bold text-[#114F72] bg-[#114F72]/10 px-2 py-0.5 rounded-full">${item.harga_formatted} / ${item.satuan}</span>
+            </div>
+        `;
+    });
+
+    dropdown.innerHTML = html;
+    dropdown.classList.remove('hidden');
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function selectSabOption(optEl) {
+    const row = optEl.closest('.rab-row');
+    const id = optEl.dataset.id;
+    const nama = optEl.dataset.nama;
+    const satuan = optEl.dataset.satuan;
+    const harga = parseFloat(optEl.dataset.harga) || 0;
+    const hargaFormatted = optEl.dataset.hargaFormatted;
+
+    row.querySelector('.sab-id-input').value = id;
+    row.querySelector('.rincian-input').value = nama;
+    row.querySelector('.sab-autocomplete-input').value = nama;
+
+    row.querySelector('.satuan-input').value = satuan;
+    row.querySelector('.satuan-display').textContent = satuan;
+
+    row.querySelector('.harga-input').value = harga;
+    row.querySelector('.harga-display').textContent = hargaFormatted;
+
+    const dropdown = row.querySelector('.sab-suggestions-dropdown');
+    dropdown.classList.add('hidden');
+
+    calculateSubtotal(row.querySelector('.volume-input'));
+
+    const volInput = row.querySelector('.volume-input');
+    if (volInput) {
+        volInput.focus();
+    }
+}
+
+function resetSabData(row) {
+    row.querySelector('.sab-id-input').value = '';
+    row.querySelector('.satuan-input').value = '';
+    row.querySelector('.satuan-display').textContent = '-';
+    row.querySelector('.harga-input').value = '';
+    row.querySelector('.harga-display').textContent = 'Rp 0';
+    calculateSubtotal(row.querySelector('.volume-input'));
+}
+
+function handleSabKeydown(e, inputEl) {
+    const container = inputEl.closest('.autocomplete-container');
+    const dropdown = container.querySelector('.sab-suggestions-dropdown');
+    const options = dropdown.querySelectorAll('.sab-option-item');
+
+    if (dropdown.classList.contains('hidden') || options.length === 0) return;
+
+    let activeIdx = Array.from(options).findIndex(opt => opt.classList.contains('bg-[#114F72]/10'));
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIdx >= 0) options[activeIdx].classList.remove('bg-[#114F72]/10');
+        activeIdx = (activeIdx + 1) % options.length;
+        options[activeIdx].classList.add('bg-[#114F72]/10');
+        options[activeIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIdx >= 0) options[activeIdx].classList.remove('bg-[#114F72]/10');
+        activeIdx = (activeIdx - 1 + options.length) % options.length;
+        options[activeIdx].classList.add('bg-[#114F72]/10');
+        options[activeIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+        if (activeIdx >= 0 && options[activeIdx]) {
+            e.preventDefault();
+            selectSabOption(options[activeIdx]);
+        }
+    } else if (e.key === 'Escape') {
+        dropdown.classList.add('hidden');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-container')) {
+        document.querySelectorAll('.sab-suggestions-dropdown').forEach(dd => dd.classList.add('hidden'));
+    }
+});
+
 function calculateSubtotal(el) {
+    if (!el) return;
     const row = el.closest('.rab-row');
     const vol = parseFloat(row.querySelector('.volume-input').value) || 0;
     const price = parseFloat(row.querySelector('.harga-input').value) || 0;
@@ -263,21 +420,31 @@ function addRow() {
     const firstRow = container.querySelector('.rab-row');
     const newRow = firstRow.cloneNode(true);
 
-    newRow.querySelector('select').selectedIndex = 0;
     newRow.querySelector('.sab-id-input').value = '';
     newRow.querySelector('.rincian-input').value = '';
+    newRow.querySelector('.sab-autocomplete-input').value = '';
     newRow.querySelector('.volume-input').value = '';
     newRow.querySelector('.satuan-input').value = '';
+    newRow.querySelector('.satuan-display').textContent = '-';
     newRow.querySelector('.harga-input').value = '';
+    newRow.querySelector('.harga-display').textContent = 'Rp 0';
     newRow.querySelector('.subtotal-display').innerText = 'Rp 0';
 
+    const dropdown = newRow.querySelector('.sab-suggestions-dropdown');
+    if (dropdown) {
+        dropdown.innerHTML = '';
+        dropdown.classList.add('hidden');
+    }
+
     container.appendChild(newRow);
+    updateRowNumbers();
 }
 
 function removeRow(btn) {
     const rows = document.querySelectorAll('.rab-row');
     if (rows.length > 1) {
         btn.closest('.rab-row').remove();
+        updateRowNumbers();
         updateGrandTotal();
     } else {
         alert('Minimal harus ada 1 baris rincian kebutuhan RAB.');

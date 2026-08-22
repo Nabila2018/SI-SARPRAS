@@ -368,13 +368,12 @@
             $sedangDiproses = (clone $staffPeriodBase)->where('status_laporan', 'Diproses')->count();
             $selesaiCount   = (clone $staffPeriodBase)->where('status_laporan', 'Selesai')->count();
 
-            // 1. Data All 9 Markets active report count within period
+            // 1. Data All Markets total report count within period (Breakdown of KPI Total Laporan)
             $semuaPasar = \App\Models\Pasar::all();
             $pasarAktifData = $semuaPasar->map(function($p) use ($startDate, $endDate) {
                 $count = \App\Models\Laporan::whereHas('lokasi', function($q) use ($p) {
                     $q->where('id_pasar', $p->id_pasar);
-                })->whereIn('status_laporan', ['Menunggu', 'Diproses', 'Dikembalikan'])
-                  ->whereBetween('tanggal_lapor', [$startDate, $endDate])
+                })->whereBetween('tanggal_lapor', [$startDate, $endDate])
                   ->count();
 
                 return [
@@ -510,7 +509,7 @@
             {{-- LEFT CARD --}}
             <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-gray-900 tracking-tight">Laporan Aktif per Pasar</h2>
+                    <h2 class="text-base font-bold text-gray-900 tracking-tight">Jumlah Laporan per Pasar</h2>
                     <p class="text-xs text-gray-400 font-medium mt-0.5">{{ $chartSubtitle }}</p>
                 </div>
                 <div class="relative w-full" style="height: 250px;">
@@ -583,7 +582,7 @@
                     data: {
                         labels: {!! json_encode($pasarLabels) !!},
                         datasets: [{
-                            label: 'Laporan Aktif',
+                            label: 'Jumlah Laporan',
                             data: {!! json_encode($pasarCounts) !!},
                             backgroundColor: '#114F72',
                             borderRadius: 4,

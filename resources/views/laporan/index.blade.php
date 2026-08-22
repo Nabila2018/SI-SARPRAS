@@ -21,24 +21,7 @@
         </a>
     </div>
 
-    <!-- Alert Messages -->
-    @if(session('success'))
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <svg class="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-sm text-emerald-700">{{ session('success') }}</p>
-        </div>
-    @endif
 
-    @if(session('error'))
-        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-sm text-red-700">{{ session('error') }}</p>
-        </div>
-    @endif
 
     <!-- Tabel Riwayat -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
